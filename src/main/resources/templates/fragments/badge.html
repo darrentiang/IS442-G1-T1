@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  Badge: a status pill coloured by the app-wide status mapping
+  (class is badge- plus the lowercase value, e.g. badge-pending).
+  Usage, passing an enum value such as a RequestStatus:
+    <span th:replace="~{fragments/badge :: badge(${request.status})}"></span>
+-->
+<span th:fragment="badge(status)"
+      class="badge"
+      th:classappend="'badge-' + ${#strings.toLowerCase(status)}"
+      th:text="${status}">PENDING</span>
+</body>
+</html>

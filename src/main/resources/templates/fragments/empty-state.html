@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  Empty state: shown instead of a blank table or list.
+  Usage, wrapped in a th:block that decides when it shows:
+    <th:block th:if="${#lists.isEmpty(requests)}">
+      <div th:replace="~{fragments/empty-state :: empty-state('No pending requests')}"></div>
+    </th:block>
+-->
+<div th:fragment="empty-state(message)" class="empty-state">
+  <p th:text="${message}">No pending requests</p>
+</div>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<!--
+  Reference page. Copy this file as the starting point for any new page:
+  head + nav + toast fragments, an h1, then content built from app.css classes.
+-->
+<head th:replace="~{fragments/head :: head('Courses')}"></head>
+<body>
+<header th:replace="~{fragments/nav :: nav('courses')}"></header>
+<div th:replace="~{fragments/toast :: toast}"></div>
+
+<main>
+  <h1>Courses</h1>
+
+  <div class="card">
+    <table class="table" th:if="${!#lists.isEmpty(courses)}">
+      <thead>
+        <tr><th>Code</th><th>Title</th><th>School</th></tr>
+      </thead>
+      <tbody>
+        <tr th:each="c : ${courses}">
+          <td th:text="${c.code}">IS442</td>
+          <td th:text="${c.title}">Object-Oriented Programming</td>
+          <td th:text="${c.school}">SCIS</td>
+        </tr>
+      </tbody>
+    </table>
+    <th:block th:if="${#lists.isEmpty(courses)}">
+      <div th:replace="~{fragments/empty-state :: empty-state('No courses yet.')}"></div>
+    </th:block>
+  </div>
+</main>
+</body>
+</html>

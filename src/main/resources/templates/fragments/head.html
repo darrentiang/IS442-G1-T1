@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+  Page <head>: charset, viewport, page title and the app stylesheet.
+  Usage (replaces the page's own <head>):
+    <head th:replace="~{fragments/head :: head('Courses')}"></head>
+-->
+<head th:fragment="head(title)">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${title} + ' · Study Buddy'">Study Buddy</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body></body>
+</html>

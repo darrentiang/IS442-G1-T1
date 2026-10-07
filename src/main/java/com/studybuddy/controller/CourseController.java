@@ -21,6 +21,6 @@ public class CourseController {
     @GetMapping("/courses")
     public String showCourses(Model model) {
         model.addAttribute("courses", courseService.findAll());
-        return "courses";                    // -> templates/courses.html
+        return "shared/courses";             // -> templates/shared/courses.html
     }
 }

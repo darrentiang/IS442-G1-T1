@@ -6,7 +6,7 @@ A web app that matches SMU students to study partners with a deterministic scori
 
 - Java 21, Maven (via the included Maven Wrapper — no Maven install needed)
 - Spring Boot 3.x (`spring-boot-starter-web`, `spring-boot-starter-thymeleaf`)
-- Thymeleaf server-side pages, plain HTML, Pico.css via CDN
+- Thymeleaf server-side pages, plain HTML, one hand-written stylesheet (`static/css/app.css`)
 - In-memory storage (HashMap repositories) — no database
 
 ## Running the app
@@ -25,7 +25,7 @@ Other useful goals, using the same command form: `compile`, and `javadoc:javadoc
 
 ## Design
 
-The design spec — layers, packages, shared classes, class diagrams, and the worked Course example every feature follows — is [docs/FOUNDATION.md](docs/FOUNDATION.md). Rules for AI coding agents are in [CLAUDE.md](CLAUDE.md).
+The design spec — layers, packages, shared classes, class diagrams, and the worked Course example every feature follows — is [docs/FOUNDATION.md](docs/FOUNDATION.md). The look and UI feedback patterns are in [docs/UI_GUIDELINES.md](docs/UI_GUIDELINES.md). Rules for AI coding agents are in [AGENTS.md](AGENTS.md).
 
 ## Team
 

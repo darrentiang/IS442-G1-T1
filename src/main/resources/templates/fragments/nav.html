@@ -1,13 +1,21 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-<nav th:fragment="nav" class="container">
-  <ul>
-    <li><strong>Study Buddy</strong></li>
-  </ul>
-  <ul>
-    <li><a th:href="@{/courses}">Courses</a></li>
-  </ul>
-</nav>
+<!--
+  Top bar: app name on the left, area links, current page in accent.
+  Usage (first thing in <body>), passing the current page's key:
+    <header th:replace="~{fragments/nav :: nav('courses')}"></header>
+  To add an area, copy the Courses link and change its URL, key and label.
+-->
+<header th:fragment="nav(active)" class="topbar">
+  <nav>
+    <span class="topbar-brand">Study Buddy</span>
+    <div class="topbar-links">
+      <a th:href="@{/courses}"
+         th:classappend="${active == 'courses'} ? 'active'"
+         th:attr="aria-current=${active == 'courses'} ? 'page'">Courses</a>
+    </div>
+  </nav>
+</header>
 </body>
 </html>

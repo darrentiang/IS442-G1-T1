@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  Toast: shows the flash message after a redirect, then fades out by itself.
+  Renders nothing unless the model has toastMessage.
+  Usage (right after the nav, on every page):
+    <div th:replace="~{fragments/toast :: toast}"></div>
+  In the controller, before redirecting:
+    redirectAttributes.addFlashAttribute("toastMessage", "Request sent");
+    redirectAttributes.addFlashAttribute("toastType", "success");   // or "error"
+-->
+<div th:fragment="toast"
+     th:if="${toastMessage != null}"
+     class="toast"
+     th:classappend="'toast-' + (${toastType} ?: 'success')"
+     role="status"
+     th:text="${toastMessage}">Request sent</div>
+</body>
+</html>

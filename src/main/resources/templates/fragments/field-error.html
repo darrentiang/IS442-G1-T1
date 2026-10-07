@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  Field error: the message for one form field, shown directly under it.
+  Renders nothing unless the model's fieldErrors map has an entry for that field.
+  Usage (right after the field's input), passing the field name:
+    <label for="maxSize">Max size</label>
+    <input id="maxSize" name="maxSize" th:value="${maxSize}">
+    <p th:replace="~{fragments/field-error :: field-error('maxSize')}"></p>
+-->
+<p th:fragment="field-error(name)"
+   th:if="${fieldErrors != null and fieldErrors.get(name) != null}"
+   class="field-error"
+   th:text="${fieldErrors.get(name)}">Max size must be between 2 and 10</p>
+</body>
+</html>
