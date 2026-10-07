@@ -1,0 +1,10 @@
+classDiagram
+    direction TB
+    StudyGroup "1" --> "1" Student : leader
+    StudyGroup "1" --> "*" Student : members
+    StudyGroup "1" --> "1" Course
+    JoinRequest "1" --> "1" Student
+    JoinRequest "1" --> "1" StudyGroup
+    ActivityEvent "*" --> "1" StudyGroup
+    StudySession "1" --> "2..*" Student : participants
+    StudySession "1" --> "1" Course

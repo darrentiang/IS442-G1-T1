@@ -1,0 +1,9 @@
+classDiagram
+    direction TB
+    MatchingStrategy <|.. AbstractWeightedStrategy
+    AbstractWeightedStrategy <|-- BalancedStrategy
+    AbstractWeightedStrategy <|-- AvailabilityFirstStrategy
+    AbstractWeightedStrategy <|-- CourseFirstStrategy
+    MatchCriterion <|.. CourseCriterion
+    MatchCriterion <|.. AvailabilityCriterion
+    MatchCriterion <|.. StudyGoalCriterion

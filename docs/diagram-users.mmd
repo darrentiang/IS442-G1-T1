@@ -1,0 +1,11 @@
+classDiagram
+    direction TB
+    class User { <<abstract>> }
+    User <|-- Student
+    User <|-- SystemAdministrator
+    Student "1" --> "1" StudentProfile
+    StudentProfile "1" --> "1" AvailabilityGrid
+    StudentProfile "1" --> "1" StudyPreferences
+    StudentProfile "1" --> "*" Course : coursesTaken
+    MatchRequest "1" --> "2" Student : from / to
+    Connection "1" --> "2" Student : a / b
