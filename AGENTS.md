@@ -39,8 +39,9 @@ Packages are by layer. Dependencies point down only: controller → service → 
 | `com.studybuddy.service` | Business rules | `XService` (`@Service`) | Calls repositories and other services. Returns model objects, never HTML, never touches `Model` |
 | `com.studybuddy.controller` | Web requests | `XController` (`@Controller`); JSON endpoints in `XApiController` (`@RestController`) | Thin: read input, call a service, choose a page. No business rules, no data storage |
 | `com.studybuddy.seed` | Startup demo data | `SeedDataLoader` (`@Component`) | Only saves through repositories |
+| `src/main/resources/seed/` | Demo data as CSV | `courses.csv`, `admins.csv`, `students.csv` | Edit the CSV, not Java. Lists use `\|`, availability uses `DAY start-end;...`, no commas inside a cell |
 
-Controllers by area: `CourseController`, `ProfileController`, `MatchController`, `ConnectionController`, `GroupController`, `SessionController`, `AdminController`. Add to the existing one for your area before creating a new one.
+Controllers by area: `UserPickerController` and `HomeController` (shared pages), `CourseController`, `ProfileController`, `MatchController`, `ConnectionController`, `GroupController`, `SessionController`, `AdminController`. Add to the existing one for your area before creating a new one.
 
 **URLs:** lowercase, kebab-case, by area: `/profile`, `/matches`, `/connections`, `/groups/{id}`, `/groups/{id}/join`, `/admin/config`. GET shows a page; POST performs an action. JSON endpoints start with `/api/`.
 
@@ -61,6 +62,10 @@ Every page includes `fragments/head`, `fragments/nav` and `fragments/toast`. Cop
 - JavaScript lives only in `static/js/`, one file per page that needs it (`admin-config.js`, `availability-grid.js`). No inline `<script>` code.
 
 **Docs:** `docs/FOUNDATION.md` (design), `docs/UI_GUIDELINES.md` (look and behaviour), `docs/*.mmd` (class diagrams).
+
+## Current user
+
+The user picker (`/`) signs a user in. Every other page reads the signed-in user with `CurrentUser.getId(session)` plus `UserService`, and redirects to `/` when the id is null. `CurrentUser` (controller package) is the only Java code that touches the session; it stores only the user's id, name and role label, and the nav fragment reads the name and role. Nothing else goes in the session.
 
 ## Adding a feature
 

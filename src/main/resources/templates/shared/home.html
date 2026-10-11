@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<!-- Placeholder home page; the real one comes later. -->
+<head th:replace="~{fragments/head :: head('Home')}"></head>
+<body>
+<header th:replace="~{fragments/nav :: nav('home')}"></header>
+<div th:replace="~{fragments/toast :: toast}"></div>
+
+<main>
+  <div>
+    <h1 th:text="'Welcome, ' + ${user.name}">Welcome, Tan Wei Jie</h1>
+    <p class="text-secondary" th:text="${user.roleLabel}">Student</p>
+  </div>
+
+  <div class="card" th:if="${student != null}">
+    <h2>Your profile</h2>
+    <p th:text="${student.profile.programme + ' · Year ' + student.profile.yearOfStudy}">Information Systems · Year 3</p>
+    <p th:with="target=${student.profile.preferences.targetCourse}"
+       th:text="${'Looking for a buddy in ' + target.code + ' ' + target.title}">Looking for a buddy in IS442 Object-Oriented Programming</p>
+  </div>
+</main>
+</body>
+</html>

@@ -58,6 +58,9 @@ public abstract class User {
     private String name;
     private String email;
     private AccountStatus status;      // ACTIVE, SUSPENDED
+
+    /** "Student" or "Administrator". The picker and nav use this instead of instanceof. */
+    public abstract String getRoleLabel();
 }
 
 /** A student. Extends User. Leadership of a group is NOT a subclass —
@@ -118,10 +121,15 @@ public class AvailabilityGrid {
     /** Hours per week where BOTH grids are true. Used by matching, the overlap visual,
         the group heatmap, and best-slot. */
     public int overlapHours(AvailabilityGrid other) { ... }
+
+    /** Builds a grid from text like "MON 19-21;WED 19-21;SAT 14-18" (end hour exclusive,
+        so 19-21 marks 19:00 and 20:00). Blank text gives an empty grid. Throws
+        IllegalArgumentException for a bad day, a range outside 8..23, or start >= end. */
+    public static AvailabilityGrid parse(String text) { ... }
 }
 ```
 
-One structure, four features. Day 0 = Monday. Hour index 0 = 08:00.
+One structure, four features. Day 0 = Monday. Hour index 0 = 08:00. Used by both students (`StudentProfile.availability`) and groups (`StudyGroup.availability`).
 
 ### Course
 
@@ -173,6 +181,7 @@ public class StudyGroup {
     private Set<StudyGoal> goals;
     private StudyMode mode;
     private boolean open;               // closed groups accept nobody
+    private AvailabilityGrid availability;   // the group's weekly availability (the brief requires it)
 }
 
 /** A request by a student to join a group. Same lifecycle as MatchRequest. */
@@ -285,6 +294,7 @@ classDiagram
     StudyGroup "1" --> "1" Student : leader
     StudyGroup "1" --> "*" Student : members
     StudyGroup "1" --> "1" Course
+    StudyGroup "1" --> "1" AvailabilityGrid
     JoinRequest "1" --> "1" Student
     JoinRequest "1" --> "1" StudyGroup
     ActivityEvent "*" --> "1" StudyGroup
@@ -328,7 +338,7 @@ public class InMemoryStudentRepository implements StudentRepository {
 }
 ```
 
-Same shape for Course, MatchRequest, Connection, StudyGroup, JoinRequest, StudySession, ActivityEvent. Add finder methods your feature needs (`findByCourse(...)`) to your own repository interface — that is normal and does not need a spine change.
+Same shape for Course, SystemAdministrator (`SystemAdministratorRepository`), MatchRequest, Connection, StudyGroup, JoinRequest, StudySession, ActivityEvent. The Student, Course and SystemAdministrator implementations use a `LinkedHashMap`, which keeps insertion order, so `findAll()` returns rows in seed CSV order. Add finder methods your feature needs (`findByCourse(...)`) to your own repository interface — that is normal and does not need a spine change.
 
 ## 6. The worked example: Course, all four layers
 

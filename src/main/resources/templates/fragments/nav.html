@@ -2,19 +2,33 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 <!--
-  Top bar: app name on the left, area links, current page in accent.
+  Top bar: app name on the left, area links (current page in accent), and the
+  signed-in user on the right with a "Switch user" button.
   Usage (first thing in <body>), passing the current page's key:
     <header th:replace="~{fragments/nav :: nav('courses')}"></header>
+  The picker passes 'picker', which shows only the app name.
   To add an area, copy the Courses link and change its URL, key and label.
 -->
 <header th:fragment="nav(active)" class="topbar">
   <nav>
     <span class="topbar-brand">Study Buddy</span>
-    <div class="topbar-links">
-      <a th:href="@{/courses}"
-         th:classappend="${active == 'courses'} ? 'active'"
-         th:attr="aria-current=${active == 'courses'} ? 'page'">Courses</a>
-    </div>
+    <th:block th:unless="${active == 'picker'}">
+      <div class="topbar-links">
+        <a th:href="@{/home}"
+           th:classappend="${active == 'home'} ? 'active'"
+           th:attr="aria-current=${active == 'home'} ? 'page'">Home</a>
+        <a th:href="@{/courses}"
+           th:classappend="${active == 'courses'} ? 'active'"
+           th:attr="aria-current=${active == 'courses'} ? 'page'">Courses</a>
+      </div>
+      <div class="topbar-user" th:if="${session.currentUserName != null}">
+        <span class="topbar-user-name" th:text="${session.currentUserName}">Tan Wei Jie</span>
+        <span th:text="'· ' + ${session.currentUserRole}">· Student</span>
+        <form th:action="@{/sign-out}" method="post">
+          <button type="submit" class="btn btn-secondary">Switch user</button>
+        </form>
+      </div>
+    </th:block>
   </nav>
 </header>
 </body>

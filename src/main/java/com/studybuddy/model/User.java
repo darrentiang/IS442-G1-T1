@@ -50,4 +50,7 @@ public abstract class User {
     public void setStatus(AccountStatus status) {
         this.status = status;
     }
+
+    /** Returns the role shown to people, e.g. "Student"; used instead of instanceof checks. */
+    public abstract String getRoleLabel();
 }

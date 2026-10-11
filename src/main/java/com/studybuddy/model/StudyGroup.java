@@ -22,6 +22,7 @@ public class StudyGroup {
     private Set<StudyGoal> goals = new HashSet<>();
     private StudyMode mode;
     private boolean open;
+    private AvailabilityGrid availability = new AvailabilityGrid();
 
     /** Creates a group shell; the Leader team's service fills in the rest. */
     public StudyGroup(String id) {
@@ -131,6 +132,16 @@ public class StudyGroup {
     /** Opens or closes the group to new members. */
     public void setOpen(boolean open) {
         this.open = open;
+    }
+
+    /** Returns the group's weekly availability grid. */
+    public AvailabilityGrid getAvailability() {
+        return availability;
+    }
+
+    /** Replaces the group's weekly availability grid. */
+    public void setAvailability(AvailabilityGrid availability) {
+        this.availability = availability;
     }
 
     /** Returns a short description of this group for logs and debugging. */

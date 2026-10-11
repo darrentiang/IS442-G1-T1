@@ -3,6 +3,7 @@ classDiagram
     StudyGroup "1" --> "1" Student : leader
     StudyGroup "1" --> "*" Student : members
     StudyGroup "1" --> "1" Course
+    StudyGroup "1" --> "1" AvailabilityGrid
     JoinRequest "1" --> "1" Student
     JoinRequest "1" --> "1" StudyGroup
     ActivityEvent "*" --> "1" StudyGroup

@@ -8,6 +8,12 @@ public class SystemAdministrator extends User {
         super(id, name, email);
     }
 
+    /** Returns "Administrator". */
+    @Override
+    public String getRoleLabel() {
+        return "Administrator";
+    }
+
     /** Returns a short description of this administrator for logs and debugging. */
     @Override
     public String toString() {

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Choose user')}"></head>
+<body>
+<header th:replace="~{fragments/nav :: nav('picker')}"></header>
+<div th:replace="~{fragments/toast :: toast}"></div>
+
+<main>
+  <div class="card card-narrow">
+    <h1>Study Buddy Matcher</h1>
+    <p class="text-secondary">Choose who you are for this session</p>
+
+    <form th:action="@{/sign-in}" method="post">
+      <label for="userId">User</label>
+      <select id="userId" name="userId">
+        <option value="">Choose a user…</option>
+        <optgroup label="Administrator">
+          <option th:each="a : ${admins}"
+                  th:value="${a.id}"
+                  th:text="${a.id + ' · ' + a.name}">A001 · Study Buddy Admin</option>
+        </optgroup>
+        <optgroup label="Students">
+          <option th:each="s : ${students}"
+                  th:value="${s.id}"
+                  th:text="${s.id + ' · ' + s.name + ' · ' + s.profile.preferences.targetCourse.code
+                            + ' · Year ' + s.profile.yearOfStudy
+                            + (s.status.name() == 'SUSPENDED' ? ' · Suspended' : '')}">S001 · Tan Wei Jie · IS442 · Year 3</option>
+        </optgroup>
+      </select>
+      <button type="submit" class="btn btn-primary btn-block">Continue</button>
+    </form>
+  </div>
+</main>
+</body>
+</html>

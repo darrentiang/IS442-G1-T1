@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import com.studybuddy.service.CourseService;
 
+import jakarta.servlet.http.HttpSession;
+
 /** Pages about courses. */
 @Controller
 public class CourseController {
@@ -17,9 +19,12 @@ public class CourseController {
         this.courseService = courseService;
     }
 
-    /** Shows the table of all courses. */
+    /** Shows the table of all courses, or sends the visitor to the picker if nobody is signed in. */
     @GetMapping("/courses")
-    public String showCourses(Model model) {
+    public String showCourses(HttpSession session, Model model) {
+        if (CurrentUser.getId(session) == null) {
+            return "redirect:/";
+        }
         model.addAttribute("courses", courseService.findAll());
         return "shared/courses";             // -> templates/shared/courses.html
     }
