@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Edit account')}"></head>
+<body>
+<header th:replace="~{fragments/nav :: nav('admin')}"></header>
+<div th:replace="~{fragments/toast :: toast}"></div>
+
+<main>
+  <h1>Edit account</h1>
+
+  <div class="card card-narrow">
+    <form th:action="@{/admin/users/{id}(id=${user.id})}" method="post">
+      <div th:replace="~{fragments/account-fields :: account-fields}"></div>
+      <button type="submit" class="btn btn-primary btn-block">Save changes</button>
+    </form>
+  </div>
+
+  <p><a th:href="@{/admin/users/{id}(id=${user.id})}">Back to account</a></p>
+</main>
+</body>
+</html>

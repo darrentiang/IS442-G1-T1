@@ -32,4 +32,10 @@ public class InMemorySystemAdministratorRepository implements SystemAdministrato
     public List<SystemAdministrator> findAll() {
         return new ArrayList<>(store.values());
     }
+
+    /** Removes the administrator with this id, if there is one. */
+    @Override
+    public void deleteById(String id) {
+        store.remove(id);
+    }
 }

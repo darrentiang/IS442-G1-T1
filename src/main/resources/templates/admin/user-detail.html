@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Account')}"></head>
+<body>
+<header th:replace="~{fragments/nav :: nav('admin')}"></header>
+<div th:replace="~{fragments/toast :: toast}"></div>
+
+<main>
+  <h1>Account</h1>
+
+  <div class="card">
+    <table class="table">
+      <tbody>
+        <tr><th>Id</th><td th:text="${user.id}">S001</td></tr>
+        <tr><th>Name</th><td th:text="${user.name}">Alex Tan</td></tr>
+        <tr><th>Email</th><td th:text="${user.email}">alex@smu.edu.sg</td></tr>
+        <tr><th>Role</th><td th:text="${user.roleLabel}">Student</td></tr>
+        <tr><th>Status</th>
+          <td><span th:replace="~{fragments/badge :: badge(${user.status})}">ACTIVE</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Manage account</h2>
+    <p class="text-secondary">Change the name or email, or delete the account permanently. Deleting cannot be undone.</p>
+    <form th:action="@{/admin/users/{id}/delete(id=${user.id})}" method="post">
+      <a class="btn btn-secondary" th:href="@{/admin/users/{id}/edit(id=${user.id})}">Edit account</a>
+      <button type="submit" class="btn btn-secondary" th:formaction="@{/admin/users/{id}/status(id=${user.id})}"
+              th:text="${user.status.name() == 'SUSPENDED' ? 'Reactivate this account' : 'Suspend this account'}">Suspend this account</button>
+      <button type="submit" class="btn btn-danger">Delete this account permanently</button>
+    </form>
+  </div>
+
+  <p><a th:href="@{/admin/users}">Back to accounts</a></p>
+</main>
+</body>
+</html>

@@ -23,10 +23,10 @@ public class Student extends User {
         this.profile = profile;
     }
 
-    /** Returns "Student". */
+    /** Returns Role.STUDENT. */
     @Override
-    public String getRoleLabel() {
-        return "Student";
+    public Role getRole() {
+        return Role.STUDENT;
     }
 
     /** Returns a short description of this student for logs and debugging. */
