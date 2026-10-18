@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  Account fields: the name and email inputs with their field errors, shared by
+  the admin create and edit forms. Expects model attributes: name, email
+  (the values to show) and optionally fieldErrors.
+  Usage (inside the form):
+    <div th:replace="~{fragments/account-fields :: account-fields}"></div>
+-->
+<div th:fragment="account-fields">
+  <label for="name">Name</label>
+  <input id="name" name="name" th:value="${name}">
+  <p th:replace="~{fragments/field-error :: field-error('name')}"></p>
+
+  <label for="email">Email</label>
+  <input id="email" name="email" type="email" th:value="${email}">
+  <p th:replace="~{fragments/field-error :: field-error('email')}"></p>
+</div>
+</body>
+</html>

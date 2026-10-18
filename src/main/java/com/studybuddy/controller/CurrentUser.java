@@ -1,5 +1,6 @@
 package com.studybuddy.controller;
 
+import com.studybuddy.model.Role;
 import com.studybuddy.model.User;
 
 import jakarta.servlet.http.HttpSession;
@@ -22,12 +23,17 @@ public final class CurrentUser {
     public static void signIn(HttpSession session, User user) {
         session.setAttribute(ID, user.getId());
         session.setAttribute(NAME, user.getName());
-        session.setAttribute(ROLE, user.getRoleLabel());
+        session.setAttribute(ROLE, user.getRole());
     }
 
     /** Returns the signed-in user's id, or null if nobody is signed in. */
     public static String getId(HttpSession session) {
         return (String) session.getAttribute(ID);
+    }
+
+    /** Returns the signed-in user's role (Role.STUDENT or Role.ADMIN), or null if nobody is signed in. */
+    public static Role getRole(HttpSession session) {
+        return (Role) session.getAttribute(ROLE);
     }
 
     /** Signs the user out by throwing the whole session away. */

@@ -15,4 +15,7 @@ public interface SystemAdministratorRepository {
 
     /** Returns all administrators. */
     List<SystemAdministrator> findAll();
+
+    /** Removes the administrator with this id, if there is one. */
+    void deleteById(String id);
 }

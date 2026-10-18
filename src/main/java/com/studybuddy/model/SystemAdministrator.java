@@ -8,10 +8,10 @@ public class SystemAdministrator extends User {
         super(id, name, email);
     }
 
-    /** Returns "Administrator". */
+    /** Returns Role.ADMIN. */
     @Override
-    public String getRoleLabel() {
-        return "Administrator";
+    public Role getRole() {
+        return Role.ADMIN;
     }
 
     /** Returns a short description of this administrator for logs and debugging. */

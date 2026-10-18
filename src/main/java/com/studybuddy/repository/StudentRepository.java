@@ -15,4 +15,7 @@ public interface StudentRepository {
 
     /** Returns all students. */
     List<Student> findAll();
+
+    /** Removes the student with this id, if there is one. */
+    void deleteById(String id);
 }

@@ -32,4 +32,10 @@ public class InMemoryStudentRepository implements StudentRepository {
     public List<Student> findAll() {
         return new ArrayList<>(store.values());
     }
+
+    /** Removes the student with this id, if there is one. */
+    @Override
+    public void deleteById(String id) {
+        store.remove(id);
+    }
 }

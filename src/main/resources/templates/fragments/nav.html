@@ -20,10 +20,14 @@
         <a th:href="@{/courses}"
            th:classappend="${active == 'courses'} ? 'active'"
            th:attr="aria-current=${active == 'courses'} ? 'page'">Courses</a>
+        <a th:href="@{/admin/users}"
+           th:if="${session.currentUserRole != null && session.currentUserRole.name() == 'ADMIN'}"
+           th:classappend="${active == 'admin'} ? 'active'"
+           th:attr="aria-current=${active == 'admin'} ? 'page'">Accounts</a>
       </div>
       <div class="topbar-user" th:if="${session.currentUserName != null}">
         <span class="topbar-user-name" th:text="${session.currentUserName}">Tan Wei Jie</span>
-        <span th:text="'· ' + ${session.currentUserRole}">· Student</span>
+        <span th:text="'· ' + ${session.currentUserRole.label}">· Student</span>
         <form th:action="@{/sign-out}" method="post">
           <button type="submit" class="btn btn-secondary">Switch user</button>
         </form>

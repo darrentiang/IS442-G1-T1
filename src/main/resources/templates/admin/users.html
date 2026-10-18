@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Accounts')}"></head>
+<body>
+<header th:replace="~{fragments/nav :: nav('admin')}"></header>
+<div th:replace="~{fragments/toast :: toast}"></div>
+
+<main>
+  <h1>Accounts</h1>
+
+  <p><a class="btn btn-primary" th:href="@{/admin/users/new}">New account</a></p>
+
+  <div class="card">
+    <table class="table" th:if="${!#lists.isEmpty(users)}">
+      <thead>
+        <tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th></th></tr>
+      </thead>
+      <tbody>
+        <tr th:each="u : ${users}">
+          <td th:text="${u.name}">Alex Tan</td>
+          <td th:text="${u.email}">alex@smu.edu.sg</td>
+          <td th:text="${u.roleLabel}">Student</td>
+          <td><span th:replace="~{fragments/badge :: badge(${u.status})}">ACTIVE</span></td>
+          <td><a th:href="@{/admin/users/{id}(id=${u.id})}">View</a></td>
+        </tr>
+      </tbody>
+    </table>
+    <th:block th:if="${#lists.isEmpty(users)}">
+      <div th:replace="~{fragments/empty-state :: empty-state('No accounts yet.')}"></div>
+    </th:block>
+  </div>
+</main>
+</body>
+</html>

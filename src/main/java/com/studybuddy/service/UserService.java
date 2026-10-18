@@ -1,5 +1,6 @@
 package com.studybuddy.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -45,5 +46,13 @@ public class UserService {
     /** Returns all administrators, in seed order. */
     public List<SystemAdministrator> findAllAdmins() {
         return adminRepository.findAll();
+    }
+
+    /** Returns all users (students and administrators), in seed order. */
+    public List<User> findAllUsers() {
+        List<User> users = new ArrayList<>();
+        users.addAll(findAllStudents());
+        users.addAll(findAllAdmins());
+        return users;
     }
 }

@@ -51,6 +51,11 @@ public abstract class User {
         this.status = status;
     }
 
-    /** Returns the role shown to people, e.g. "Student"; used instead of instanceof checks. */
-    public abstract String getRoleLabel();
+    /** Returns this account's role; used instead of instanceof checks. */
+    public abstract Role getRole();
+
+    /** Returns the role shown to people, e.g. "Student". */
+    public String getRoleLabel() {
+        return getRole().getLabel();
+    }
 }
