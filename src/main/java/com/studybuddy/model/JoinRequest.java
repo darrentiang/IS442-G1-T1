@@ -36,9 +36,23 @@ public class JoinRequest {
         return status;
     }
 
-    /** Changes the request status. */
-    public void setStatus(RequestStatus status) {
-        this.status = status;
+    /** Marks the request ACCEPTED; throws IllegalStateException unless it is PENDING. Does not add the member. */
+    public void accept() {
+        requirePending();
+        status = RequestStatus.ACCEPTED;
+    }
+
+    /** Marks the request DECLINED; throws IllegalStateException unless it is PENDING. */
+    public void decline() {
+        requirePending();
+        status = RequestStatus.DECLINED;
+    }
+
+    /** Throws IllegalStateException if this request has already been answered. */
+    private void requirePending() {
+        if (status != RequestStatus.PENDING) {
+            throw new IllegalStateException("This request was already handled");
+        }
     }
 
     /** Returns a short description of this request for logs and debugging. */

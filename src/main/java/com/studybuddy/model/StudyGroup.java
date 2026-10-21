@@ -79,9 +79,46 @@ public class StudyGroup {
         return members;
     }
 
-    /** Replaces the group members. */
-    public void setMembers(List<Student> members) {
-        this.members = members;
+    /** Returns true if this student is in members (the leader is always in members). */
+    public boolean hasMember(Student student) {
+        for (Student member : members) {
+            if (member.getId().equals(student.getId())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Returns true when the group has maxSize members; the leader counts toward maxSize. */
+    public boolean isFull() {
+        return members.size() >= maxSize;
+    }
+
+    /** Adds a student to members; throws GroupFullException if full, IllegalStateException if already a member. */
+    public void addMember(Student student) {
+        if (hasMember(student)) {
+            throw new IllegalStateException(student.getName() + " is already in this group");
+        }
+        if (isFull()) {
+            throw new GroupFullException("This group is full");
+        }
+        members.add(student);
+    }
+
+    /** Removes a student from members; throws IllegalStateException for the leader or a non-member. */
+    public void removeMember(Student student) {
+        if (leader != null && leader.getId().equals(student.getId())) {
+            throw new IllegalStateException("The group leader can't be removed");
+        }
+        if (!hasMember(student)) {
+            throw new IllegalStateException(student.getName() + " is not in this group");
+        }
+        for (int i = 0; i < members.size(); i++) {
+            if (members.get(i).getId().equals(student.getId())) {
+                members.remove(i);
+                return;
+            }
+        }
     }
 
     /** Returns the maximum number of members. */

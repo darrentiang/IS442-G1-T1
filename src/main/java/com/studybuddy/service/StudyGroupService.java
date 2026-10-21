@@ -55,7 +55,7 @@ public class StudyGroupService {
 
     /** Returns true when members.size() >= maxSize; the leader is in members, so the leader counts toward maxSize. */
     public boolean isFull(StudyGroup group) {
-        return group.getMembers().size() >= group.getMaxSize();
+        return group.isFull();
     }
 
     /** Returns all groups, in seed order. */
