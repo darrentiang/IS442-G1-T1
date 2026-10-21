@@ -1,0 +1,13 @@
+id,name,course,leader,members,max_size,visibility,open,goals,mode,availability,description
+G001,IS442 Finals Crammers,IS442,S001,S001|S002|S012|S028,5,PUBLIC,true,EXAM_PREP,IN_PERSON,WED 19-21,Weekly past-paper drills in the library before the IS442 final
+G002,OOP Design Patterns Lab,IS442,S003,S003|S033|S036,6,PUBLIC,true,PROBLEM_SOLVING|CONCEPT_REVIEW,ONLINE,WED 20-22;SUN 14-17,We code one design pattern each week and review each other's solutions on a call
+G003,IS442 Project Sync,IS442,S043,S043|S039|S044,4,PRIVATE,true,PROJECT_DISCUSSION,EITHER,TUE 19-21,Invite-only check-ins to talk through class diagrams and project milestones
+G004,Architecture Whiteboard Crew,CS301,S009,S009|S004|S042|S012,4,PUBLIC,true,PROBLEM_SOLVING|PROJECT_DISCUSSION,IN_PERSON,WED 19-21,Sketch solution architectures on the whiteboard and critique them together
+G005,CS301 Online Revision,CS301,S008,S008|S031,6,PUBLIC,true,CONCEPT_REVIEW|EXAM_PREP,ONLINE,TUE 19-21;WED 20-22,Relaxed online run-through of each week's CS301 lecture slides
+G006,Agile Sprint Buddies,IS212,S040,S040|S046|S038,6,PUBLIC,true,CONCEPT_REVIEW|EXAM_PREP,IN_PERSON,WED 12-14,Lunchtime recap of Scrum and estimation topics ahead of the IS212 exam
+G007,SPM Late Night Grind,IS212,S019,S019|S049|S014|S033,5,PUBLIC,false,PROJECT_DISCUSSION|PROBLEM_SOLVING,ONLINE,MON 20-21;TUE 20-21,Late night online sessions to unblock each other on IS212 project work
+G008,WAD2 Vue Builders,IS216,S029,S029|S022|S003,5,PUBLIC,true,PROBLEM_SOLVING,ONLINE,MON 20-22;WED 20-22,Build small Vue apps together and debug each other's IS216 labs
+G009,IS216 Exam Drill,IS216,S041,S041|S021|S039,4,PRIVATE,true,EXAM_PREP,IN_PERSON,FRI 18-20,Small invite-only group timing ourselves on IS216 practice papers
+G010,Digital Business Case Club,IS215,S035,S035|S048|S032,6,PUBLIC,true,PROBLEM_SOLVING|PROJECT_DISCUSSION,IN_PERSON,THU 19-21,Break down one digital business case each week and prepare our group pitch
+G011,STAT101 Problem Set Circle,STAT101,S024,S024|S007,5,PUBLIC,true,PROBLEM_SOLVING|EXAM_PREP,IN_PERSON,WED 19-21,Work through the weekly STAT101 problem sets and compare answers
+G012,SQL Study Room,IS112,S022,S022|S013|S007,4,PRIVATE,false,PROBLEM_SOLVING|CONCEPT_REVIEW,EITHER,MON 20-22;WED 20-21,Practise SQL queries and normalisation together for IS112
