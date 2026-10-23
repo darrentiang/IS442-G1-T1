@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('My join requests')}"></head>
+<body>
+<header th:replace="~{fragments/nav :: nav('groups')}"></header>
+<div th:replace="~{fragments/toast :: toast}"></div>
+
+<main>
+  <h1>My join requests</h1>
+  <a class="btn btn-primary" th:href="@{/groups}">Browse groups</a>
+  <div class="card">
+    <table class="table" th:unless="${#lists.isEmpty(requests)}">
+      <thead><tr><th>Group</th><th>Course</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr th:each="request : ${requests}">
+          <td><a th:href="@{/groups/{id}(id=${request.group.id})}" th:text="${request.group.name}">Study group</a></td>
+          <td th:text="${request.group.course.code}">IS442</td>
+          <td><span th:replace="~{fragments/badge :: badge(${request.status})}"></span></td>
+        </tr>
+      </tbody>
+    </table>
+    <th:block th:if="${#lists.isEmpty(requests)}">
+      <div th:replace="~{fragments/empty-state :: empty-state('You have not requested to join any groups yet. Browse groups to get started.')}"></div>
+    </th:block>
+  </div>
+</main>
+</body>
+</html>
