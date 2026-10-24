@@ -9,6 +9,7 @@
   <h1>Study groups</h1>
   <div>
     <a th:if="${student != null}" th:href="@{/groups/new}" class="btn btn-primary">Create a group</a>
+    <a th:if="${student != null}" th:href="@{/groups/mine}" class="btn btn-secondary">My groups</a>
     <a th:if="${student != null}" th:href="@{/groups/requests}" class="btn btn-secondary">My requests</a>
   </div>
 

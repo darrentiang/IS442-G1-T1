@@ -8,6 +8,7 @@
 <main>
   <div class="group-actions">
     <a class="btn btn-secondary" th:href="@{/groups}">Browse groups</a>
+    <a class="btn btn-secondary" th:if="${student != null}" th:href="@{/groups/mine}">My groups</a>
     <a class="btn btn-secondary" th:if="${student != null}" th:href="@{/groups/requests}">My requests</a>
   </div>
 
@@ -80,6 +81,9 @@
       <a class="btn btn-secondary" th:href="@{/groups/{id}/manage(id=${group.id})}">Manage members</a>
       <form th:if="${group.open}" th:action="@{/groups/{id}/close(id=${group.id})}" method="post">
         <button type="submit" class="btn btn-danger">Close group</button>
+      </form>
+      <form th:unless="${group.open}" th:action="@{/groups/{id}/reopen(id=${group.id})}" method="post">
+        <button type="submit" class="btn btn-secondary">Reopen group</button>
       </form>
     </div>
   </section>
