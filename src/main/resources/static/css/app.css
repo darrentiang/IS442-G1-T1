@@ -128,6 +128,28 @@ input[type="radio"] {
     margin: 0 6px 0 0;
 }
 
+/* A set of checkboxes under one heading; the legend looks like a label and each option sits on its own line. */
+.form-fieldset {
+    margin: 0 0 16px;
+    padding: 0;
+    border: 0;
+}
+
+.form-fieldset legend {
+    margin-bottom: 6px;
+    padding: 0;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.form-fieldset label {
+    margin-bottom: 4px;
+    color: var(--color-text);
+    font-size: inherit;
+    font-weight: 400;
+}
+
 input:focus,
 select:focus,
 textarea:focus {

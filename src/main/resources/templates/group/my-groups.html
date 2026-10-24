@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<!--
+  The signed-in student's groups in two tables: the ones they lead and the ones they joined.
+  Expects: ledGroups, joinedGroups.
+-->
+<head th:replace="~{fragments/head :: head('My groups')}"></head>
+<body>
+<header th:replace="~{fragments/nav :: nav('groups')}"></header>
+<div th:replace="~{fragments/toast :: toast}"></div>
+
+<main>
+  <h1>My groups</h1>
+  <div class="group-actions">
+    <a th:href="@{/groups/new}" class="btn btn-primary">Create a group</a>
+    <a th:href="@{/groups}" class="btn btn-secondary">Browse groups</a>
+    <a th:href="@{/groups/requests}" class="btn btn-secondary">My requests</a>
+  </div>
+
+  <section aria-labelledby="leading-heading">
+    <h2 id="leading-heading">Leading</h2>
+    <div class="card">
+      <table class="table" th:unless="${#lists.isEmpty(ledGroups)}">
+        <thead>
+          <tr><th>Group</th><th>Course</th><th>Members</th><th>Status</th><th>Details</th></tr>
+        </thead>
+        <tbody>
+          <tr th:each="group : ${ledGroups}">
+            <td th:text="${group.name}">Study group</td>
+            <td th:text="${group.course.code}">IS442</td>
+            <td th:text="${#lists.size(group.members) + '/' + group.maxSize}">4/5</td>
+            <td>
+              <span th:replace="~{fragments/badge :: badge(${group.open ? 'Open' : 'Closed'})}"></span>
+              <th:block th:if="${group.visibility.name() == 'PRIVATE'}">
+                <span th:replace="~{fragments/badge :: badge(${group.visibility})}"></span>
+              </th:block>
+            </td>
+            <td><a class="btn btn-secondary" th:href="@{/groups/{id}(id=${group.id})}"
+                   th:attr="aria-label=${'View ' + group.name}">View group</a></td>
+          </tr>
+        </tbody>
+      </table>
+      <th:block th:if="${#lists.isEmpty(ledGroups)}">
+        <div th:replace="~{fragments/empty-state :: empty-state('You don’t lead any groups yet.')}"></div>
+      </th:block>
+    </div>
+  </section>
+
+  <section aria-labelledby="member-heading">
+    <h2 id="member-heading">Member of</h2>
+    <div class="card">
+      <table class="table" th:unless="${#lists.isEmpty(joinedGroups)}">
+        <thead>
+          <tr><th>Group</th><th>Course</th><th>Leader</th><th>Members</th><th>Details</th></tr>
+        </thead>
+        <tbody>
+          <tr th:each="group : ${joinedGroups}">
+            <td th:text="${group.name}">Study group</td>
+            <td th:text="${group.course.code}">IS442</td>
+            <td th:text="${group.leader.name}">Tan Wei Jie</td>
+            <td th:text="${#lists.size(group.members) + '/' + group.maxSize}">4/5</td>
+            <td><a class="btn btn-secondary" th:href="@{/groups/{id}(id=${group.id})}"
+                   th:attr="aria-label=${'View ' + group.name}">View group</a></td>
+          </tr>
+        </tbody>
+      </table>
+      <th:block th:if="${#lists.isEmpty(joinedGroups)}">
+        <div th:replace="~{fragments/empty-state :: empty-state('You haven’t joined any groups yet.')}"></div>
+      </th:block>
+    </div>
+  </section>
+</main>
+</body>
+</html>
