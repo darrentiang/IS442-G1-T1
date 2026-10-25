@@ -6,22 +6,40 @@
 <div th:replace="~{fragments/toast :: toast}"></div>
 
 <main>
-  <h1>Accounts</h1>
-
-  <p><a class="btn btn-primary" th:href="@{/admin/users/new}">New account</a></p>
+  <div class="page-header">
+    <div>
+      <h1>Accounts</h1>
+      <p class="text-secondary">Student and administrator accounts</p>
+    </div>
+    <a class="btn btn-primary" th:href="@{/admin/users/new}">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <line x1="19" x2="19" y1="8" y2="14"/>
+        <line x1="22" x2="16" y1="11" y2="11"/>
+      </svg>New account</a>
+  </div>
 
   <div class="card">
     <table class="table" th:if="${!#lists.isEmpty(users)}">
       <thead>
-        <tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th></th></tr>
+        <tr><th>Name</th><th>Role</th><th>Status</th><th></th></tr>
       </thead>
       <tbody>
         <tr th:each="u : ${users}">
-          <td th:text="${u.name}">Alex Tan</td>
-          <td th:text="${u.email}">alex@smu.edu.sg</td>
+          <td>
+            <div class="person">
+              <span class="avatar" th:text="${#strings.toUpperCase(#strings.substring(u.name, 0, 1))}">A</span>
+              <div>
+                <div class="person-name" th:text="${u.name}">Alex Tan</div>
+                <div class="person-email" th:text="${u.email}">alex@smu.edu.sg</div>
+              </div>
+            </div>
+          </td>
           <td th:text="${u.roleLabel}">Student</td>
           <td><span th:replace="~{fragments/badge :: badge(${u.status})}">ACTIVE</span></td>
-          <td><a th:href="@{/admin/users/{id}(id=${u.id})}">View</a></td>
+          <td class="row-action"><a th:href="@{/admin/users/{id}(id=${u.id})}">View</a></td>
         </tr>
       </tbody>
     </table>

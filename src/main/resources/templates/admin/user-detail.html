@@ -6,34 +6,58 @@
 <div th:replace="~{fragments/toast :: toast}"></div>
 
 <main>
-  <h1>Account</h1>
-
-  <div class="card">
-    <table class="table">
-      <tbody>
-        <tr><th>Id</th><td th:text="${user.id}">S001</td></tr>
-        <tr><th>Name</th><td th:text="${user.name}">Alex Tan</td></tr>
-        <tr><th>Email</th><td th:text="${user.email}">alex@smu.edu.sg</td></tr>
-        <tr><th>Role</th><td th:text="${user.roleLabel}">Student</td></tr>
-        <tr><th>Status</th>
-          <td><span th:replace="~{fragments/badge :: badge(${user.status})}">ACTIVE</span></td>
-        </tr>
-      </tbody>
-    </table>
+  <div>
+    <a class="back-link" th:href="@{/admin/users}">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m12 19-7-7 7-7"/>
+        <path d="M19 12H5"/>
+      </svg>Back to accounts</a>
+    <div class="detail-header">
+      <span class="avatar avatar-lg" th:text="${#strings.toUpperCase(#strings.substring(user.name, 0, 1))}">A</span>
+      <div>
+        <h1 th:text="${user.name}">Alex Tan</h1>
+        <p class="text-secondary" th:text="${user.id + ' · ' + user.roleLabel + ' · ' + user.email}">S001 · Student · alex@smu.edu.sg</p>
+      </div>
+      <span th:replace="~{fragments/badge :: badge(${user.status})}">ACTIVE</span>
+    </div>
   </div>
 
   <div class="card">
     <h2>Manage account</h2>
     <p class="text-secondary">Change the name or email, or delete the account permanently. Deleting cannot be undone.</p>
     <form th:action="@{/admin/users/{id}/delete(id=${user.id})}" method="post">
-      <a class="btn btn-secondary" th:href="@{/admin/users/{id}/edit(id=${user.id})}">Edit account</a>
+      <a class="btn btn-secondary" th:href="@{/admin/users/{id}/edit(id=${user.id})}">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>
+          <path d="m15 5 4 4"/>
+        </svg>Edit account</a>
       <button type="submit" class="btn btn-secondary" th:formaction="@{/admin/users/{id}/status(id=${user.id})}"
-              th:text="${user.status.name() == 'SUSPENDED' ? 'Reactivate this account' : 'Suspend this account'}">Suspend this account</button>
-      <button type="submit" class="btn btn-danger">Delete this account permanently</button>
+              th:if="${user.status.name() == 'ACTIVE'}">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="m4.9 4.9 14.2 14.2"/>
+        </svg>Suspend this account</button>
+      <button type="submit" class="btn btn-secondary" th:formaction="@{/admin/users/{id}/status(id=${user.id})}"
+              th:if="${user.status.name() == 'SUSPENDED'}">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+        </svg>Reactivate this account</button>
+      <button type="submit" class="btn btn-danger">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 6h18"/>
+          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+          <line x1="10" x2="10" y1="11" y2="17"/>
+          <line x1="14" x2="14" y1="11" y2="17"/>
+        </svg>Delete this account permanently</button>
     </form>
   </div>
-
-  <p><a th:href="@{/admin/users}">Back to accounts</a></p>
 </main>
 </body>
 </html>
