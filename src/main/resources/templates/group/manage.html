@@ -20,7 +20,12 @@
       </thead>
       <tbody>
         <tr th:each="r : ${pendingRequests}">
-          <td th:text="${r.student.name}">Nur Aisyah</td>
+          <td>
+            <span th:text="${r.student.name}">Nur Aisyah</span>
+            <th:block th:if="${r.student.status.name() == 'SUSPENDED'}">
+              <span th:replace="~{fragments/badge :: badge(${r.student.status})}">SUSPENDED</span>
+            </th:block>
+          </td>
           <td th:text="${r.student.profile.programme}">Information Systems</td>
           <td th:text="${r.student.profile.yearOfStudy}">2</td>
           <td th:text="${#sets.contains(takingCourse, r.id)} ? ${group.course.code} : 'None'">IS442</td>
@@ -47,7 +52,12 @@
       </thead>
       <tbody>
         <tr th:each="m : ${group.members}">
-          <td th:text="${m.name}">Tan Wei Jie</td>
+          <td>
+            <span th:text="${m.name}">Tan Wei Jie</span>
+            <th:block th:if="${m.status.name() == 'SUSPENDED'}">
+              <span th:replace="~{fragments/badge :: badge(${m.status})}">SUSPENDED</span>
+            </th:block>
+          </td>
           <td th:text="${m.profile.programme}">Information Systems</td>
           <td th:text="${m.profile.yearOfStudy}">3</td>
           <td>

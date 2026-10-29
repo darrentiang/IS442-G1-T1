@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.studybuddy.model.AccountStatus;
 import com.studybuddy.model.Course;
 import com.studybuddy.model.JoinRequest;
 import com.studybuddy.model.RequestStatus;
@@ -61,12 +62,15 @@ public class MembershipService {
         return false;
     }
 
-    /** Accepts a PENDING request to an open, not-full group led by this leader; returns the new member. */
+    /** Accepts a PENDING request from an active student to an open, not-full group led by this leader; returns the new member. */
     public Student acceptRequest(String groupId, String requestId, String leaderId) {
         StudyGroup group = findGroupLedBy(groupId, leaderId);
         JoinRequest request = findPendingRequest(group, requestId);
         if (!group.isOpen()) {
             throw new IllegalStateException("This group is closed");
+        }
+        if (request.getStudent().getStatus() == AccountStatus.SUSPENDED) {
+            throw new IllegalStateException(request.getStudent().getName() + "'s account is suspended");
         }
         // addMember goes first: it throws (full, already a member) before changing anything, and
         // accept() cannot fail on a PENDING request. The repositories hold these same objects, so
