@@ -141,7 +141,7 @@ public class StudyGroupService {
 
         for (JoinRequest request : requestRepository.findByGroup(groupId)) {
             if (request.getStatus() == RequestStatus.PENDING) {
-                request.setStatus(RequestStatus.DECLINED);
+                request.decline();
                 requestRepository.save(request);
             }
         }
