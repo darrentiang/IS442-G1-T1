@@ -18,6 +18,7 @@ public class MatchingConfigService {
 
     private static final int MIN_RESULTS = 1;
     private static final int MAX_RESULTS = 50;
+    private static final double MAX_WEIGHT = 1.0;
 
     // TODO: replace with the real names once the Student team's criterion and strategy classes exist.
     private static final String[] STRATEGY_NAMES = {"balanced", "availability-first", "course-first"};
@@ -91,8 +92,8 @@ public class MatchingConfigService {
         double enabledTotal = 0;
         for (String name : CRITERION_NAMES) {
             Double weight = parseNumber(form.getWeights().get(name));
-            if (weight == null || weight < 0) {
-                fieldErrors.put("weight_" + name, "Weight must be a number, 0 or more");
+            if (weight == null || weight < 0 || weight > MAX_WEIGHT) {
+                fieldErrors.put("weight_" + name, "Weight must be a number from 0 to 1");
                 weightsValid = false;
             } else if (isEnabled(form, name)) {
                 enabledTotal += weight;

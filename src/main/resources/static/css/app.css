@@ -696,3 +696,24 @@ textarea:focus {
     font-size: 13px;
     font-weight: 500;
 }
+
+/* Admin: short legend explaining each matching strategy. */
+.legend {
+    margin: 0 0 8px;
+    padding: 12px 16px;
+    list-style: none;
+    background: var(--color-surface-muted);
+    border-radius: var(--radius-control);
+    color: var(--color-text-secondary);
+    font-size: 13px;
+}
+
+.legend li + li {
+    margin-top: 4px;
+}
+
+.legend-name {
+    margin-right: 6px;
+    color: var(--color-text);
+    font-weight: 600;
+}
