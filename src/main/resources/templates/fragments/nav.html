@@ -17,6 +17,10 @@
         <a th:href="@{/home}"
            th:classappend="${active == 'home'} ? 'active'"
            th:attr="aria-current=${active == 'home'} ? 'page'">Home</a>
+        <a th:href="@{/admin/config}"
+           th:if="${session.currentUserRole != null && session.currentUserRole.name() == 'ADMIN'}"
+           th:classappend="${active == 'config'} ? 'active'"
+           th:attr="aria-current=${active == 'config'} ? 'page'">Matching</a>
         <a th:href="@{/courses}"
            th:classappend="${active == 'courses'} ? 'active'"
            th:attr="aria-current=${active == 'courses'} ? 'page'">Courses</a>

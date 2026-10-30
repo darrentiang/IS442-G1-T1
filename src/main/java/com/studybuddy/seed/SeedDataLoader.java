@@ -9,6 +9,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
+
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -33,6 +36,9 @@ import com.studybuddy.repository.JoinRequestRepository;
 import com.studybuddy.repository.StudentRepository;
 import com.studybuddy.repository.StudyGroupRepository;
 import com.studybuddy.repository.SystemAdministratorRepository;
+import com.studybuddy.engine.MatchingConfig;
+import com.studybuddy.repository.MatchingConfigRepository;
+
 
 /**
  * Loads the demo data from the CSV files in src/main/resources/seed/ once, when the app
@@ -46,30 +52,37 @@ public class SeedDataLoader implements CommandLineRunner {
     private static final String STUDENTS_FILE = "students.csv";
     private static final String GROUPS_FILE = "groups.csv";
     private static final String JOIN_REQUESTS_FILE = "join-requests.csv";
+    private static final String MATCHING_CONFIG_FILE = "matching-config.csv";
+
 
     private static final int COURSE_COLUMNS = 3;
     private static final int ADMIN_COLUMNS = 3;
     private static final int STUDENT_COLUMNS = 17;
     private static final int GROUP_COLUMNS = 12;
     private static final int JOIN_REQUEST_COLUMNS = 4;
+    private static final int MATCHING_CONFIG_COLUMNS = 5;
 
     private final CourseRepository courseRepository;
     private final SystemAdministratorRepository adminRepository;
     private final StudentRepository studentRepository;
     private final StudyGroupRepository groupRepository;
     private final JoinRequestRepository joinRequestRepository;
+    private final MatchingConfigRepository matchingConfigRepository;
 
+    /** Creates the loader with the repositories it fills (constructor injection). */
     /** Creates the loader with the repositories it fills (constructor injection). */
     public SeedDataLoader(CourseRepository courseRepository,
             SystemAdministratorRepository adminRepository,
             StudentRepository studentRepository,
             StudyGroupRepository groupRepository,
-            JoinRequestRepository joinRequestRepository) {
+            JoinRequestRepository joinRequestRepository,
+            MatchingConfigRepository matchingConfigRepository) {
         this.courseRepository = courseRepository;
         this.adminRepository = adminRepository;
         this.studentRepository = studentRepository;
         this.groupRepository = groupRepository;
         this.joinRequestRepository = joinRequestRepository;
+        this.matchingConfigRepository = matchingConfigRepository;
     }
 
     /**
@@ -86,6 +99,7 @@ public class SeedDataLoader implements CommandLineRunner {
         String adminWord = (admins == 1) ? " admin, " : " admins, ";
         System.out.println("Seeded " + courses + " courses, " + admins + adminWord + students + " students, "
                 + groups + " groups, " + joinRequests + " join requests");
+        loadMatchingConfig();
     }
 
     /** Columns: code,title,school. */
@@ -248,6 +262,50 @@ public class SeedDataLoader implements CommandLineRunner {
         }
         return count;
     }
+
+        /** Columns: strategy,enabled_criteria,weights,max_results,minimum_score. Weights look like "course=0.3|availability=0.25". */
+    private void loadMatchingConfig() throws SeedDataException {
+        List<String> lines = readLines(MATCHING_CONFIG_FILE);
+        for (int i = 1; i < lines.size(); i++) {     // line 1 (index 0) is the header
+            if (lines.get(i).isBlank()) {
+                continue;
+            }
+            String where = MATCHING_CONFIG_FILE + " line " + (i + 1);
+            String[] cells = splitRow(lines.get(i), MATCHING_CONFIG_COLUMNS, where);
+
+            MatchingConfig config = new MatchingConfig();
+            config.setActiveStrategyName(cells[0]);
+
+            Set<String> enabled = new HashSet<>();
+            for (String name : cells[1].split("\\|")) {
+                enabled.add(name.trim());
+            }
+            config.setEnabledCriteria(enabled);
+
+            Map<String, Double> weights = new HashMap<>();
+            for (String pair : cells[2].split("\\|")) {
+                String[] parts = pair.split("=");
+                if (parts.length != 2) {
+                    throw new SeedDataException(where + ": expected name=weight but found '" + pair + "'");
+                }
+                try {
+                    weights.put(parts[0].trim(), Double.valueOf(parts[1].trim()));
+                } catch (NumberFormatException e) {
+                    throw new SeedDataException(where + ": weight must be a number, found '" + parts[1] + "'", e);
+                }
+            }
+            config.setWeights(weights);
+
+            config.setMaxResults(parseWholeNumber(cells[3], "max_results", where));
+            try {
+                config.setMinimumScore(Double.parseDouble(cells[4]));
+            } catch (NumberFormatException e) {
+                throw new SeedDataException(where + ": minimum_score must be a number, found '" + cells[4] + "'", e);
+            }
+            matchingConfigRepository.save(config);
+        }
+    }
+
 
     /** Reads every line of one seed file, header included. */
     private List<String> readLines(String fileName) throws SeedDataException {

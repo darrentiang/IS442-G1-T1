@@ -1,0 +1,2 @@
+strategy,enabled_criteria,weights,max_results,minimum_score
+balanced,course|availability|studyMode|studyGoal|groupSize,course=0.30|availability=0.25|studyMode=0.15|studyGoal=0.20|groupSize=0.10,10,0.20

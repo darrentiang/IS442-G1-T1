@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Matching configuration')}"></head>
+<body>
+<header th:replace="~{fragments/nav :: nav('config')}"></header>
+<div th:replace="~{fragments/toast :: toast}"></div>
+
+<main>
+  <div>
+    <h1>Matching configuration</h1>
+    <p class="text-secondary">Choose the strategy, which criteria count, and how much each one matters.</p>
+  </div>
+
+  <form th:action="@{/admin/config}" method="post">
+    <div class="card">
+      <h2>Strategy</h2>
+      <label for="activeStrategyName">Matching strategy</label>
+      <select id="activeStrategyName" name="activeStrategyName">
+        <option th:each="s : ${strategies}" th:value="${s}" th:text="${s}"
+                th:selected="${s == form.activeStrategyName}">balanced</option>
+      </select>
+      <p th:replace="~{fragments/field-error :: field-error('activeStrategyName')}"></p>
+
+      <h2>Criteria</h2>
+      <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr><th>On</th><th>Criterion</th><th>Weight</th><th>Share of total</th></tr>
+        </thead>
+        <tbody>
+          <tr th:each="c : ${criteria}" data-criterion-row>
+            <td>
+              <input type="checkbox" name="enabledCriteria" th:value="${c}"
+                     th:checked="${form.enabledCriteria.contains(c)}" data-enabled>
+            </td>
+            <td th:text="${c}">course</td>
+            <td>
+              <input type="number" min="0" step="0.05" th:name="${'weight_' + c}"
+                     th:value="${form.weights.get(c)}" data-weight>
+              <p th:replace="~{fragments/field-error :: field-error(${'weight_' + c})}"></p>
+            </td>
+            <td>
+              <span class="share-label" data-share>0%</span>
+              <div class="score-bar"><div class="score-fill" data-fill></div></div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+      <p th:replace="~{fragments/field-error :: field-error('criteria')}"></p>
+
+      <h2>Results</h2>
+      <label for="maxResults">Max results shown</label>
+      <input id="maxResults" name="maxResults" type="number" min="1" max="50" th:value="${form.maxResults}">
+      <p th:replace="~{fragments/field-error :: field-error('maxResults')}"></p>
+
+      <label for="minimumScore">Minimum score (0 to 1)</label>
+      <input id="minimumScore" name="minimumScore" type="number" min="0" max="1" step="0.05" th:value="${form.minimumScore}">
+      <p th:replace="~{fragments/field-error :: field-error('minimumScore')}"></p>
+
+      <button type="submit" class="btn btn-primary">Save configuration</button>
+    </div>
+  </form>
+</main>
+<script th:src="@{/js/admin-config.js}"></script>
+</body>
+</html>

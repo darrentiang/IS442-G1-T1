@@ -662,3 +662,37 @@ textarea:focus {
     margin-right: 6px;
     vertical-align: -3px;
 }
+
+
+/* Admin: matching configuration form. */
+
+/* Space above the second and third section headings inside a card. */
+.card > h2:not(:first-child) {
+    margin-top: 28px;
+}
+
+/* Lets the table run edge to edge inside a padded card. */
+.table-wrap {
+    margin: 0 -24px 16px;
+}
+
+.table-wrap .table td input[type="number"] {
+    max-width: 160px;
+    margin-bottom: 0;
+}
+
+.table-wrap .table td input[type="checkbox"] {
+    margin: 0;
+}
+
+.table-wrap .table td .field-error {
+    margin: 6px 0 0;
+}
+
+/* Percentage text sits above its bar. */
+.share-label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    font-weight: 500;
+}
