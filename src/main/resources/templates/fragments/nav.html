@@ -20,6 +20,9 @@
         <a th:href="@{/courses}"
            th:classappend="${active == 'courses'} ? 'active'"
            th:attr="aria-current=${active == 'courses'} ? 'page'">Courses</a>
+        <a th:href="@{/groups}"
+           th:classappend="${active == 'groups'} ? 'active'"
+           th:attr="aria-current=${active == 'groups'} ? 'page'">Groups</a>
         <a th:href="@{/admin/users}"
            th:if="${session.currentUserRole != null && session.currentUserRole.name() == 'ADMIN'}"
            th:classappend="${active == 'admin'} ? 'active'"

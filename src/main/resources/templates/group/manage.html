@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Manage members')}"></head>
+<body>
+<header th:replace="~{fragments/nav :: nav('groups')}"></header>
+<div th:replace="~{fragments/toast :: toast}"></div>
+
+<main>
+  <h1 th:text="'Manage ' + ${group.name}">Manage Algorithms Crew</h1>
+  <p class="text-secondary"
+     th:text="${group.course.code} + ' · ' + ${#lists.size(group.members)} + ' of ' + ${group.maxSize} + ' members'">IS442 · 3 of 5 members</p>
+
+  <div class="banner banner-warning" th:if="${group.full}">This group is full</div>
+
+  <div class="card">
+    <h2>Pending requests</h2>
+    <table class="table" th:if="${!#lists.isEmpty(pendingRequests)}">
+      <thead>
+        <tr><th>Name</th><th>Programme</th><th>Year</th><th>Shared course</th><th>Decision</th></tr>
+      </thead>
+      <tbody>
+        <tr th:each="r : ${pendingRequests}">
+          <td>
+            <span th:text="${r.student.name}">Nur Aisyah</span>
+            <th:block th:if="${r.student.status.name() == 'SUSPENDED'}">
+              <span th:replace="~{fragments/badge :: badge(${r.student.status})}">SUSPENDED</span>
+            </th:block>
+          </td>
+          <td th:text="${r.student.profile.programme}">Information Systems</td>
+          <td th:text="${r.student.profile.yearOfStudy}">2</td>
+          <td th:text="${#sets.contains(takingCourse, r.id)} ? ${group.course.code} : 'None'">IS442</td>
+          <td>
+            <form th:action="@{/groups/{id}/requests/{requestId}/accept(id=${group.id},requestId=${r.id})}" method="post">
+              <button type="submit" class="btn btn-secondary">Accept</button>
+              <button type="submit" class="btn btn-danger"
+                      th:formaction="@{/groups/{id}/requests/{requestId}/reject(id=${group.id},requestId=${r.id})}">Reject</button>
+            </form>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <th:block th:if="${#lists.isEmpty(pendingRequests)}">
+      <div th:replace="~{fragments/empty-state :: empty-state('No pending requests')}"></div>
+    </th:block>
+  </div>
+
+  <div class="card">
+    <h2>Members</h2>
+    <table class="table" th:if="${!#lists.isEmpty(group.members)}">
+      <thead>
+        <tr><th>Name</th><th>Programme</th><th>Year</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+        <tr th:each="m : ${group.members}">
+          <td>
+            <span th:text="${m.name}">Tan Wei Jie</span>
+            <th:block th:if="${m.status.name() == 'SUSPENDED'}">
+              <span th:replace="~{fragments/badge :: badge(${m.status})}">SUSPENDED</span>
+            </th:block>
+          </td>
+          <td th:text="${m.profile.programme}">Information Systems</td>
+          <td th:text="${m.profile.yearOfStudy}">3</td>
+          <td>
+            <span class="text-secondary" th:if="${m.id == group.leader.id}">Leader</span>
+            <form th:unless="${m.id == group.leader.id}"
+                  th:action="@{/groups/{id}/members/{studentId}/remove(id=${group.id},studentId=${m.id})}" method="post">
+              <button type="submit" class="btn btn-danger">Remove from group</button>
+            </form>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <th:block th:if="${#lists.isEmpty(group.members)}">
+      <div th:replace="~{fragments/empty-state :: empty-state('No members yet')}"></div>
+    </th:block>
+  </div>
+
+  <p><a th:href="@{/groups/{id}(id=${group.id})}">Back to group</a></p>
+</main>
+</body>
+</html>

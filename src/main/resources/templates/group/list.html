@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Study groups')}"></head>
+<body>
+<header th:replace="~{fragments/nav :: nav('groups')}"></header>
+<div th:replace="~{fragments/toast :: toast}"></div>
+
+<main>
+  <h1>Study groups</h1>
+  <div>
+    <a th:if="${student != null}" th:href="@{/groups/new}" class="btn btn-primary">Create a group</a>
+    <a th:if="${student != null}" th:href="@{/groups/mine}" class="btn btn-secondary">My groups</a>
+    <a th:if="${student != null}" th:href="@{/groups/requests}" class="btn btn-secondary">My requests</a>
+  </div>
+
+  <form class="card" th:action="@{/groups}" method="get">
+    <h2>Find a group</h2>
+    <label for="courseCode">Course</label>
+    <select id="courseCode" name="courseCode">
+      <option value="">All courses</option>
+      <option th:each="course : ${courses}" th:value="${course.code}"
+              th:selected="${course.code == courseCode}"
+              th:text="${course.code + ' · ' + course.title}">IS442</option>
+    </select>
+    <label for="goal">Study goal</label>
+    <select id="goal" name="goal">
+      <option value="">All goals</option>
+      <option th:if="${fieldErrors != null and fieldErrors.get('goal') != null}"
+              th:value="${goalValue}" selected th:text="${goalValue}">Invalid goal</option>
+      <option th:each="goal : ${goals}" th:value="${goal.name()}"
+              th:selected="${goal == selectedGoal}"
+              th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(goal.name(), '_', ' ')))}">Exam prep</option>
+    </select>
+    <p th:replace="~{fragments/field-error :: field-error('goal')}"></p>
+    <button type="submit" class="btn btn-secondary">Apply filters</button>
+    <a th:href="@{/groups}" class="btn btn-secondary">Clear filters</a>
+  </form>
+
+  <div class="card" th:if="${fieldErrors == null or fieldErrors.get('goal') == null}">
+    <table class="table" th:unless="${#lists.isEmpty(groups)}">
+      <thead>
+        <tr><th>Group</th><th>Course</th><th>Goals</th><th>Study mode</th><th>Members</th><th>Details</th></tr>
+      </thead>
+      <tbody>
+        <tr th:each="group : ${groups}">
+          <td th:text="${group.name}">Study group</td>
+          <td th:text="${group.course.code}">IS442</td>
+          <td>
+            <div th:each="goal : ${group.goals}"
+                 th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(goal.name(), '_', ' ')))}">Exam prep</div>
+          </td>
+          <td th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(group.mode.name(), '_', ' ')))}">Online</td>
+          <td>
+            <span th:text="${#lists.size(group.members) + '/' + group.maxSize}">4/5</span>
+            <th:block th:if="${#lists.size(group.members) >= group.maxSize}">
+              <span th:replace="~{fragments/badge :: badge('Full')}"></span>
+            </th:block>
+          </td>
+          <td><a class="btn btn-secondary" th:href="@{/groups/{id}(id=${group.id})}"
+                 th:attr="aria-label=${'View ' + group.name}">View group</a></td>
+        </tr>
+      </tbody>
+    </table>
+    <th:block th:if="${#lists.isEmpty(groups)}">
+      <div th:replace="~{fragments/empty-state :: empty-state('No open groups match these filters. Try another course or study goal.')}"></div>
+      <p th:if="${student != null}"><a th:href="@{/groups/new}">Create one</a></p>
+    </th:block>
+  </div>
+</main>
+</body>
+</html>

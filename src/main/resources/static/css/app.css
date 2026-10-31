@@ -128,6 +128,28 @@ input[type="radio"] {
     margin: 0 6px 0 0;
 }
 
+/* A set of checkboxes under one heading; the legend looks like a label and each option sits on its own line. */
+.form-fieldset {
+    margin: 0 0 16px;
+    padding: 0;
+    border: 0;
+}
+
+.form-fieldset legend {
+    margin-bottom: 6px;
+    padding: 0;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.form-fieldset label {
+    margin-bottom: 4px;
+    color: var(--color-text);
+    font-size: inherit;
+    font-weight: 400;
+}
+
 input:focus,
 select:focus,
 textarea:focus {
@@ -515,6 +537,15 @@ textarea:focus {
     background: color-mix(in srgb, var(--color-accent) 18%, transparent);
 }
 
+/* Group details label each hourly cell so availability does not rely on colour. */
+.group-availability-cell {
+    height: auto;
+    min-height: 24px;
+    padding: 4px;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
 .cell-busy {
     background: var(--color-surface-muted);
 }
@@ -661,4 +692,182 @@ textarea:focus {
 .btn .icon {
     margin-right: 6px;
     vertical-align: -3px;
+}
+
+/* Group detail layout; shared cards, buttons and badges retain their base styles. */
+.group-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.group-heading h2 {
+    margin: 0;
+}
+
+.group-course {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    margin: 16px 0 12px;
+    overflow-wrap: anywhere;
+}
+
+.group-course strong {
+    font-size: 17px;
+    font-weight: 600;
+}
+
+.group-course span {
+    color: var(--color-text-secondary);
+}
+
+.group-description {
+    margin: 0;
+    max-width: 72ch;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.group-facts {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 24px 32px;
+    margin: 0;
+    padding-top: 8px;
+}
+
+.group-facts dt {
+    margin-bottom: 4px;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.group-facts dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.group-header h1 {
+    flex: 1 1 320px;
+    overflow-wrap: anywhere;
+}
+
+.group-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.group-actions form {
+    margin: 0;
+}
+
+.group-join-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--color-divider);
+}
+
+.group-member-count {
+    color: var(--color-text-secondary);
+    font-size: 13px;
+}
+
+.group-member-list {
+    list-style: none;
+    margin: 24px 0 0;
+    padding: 0;
+}
+
+.group-member-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 0;
+    overflow-wrap: anywhere;
+}
+
+.group-member-row + .group-member-row {
+    border-top: 1px solid var(--color-divider);
+}
+
+.group-member-row > .badge {
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.group-avatar {
+    display: grid;
+    place-items: center;
+    flex: 0 0 40px;
+    height: 40px;
+    border-radius: var(--radius-pill);
+    background: var(--color-surface-muted);
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.group-timetable-scroll {
+    overflow-x: auto;
+    margin-top: 24px;
+}
+
+.group-timetable-scroll:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 4px;
+}
+
+.group-timetable {
+    min-width: 720px;
+    table-layout: fixed;
+}
+
+.group-timetable th,
+.group-timetable td {
+    padding: 8px;
+    text-align: center;
+}
+
+.group-timetable th:first-child {
+    width: 120px;
+    position: sticky;
+    left: 0;
+    z-index: 1;
+}
+
+.group-timetable .group-availability-cell {
+    display: block;
+}
+
+.group-visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+    .group-facts {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .group-facts {
+        grid-template-columns: 1fr;
+    }
 }

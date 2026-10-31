@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head(${group.name})}"></head>
+<body>
+<header th:replace="~{fragments/nav :: nav('groups')}"></header>
+<div th:replace="~{fragments/toast :: toast}"></div>
+
+<main>
+  <div class="group-actions">
+    <a class="btn btn-secondary" th:href="@{/groups}">Browse groups</a>
+    <a class="btn btn-secondary" th:if="${student != null}" th:href="@{/groups/mine}">My groups</a>
+    <a class="btn btn-secondary" th:if="${student != null}" th:href="@{/groups/requests}">My requests</a>
+  </div>
+
+  <header class="card group-header">
+    <div class="group-heading">
+      <h1 th:text="${group.name}">Study group</h1>
+      <div class="group-actions">
+        <span th:replace="~{fragments/badge :: badge(${group.visibility})}"></span>
+        <th:block th:if="${!group.open}">
+          <span th:replace="~{fragments/badge :: badge('Closed')}"></span>
+        </th:block>
+      </div>
+    </div>
+    <p class="group-course">
+      <strong th:text="${group.course.code}">IS442</strong>
+      <span th:text="${group.course.title}">Object-Oriented Programming</span>
+    </p>
+    <p class="group-description"
+       th:text="${#strings.isEmpty(group.description) ? 'No description provided.' : group.description}">Description</p>
+  </header>
+
+  <div th:if="${!group.open}" class="banner banner-warning" role="status">This group is closed</div>
+  <div th:if="${full}" class="banner banner-info" role="status">This group is full</div>
+
+  <section class="card" aria-labelledby="about-heading">
+    <h2 id="about-heading">Group overview</h2>
+    <dl class="group-facts">
+      <div>
+        <dt>Study goals</dt>
+        <dd>
+          <span th:if="${#sets.isEmpty(group.goals)}">No study goals provided.</span>
+          <div th:each="goal : ${group.goals}"
+               th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(goal.name(), '_', ' ')))}">Exam prep</div>
+        </dd>
+      </div>
+      <div>
+        <dt>Study mode</dt>
+        <dd th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(group.mode.name(), '_', ' ')))}">Online</dd>
+      </div>
+      <div>
+        <dt>Group leader</dt>
+        <dd th:text="${group.leader.name}">Leader</dd>
+      </div>
+      <div>
+        <dt>Members</dt>
+        <dd>
+          <strong th:text="${#lists.size(group.members)}">4</strong>
+          <span th:text="${'of ' + group.maxSize + ' places filled'}">of 5 places filled</span>
+        </dd>
+      </div>
+    </dl>
+    <div class="group-join-footer" th:with="spots=${full ? 0 : group.maxSize - #lists.size(group.members)}">
+      <span th:text="${spots + (spots == 1 ? ' spot remaining' : ' spots remaining')}">1 spot remaining</span>
+      <div class="group-actions" th:if="${student != null and !member and !leader and group.open and !full}">
+        <th:block th:if="${pending}">
+          <button type="button" class="btn btn-secondary" disabled>Request sent</button>
+          <span th:replace="~{fragments/badge :: badge(${pendingStatus})}"></span>
+        </th:block>
+        <form th:unless="${pending}" th:action="@{/groups/{id}/join(id=${group.id})}" method="post">
+          <button type="submit" class="btn btn-primary">Request to join</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section th:if="${leader}" class="card" aria-labelledby="management-heading">
+    <h2 id="management-heading">Group management</h2>
+    <div class="group-actions">
+      <a class="btn btn-primary" th:href="@{/groups/{id}/edit(id=${group.id})}">Edit group</a>
+      <a class="btn btn-secondary" th:href="@{/groups/{id}/manage(id=${group.id})}">Manage members</a>
+      <form th:if="${group.open}" th:action="@{/groups/{id}/close(id=${group.id})}" method="post">
+        <button type="submit" class="btn btn-danger">Close group</button>
+      </form>
+      <form th:unless="${group.open}" th:action="@{/groups/{id}/reopen(id=${group.id})}" method="post">
+        <button type="submit" class="btn btn-secondary">Reopen group</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="members-heading">
+    <div class="group-heading">
+      <h2 id="members-heading">Members</h2>
+      <span class="group-member-count" th:text="${#lists.size(group.members) + '/' + group.maxSize}">4/5</span>
+    </div>
+    <p th:if="${member and !leader}">You're a member</p>
+    <p th:if="${student == null}">Administrators can view groups. Only students can request to join.</p>
+    <p th:if="${student != null and !member and !leader and (!group.open or full)}">New join requests are unavailable.</p>
+    <ul class="group-member-list" th:unless="${#lists.isEmpty(group.members)}">
+      <li th:each="person : ${group.members}" class="group-member-row">
+        <span class="group-avatar" aria-hidden="true"
+              th:with="nameParts=${#strings.arraySplit(#strings.trim(person.name), ' ')}"
+              th:text="${#strings.toUpperCase(#strings.substring(nameParts[0], 0, 1) + (#arrays.length(nameParts) > 1 ? #strings.substring(nameParts[#arrays.length(nameParts) - 1], 0, 1) : ''))}">TW</span>
+        <span th:text="${person.name}">Student name</span>
+        <th:block th:if="${person.id == group.leader.id}">
+          <span th:replace="~{fragments/badge :: badge('Leader')}"></span>
+        </th:block>
+      </li>
+    </ul>
+    <th:block th:if="${#lists.isEmpty(group.members)}">
+      <div th:replace="~{fragments/empty-state :: empty-state('No members yet.')}"></div>
+    </th:block>
+  </section>
+
+  <section class="card" aria-labelledby="availability-heading">
+    <h2 id="availability-heading">Weekly availability</h2>
+    <p class="text-secondary" id="availability-hint">Each row represents one hour. Blue slots labelled Free are available; grey slots are unavailable.</p>
+    <div class="group-timetable-scroll" tabindex="0" role="region" aria-labelledby="availability-heading">
+      <table class="table group-timetable" aria-describedby="availability-hint">
+        <caption class="group-visually-hidden">Group weekly availability, from 08:00 to 23:00</caption>
+        <thead>
+          <tr>
+            <th scope="col">Time</th>
+            <th scope="col" th:each="day : ${days}" th:text="${day}">Monday</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="hour : ${#numbers.sequence(0, 14)}">
+            <th scope="row" th:text="${(hour + 8) + ':00–' + (hour + 9) + ':00'}">8:00–9:00</th>
+            <td th:each="day, dayIndex : ${days}">
+              <span class="cell group-availability-cell"
+                    th:classappend="${group.availability.isAvailable(dayIndex.index, hour)} ? 'cell-free' : 'cell-busy'"
+                    th:text="${group.availability.isAvailable(dayIndex.index, hour) ? 'Free' : '—'}"
+                    th:attr="aria-label=${day + ' ' + (hour + 8) + ':00–' + (hour + 9) + ':00: ' + (group.availability.isAvailable(dayIndex.index, hour) ? 'available' : 'unavailable')}">Free</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+</body>
+</html>

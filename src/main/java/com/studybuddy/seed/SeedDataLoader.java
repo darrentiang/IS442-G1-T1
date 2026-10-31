@@ -182,19 +182,18 @@ public class SeedDataLoader implements CommandLineRunner {
             group.setCourse(findCourse(cells[2], where));
 
             Student leader = findStudent(cells[3], where);
-            List<Student> members = parseStudentList(cells[4], where);
-            if (!members.contains(leader)) {
+            group.setLeader(leader);
+            group.setMaxSize(parseWholeNumber(cells[5], "max_size", where));     // before adding members
+            try {
+                for (Student member : parseStudentList(cells[4], where)) {
+                    group.addMember(member);     // throws if full or listed twice
+                }
+            } catch (IllegalStateException e) {
+                throw new SeedDataException(where + ": " + e.getMessage());
+            }
+            if (!group.hasMember(leader)) {
                 throw new SeedDataException(where + ": leader " + cells[3] + " must also be in members");
             }
-            group.setLeader(leader);
-            group.setMembers(members);
-
-            int maxSize = parseWholeNumber(cells[5], "max_size", where);
-            if (members.size() > maxSize) {
-                throw new SeedDataException(where + ": " + members.size()
-                        + " members is more than max_size " + maxSize);
-            }
-            group.setMaxSize(maxSize);
 
             group.setVisibility(parseEnum(Visibility.class, cells[6], "visibility", where));
             group.setOpen(parseBoolean(cells[7], "open", where));
@@ -228,7 +227,7 @@ public class SeedDataLoader implements CommandLineRunner {
             StudyGroup group = findGroup(cells[2], where);
             RequestStatus status = parseEnum(RequestStatus.class, cells[3], "status", where);
 
-            boolean isMember = group.getMembers().contains(student);
+            boolean isMember = group.hasMember(student);
             if (status == RequestStatus.ACCEPTED && !isMember) {
                 throw new SeedDataException(where + ": request is ACCEPTED but " + cells[1]
                         + " is not in the members of " + cells[2] + " in groups.csv");
@@ -242,7 +241,11 @@ public class SeedDataLoader implements CommandLineRunner {
             }
 
             JoinRequest request = new JoinRequest(cells[0], student, group);     // starts PENDING
-            request.setStatus(status);
+            if (status == RequestStatus.ACCEPTED) {
+                request.accept();     // the member is already in the group from groups.csv
+            } else if (status == RequestStatus.DECLINED) {
+                request.decline();
+            }
             joinRequestRepository.save(request);
             count++;
         }

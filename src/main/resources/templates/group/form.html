@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<!--
+  Create and edit share this page. Edit passes a "group"; create does not.
+  Expects: form (GroupForm), fieldErrors, courses, goalOptions, modeOptions, visibilityOptions.
+-->
+<head th:replace="~{fragments/head :: head(${group == null ? 'New group' : 'Edit group'})}"></head>
+<body>
+<header th:replace="~{fragments/nav :: nav('groups')}"></header>
+<div th:replace="~{fragments/toast :: toast}"></div>
+
+<main>
+  <h1 th:text="${group == null ? 'New group' : 'Edit group'}">New group</h1>
+
+  <div class="card card-narrow">
+    <form th:action="${group == null} ? @{/groups} : @{/groups/{id}/edit(id=${group.id})}" method="post">
+      <label for="name">Group name</label>
+      <input id="name" name="name" th:value="${form.name}">
+      <p th:replace="~{fragments/field-error :: field-error('name')}"></p>
+
+      <label for="description">Description (optional)</label>
+      <textarea id="description" name="description" rows="3" th:text="${form.description}"></textarea>
+      <p th:replace="~{fragments/field-error :: field-error('description')}"></p>
+
+      <th:block th:if="${group == null}">
+        <label for="courseCode">Course</label>
+        <select id="courseCode" name="courseCode">
+          <option value="">Choose a course…</option>
+          <option th:each="course : ${courses}" th:value="${course.code}"
+                  th:selected="${course.code == form.courseCode}"
+                  th:text="${course.code + ' · ' + course.title}">IS442 · Object-Oriented Programming</option>
+        </select>
+        <p th:replace="~{fragments/field-error :: field-error('courseCode')}"></p>
+      </th:block>
+      <th:block th:unless="${group == null}">
+        <label>Course</label>
+        <p th:text="${group.course.code + ' · ' + group.course.title + ' (can’t be changed)'}">IS442 · Object-Oriented Programming</p>
+      </th:block>
+
+      <fieldset class="form-fieldset">
+        <legend>Study goals</legend>
+        <label th:each="goal : ${goalOptions}">
+          <input type="checkbox" name="goals" th:value="${goal.name()}"
+                 th:checked="${#lists.contains(form.goals, goal.name())}">
+          <span th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(goal.name(), '_', ' ')))}">Exam prep</span>
+        </label>
+      </fieldset>
+      <p th:replace="~{fragments/field-error :: field-error('goals')}"></p>
+
+      <label for="mode">Study mode</label>
+      <select id="mode" name="mode">
+        <option value="">Choose a mode…</option>
+        <option th:each="mode : ${modeOptions}" th:value="${mode.name()}"
+                th:selected="${mode.name() == form.mode}"
+                th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(mode.name(), '_', ' ')))}">Online</option>
+      </select>
+      <p th:replace="~{fragments/field-error :: field-error('mode')}"></p>
+
+      <label for="availabilityText">Weekly availability, e.g. MON 19-21;WED 19-21 (optional)</label>
+      <input id="availabilityText" name="availabilityText" placeholder="MON 19-21;WED 19-21"
+             th:value="${form.availabilityText}">
+      <p th:replace="~{fragments/field-error :: field-error('availabilityText')}"></p>
+
+      <label for="maxSize">Max size (2 to 10, including you)</label>
+      <input id="maxSize" name="maxSize" type="number" min="2" max="10" th:value="${form.maxSize}">
+      <p th:replace="~{fragments/field-error :: field-error('maxSize')}"></p>
+
+      <label for="visibility">Who can find this group</label>
+      <select id="visibility" name="visibility">
+        <option value="">Choose…</option>
+        <option th:each="visibility : ${visibilityOptions}" th:value="${visibility.name()}"
+                th:selected="${visibility.name() == form.visibility}"
+                th:text="${visibility.name() == 'PUBLIC' ? 'Public: anyone can find it' : 'Private: only people with the link'}">Public</option>
+      </select>
+      <p th:replace="~{fragments/field-error :: field-error('visibility')}"></p>
+
+      <button type="submit" class="btn btn-primary btn-block"
+              th:text="${group == null ? 'Create group' : 'Save changes'}">Create group</button>
+    </form>
+  </div>
+
+  <p th:if="${group == null}"><a th:href="@{/groups}">Back to groups</a></p>
+  <p th:unless="${group == null}"><a th:href="@{/groups/{id}(id=${group.id})}">Back to group</a></p>
+</main>
+</body>
+</html>
