@@ -6,7 +6,16 @@
 <div th:replace="~{fragments/toast :: toast}"></div>
 
 <main>
-  <h1>New account</h1>
+  <div>
+    <a class="back-link" th:href="@{/admin/users}">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m12 19-7-7 7-7"/>
+        <path d="M19 12H5"/>
+      </svg>Back to accounts</a>
+    <h1>New account</h1>
+    <p class="text-secondary">Create a student or administrator account. New accounts start active.</p>
+  </div>
 
   <div class="card card-narrow">
     <form th:action="@{/admin/users}" method="post">
@@ -23,8 +32,6 @@
       <button type="submit" class="btn btn-primary btn-block">Create account</button>
     </form>
   </div>
-
-  <p><a th:href="@{/admin/users}">Back to accounts</a></p>
 </main>
 </body>
 </html>
