@@ -1,11 +1,16 @@
 package com.studybuddy.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /** A weekly availability (a student's or a group's): 7 days x 15 hourly cells (08:00-23:00). Day 0 = Monday, hour index 0 = 08:00. */
 public class AvailabilityGrid {
 
     private static final String[] DAY_NAMES = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};
     private static final int FIRST_HOUR = 8;
     private static final int LAST_HOUR = 23;
+    private static final int DAYS = 7;
+    private static final int HOURS_PER_DAY = 15;
 
     private final boolean[][] cells = new boolean[7][15];
 
@@ -92,5 +97,49 @@ public class AvailabilityGrid {
             }
         }
         return count;
+    }
+
+    /**
+     * Finds every run of consecutive hours where BOTH grids are free on the same day and the
+     * run is at least minHours long, in day then hour order.
+     *
+     * @param other the grid to compare with
+     * @param minHours the shortest run worth keeping
+     * @return the shared blocks, empty if there are none
+     */
+    public List<TimeBlock> commonBlocks(AvailabilityGrid other, int minHours) {
+        List<TimeBlock> blocks = new ArrayList<>();
+        for (int day = 0; day < DAYS; day++) {
+            int runStart = -1;
+            for (int hour = 0; hour <= HOURS_PER_DAY; hour++) {
+                boolean bothFree = hour < HOURS_PER_DAY && cells[day][hour] && other.cells[day][hour];
+                if (bothFree && runStart < 0) {
+                    runStart = hour;
+                } else if (!bothFree && runStart >= 0) {
+                    if (hour - runStart >= minHours) {
+                        blocks.add(new TimeBlock(day, FIRST_HOUR + runStart, FIRST_HOUR + hour));
+                    }
+                    runStart = -1;
+                }
+            }
+        }
+        return blocks;
+    }
+
+    /**
+     * Adds up the hours in the shared blocks of at least minHours. Short scattered overlaps
+     * are not counted, because nobody can hold a study session in them.
+     *
+     * @param other the grid to compare with
+     * @param minHours the shortest run worth counting
+     * @return the total hours in those blocks
+     */
+    public int usableHours(AvailabilityGrid other, int minHours) {
+        int total = 0;
+        List<TimeBlock> blocks = commonBlocks(other, minHours);
+        for (TimeBlock block : blocks) {
+            total += block.getLength();
+        }
+        return total;
     }
 }

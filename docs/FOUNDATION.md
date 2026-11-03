@@ -33,7 +33,7 @@ com.studybuddy.model         entities + enums
 com.studybuddy.repository    repository interfaces + InMemory implementations
 com.studybuddy.service       services
 com.studybuddy.controller    controllers
-com.studybuddy.engine        matching: criteria, strategies, config, results
+com.studybuddy.engine        matching: engine, config, results (+ filter, criteria, strategy sub-packages)
 com.studybuddy.seed          seed data loaders
 src/main/resources/templates/   Thymeleaf pages (.html)
 src/main/resources/static/      css, the one js file
@@ -122,6 +122,13 @@ public class AvailabilityGrid {
         the group heatmap, and best-slot. */
     public int overlapHours(AvailabilityGrid other) { ... }
 
+    /** Every run of consecutive hours where BOTH grids are free, on the same day, of length
+        >= minHours, in day then hour order. Used by matching and best-slot suggestions. */
+    public List<TimeBlock> commonBlocks(AvailabilityGrid other, int minHours) { ... }
+
+    /** The total length of commonBlocks(other, minHours): hours you could actually hold a session in. */
+    public int usableHours(AvailabilityGrid other, int minHours) { ... }
+
     /** Builds a grid from text like "MON 19-21;WED 19-21;SAT 14-18" (end hour exclusive,
         so 19-21 marks 19:00 and 20:00). Blank text gives an empty grid. Throws
         IllegalArgumentException for a bad day, a range outside 8..23, or start >= end. */
@@ -130,6 +137,18 @@ public class AvailabilityGrid {
 ```
 
 One structure, four features. Day 0 = Monday. Hour index 0 = 08:00. Used by both students (`StudentProfile.availability`) and groups (`StudyGroup.availability`).
+
+```java
+/** A run of whole hours on one day, e.g. Wednesday 19:00 to 21:00. Immutable. */
+public class TimeBlock {
+    private final int day;         // 0 = Monday
+    private final int startHour;   // clock hour, e.g. 19
+    private final int endHour;     // clock hour, exclusive, e.g. 21
+
+    public int getLength() { ... }        // endHour - startHour
+    public String toString() { ... }      // "WED 19-21"
+}
+```
 
 ### Course
 
@@ -233,36 +252,74 @@ public enum ActivityType  { MEMBER_JOINED, MEMBER_LEFT, SESSION_PROPOSED, SESSIO
 
 ### The matching engine (Student team's territory)
 
-Only the two interfaces and the two data classes below are frozen — and only because the Admin team's config screen must call something stable. Everything inside (the eight criterion classes, how each strategy actually ranks) is Student-team design work, done after the Week 4 interfaces lecture, and documented in Doc 1.
+The engine is plain Java in `com.studybuddy.engine` and its sub-packages `filter`, `criteria` and `strategy`. The types below are the contract the services and the admin config page call; how it all fits together is in `docs/MATCHING_ENGINE.md`.
 
 ```java
-/** One scoring rule. One class per criterion. Returns 0.0 (no fit) to 1.0 (perfect). */
+/** One criterion's verdict on a pair: 0.0 to 1.0, plus a reason (null when nothing worth saying). */
+public class CriterionScore {
+    private final double value;     // constructor throws IllegalArgumentException outside 0..1
+    private final String reason;
+}
+
+/** One scoring rule. One class per criterion. */
 public interface MatchCriterion {
-    String getName();                                        // "availability" — used as the config key
-    double score(StudentProfile a, StudentProfile b);
+    String getName();                                        // "availability" — the config key
+    String getLabel();                                       // "Availability" — shown to people
+    CriterionScore score(StudentProfile seeker, StudentProfile candidate, MatchingConfig config);  // seeker's side only
 }
 
-/** One way of combining criterion scores into a ranking. */
+/** A dealbreaker check, applied before scoring. */
+public interface CandidateFilter {
+    String getName();
+    boolean accepts(Student seeker, Student candidate, MatchContext context);
+}
+
+/** One search's details, built by the service. Immutable. */
+public class MatchContext {
+    private final String courseCode;                     // nullable
+    private final StudyGoal goal;                        // nullable
+    private final Set<String> excludedIds;
+    private final Map<String, Integer> pendingIncoming;  // candidate id -> PENDING requests received
+}
+
+/** One way of ordering scored results (package com.studybuddy.engine.strategy). */
 public interface MatchingStrategy {
-    String getName();                                        // "balanced" — used as the config key
-    List<MatchResult> rank(StudentProfile seeker, List<Student> candidates, MatchingConfig config);
+    String getName();                                        // "balanced" — the config key
+    String getLabel();                                       // "Balanced"
+    List<MatchResult> rank(List<MatchResult> scored);        // returns a new sorted list
 }
 
-/** The admin's settings: which strategy, which criteria on, what weights. */
+/** The admin's settings: which strategy, which criteria on, what weights. MatchingConfig.defaults() gives the starting values. */
 public class MatchingConfig {
     private String activeStrategyName;
     private Set<String> enabledCriteria;
     private Map<String, Double> weights;      // criterion name -> weight
     private int maxResults;
     private double minimumScore;
+    private int targetUsableHours;            // usable hours that earn a full availability score (4)
+    private int minSessionHours;              // shortest shared block that counts (2)
+    private double congestionStrength;        // how much each pending request lowers a score (0.05)
 }
 
-/** One row of a ranked result: who, the total, and the per-criterion breakdown
-    (the breakdown is what the score bars on screen are drawn from). */
+/** One row of a ranked result. Immutable; the map and list are read-only copies. */
 public class MatchResult {
     private final Student candidate;
-    private final double totalScore;
-    private final Map<String, Double> criterionScores;
+    private final double mutualScore;                          // after congestion
+    private final double fitForSeeker;
+    private final double fitForCandidate;
+    private final Map<String, CriterionScore> criterionScores; // seeker side; drives the score bars
+    private final int usableHours;
+    private final int pendingRequests;
+    private final List<String> reasons;
+}
+
+/** Runs the pipeline. MatchingEngine.createDefault() assembles the 4 filters, 8 criteria and 3 strategies. */
+public class MatchingEngine {
+    public List<MatchResult> findMatches(Student seeker, List<Student> pool, MatchContext context, MatchingConfig config);
+    public List<String> getCriterionNames();
+    public List<String> getStrategyNames();
+    public String getCriterionLabel(String name);
+    public String getStrategyLabel(String name);
 }
 ```
 
@@ -307,16 +364,55 @@ classDiagram
 ```mermaid
 classDiagram
     direction TB
-    MatchingStrategy <|.. AbstractWeightedStrategy
-    AbstractWeightedStrategy <|-- BalancedStrategy
-    AbstractWeightedStrategy <|-- AvailabilityFirstStrategy
-    AbstractWeightedStrategy <|-- CourseFirstStrategy
+    class MatchingEngine {
+        +createDefault()$ MatchingEngine
+        +findMatches(seeker, pool, context, config) List~MatchResult~
+    }
+    class CandidateFilter { <<interface>> }
+    class MatchCriterion { <<interface>> }
+    class MatchingStrategy { <<interface>> }
+    class Comparator { <<interface>> }
+    class AbstractMatchingStrategy {
+        <<abstract>>
+        +rank(scored) List~MatchResult~
+        #createComparator()* Comparator~MatchResult~
+    }
+    MatchingEngine "1" --> "*" CandidateFilter : filters
+    MatchingEngine "1" --> "*" MatchCriterion : criteria
+    MatchingEngine "1" --> "*" MatchingStrategy : strategies
+    MatchingEngine --> ReciprocalScorer
+    MatchingEngine --> CongestionPenalty
+    MatchingEngine --> ExplanationBuilder
+    MatchingEngine ..> MatchContext
+    MatchingEngine ..> MatchingConfig
+    MatchingEngine ..> MatchResult : creates
+    MatchResult "1" --> "*" CriterionScore
+    MatchCriterion ..> CriterionScore : returns
+    CandidateFilter <|.. SelfFilter
+    CandidateFilter <|.. ActiveAccountFilter
+    CandidateFilter <|.. SearchFilter
+    CandidateFilter <|.. ExcludedFilter
     MatchCriterion <|.. CourseCriterion
     MatchCriterion <|.. AvailabilityCriterion
+    MatchCriterion <|.. StudyModeCriterion
     MatchCriterion <|.. StudyGoalCriterion
+    MatchCriterion <|.. GroupSizeCriterion
+    MatchCriterion <|.. YearCriterion
+    MatchCriterion <|.. IntensityCriterion
+    MatchCriterion <|.. SharedCoursesCriterion
+    MatchingStrategy <|.. AbstractMatchingStrategy
+    AbstractMatchingStrategy <|-- BalancedStrategy
+    AbstractMatchingStrategy <|-- AvailabilityFirstStrategy
+    AbstractMatchingStrategy <|-- CourseFirstStrategy
+    BalancedStrategy ..> MutualScoreComparator
+    AvailabilityFirstStrategy ..> AvailabilityFirstComparator
+    CourseFirstStrategy ..> CourseFirstComparator
+    Comparator <|.. MutualScoreComparator
+    Comparator <|.. AvailabilityFirstComparator
+    Comparator <|.. CourseFirstComparator
 ```
 
-Read them like the Week 3 slides: hollow-triangle arrows are `extends`/`implements`; plain arrows are "has a reference to"; numbers are multiplicity. Diagram C shows three of the eight criterion classes; the full set is Doc 1's job.
+Read them like the Week 3 slides: hollow-triangle arrows are `extends`/`implements`; plain arrows are "has a reference to"; dotted arrows are "uses"; numbers are multiplicity. Diagram C shows the whole engine; `docs/MATCHING_ENGINE.md` explains it.
 
 ## 5. Repositories (shared contract)
 

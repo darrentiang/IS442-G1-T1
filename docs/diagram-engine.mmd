@@ -1,9 +1,48 @@
 classDiagram
     direction TB
-    MatchingStrategy <|.. AbstractWeightedStrategy
-    AbstractWeightedStrategy <|-- BalancedStrategy
-    AbstractWeightedStrategy <|-- AvailabilityFirstStrategy
-    AbstractWeightedStrategy <|-- CourseFirstStrategy
+    class MatchingEngine {
+        +createDefault()$ MatchingEngine
+        +findMatches(seeker, pool, context, config) List~MatchResult~
+    }
+    class CandidateFilter { <<interface>> }
+    class MatchCriterion { <<interface>> }
+    class MatchingStrategy { <<interface>> }
+    class Comparator { <<interface>> }
+    class AbstractMatchingStrategy {
+        <<abstract>>
+        +rank(scored) List~MatchResult~
+        #createComparator()* Comparator~MatchResult~
+    }
+    MatchingEngine "1" --> "*" CandidateFilter : filters
+    MatchingEngine "1" --> "*" MatchCriterion : criteria
+    MatchingEngine "1" --> "*" MatchingStrategy : strategies
+    MatchingEngine --> ReciprocalScorer
+    MatchingEngine --> CongestionPenalty
+    MatchingEngine --> ExplanationBuilder
+    MatchingEngine ..> MatchContext
+    MatchingEngine ..> MatchingConfig
+    MatchingEngine ..> MatchResult : creates
+    MatchResult "1" --> "*" CriterionScore
+    MatchCriterion ..> CriterionScore : returns
+    CandidateFilter <|.. SelfFilter
+    CandidateFilter <|.. ActiveAccountFilter
+    CandidateFilter <|.. SearchFilter
+    CandidateFilter <|.. ExcludedFilter
     MatchCriterion <|.. CourseCriterion
     MatchCriterion <|.. AvailabilityCriterion
+    MatchCriterion <|.. StudyModeCriterion
     MatchCriterion <|.. StudyGoalCriterion
+    MatchCriterion <|.. GroupSizeCriterion
+    MatchCriterion <|.. YearCriterion
+    MatchCriterion <|.. IntensityCriterion
+    MatchCriterion <|.. SharedCoursesCriterion
+    MatchingStrategy <|.. AbstractMatchingStrategy
+    AbstractMatchingStrategy <|-- BalancedStrategy
+    AbstractMatchingStrategy <|-- AvailabilityFirstStrategy
+    AbstractMatchingStrategy <|-- CourseFirstStrategy
+    BalancedStrategy ..> MutualScoreComparator
+    AvailabilityFirstStrategy ..> AvailabilityFirstComparator
+    CourseFirstStrategy ..> CourseFirstComparator
+    Comparator <|.. MutualScoreComparator
+    Comparator <|.. AvailabilityFirstComparator
+    Comparator <|.. CourseFirstComparator

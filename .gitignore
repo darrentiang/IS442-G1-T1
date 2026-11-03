@@ -33,3 +33,6 @@ target/
 
 # Local runbook
 SCAFFOLD_PLAN.md
+
+# Local prompt files
+*.local.md
