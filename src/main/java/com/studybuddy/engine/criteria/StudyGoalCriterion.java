@@ -62,6 +62,6 @@ public class StudyGoalCriterion implements MatchCriterion {
 
     /** Turns a goal into readable lower-case text, e.g. EXAM_PREP into "exam prep". */
     private String readable(StudyGoal goal) {
-        return goal.name().toLowerCase().replace('_', ' ');
+        return goal.getLabel().toLowerCase();
     }
 }

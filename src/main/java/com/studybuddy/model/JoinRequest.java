@@ -1,5 +1,7 @@
 package com.studybuddy.model;
 
+import java.util.Objects;
+
 /** A request by a student to join a group. Same lifecycle as MatchRequest. */
 public class JoinRequest {
 
@@ -36,22 +38,22 @@ public class JoinRequest {
         return status;
     }
 
-    /** Marks the request ACCEPTED; throws IllegalStateException unless it is PENDING. Does not add the member. */
+    /** Marks the request ACCEPTED; throws RequestAlreadyHandledException unless it is PENDING. Does not add the member. */
     public void accept() {
         requirePending();
         status = RequestStatus.ACCEPTED;
     }
 
-    /** Marks the request DECLINED; throws IllegalStateException unless it is PENDING. */
+    /** Marks the request DECLINED; throws RequestAlreadyHandledException unless it is PENDING. */
     public void decline() {
         requirePending();
         status = RequestStatus.DECLINED;
     }
 
-    /** Throws IllegalStateException if this request has already been answered. */
+    /** Throws RequestAlreadyHandledException if this request has already been answered. */
     private void requirePending() {
         if (status != RequestStatus.PENDING) {
-            throw new IllegalStateException("This request was already handled");
+            throw new RequestAlreadyHandledException("This request was already handled");
         }
     }
 
@@ -59,5 +61,24 @@ public class JoinRequest {
     @Override
     public String toString() {
         return "JoinRequest[" + id + " " + student.getName() + " -> " + group.getName() + " " + status + "]";
+    }
+
+    /** Two join requests are equal when they have the same id. */
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof JoinRequest)) {
+            return false;
+        }
+        JoinRequest that = (JoinRequest) other;
+        return Objects.equals(id, that.id);
+    }
+
+    /** Returns a hash code from the id, consistent with equals. */
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

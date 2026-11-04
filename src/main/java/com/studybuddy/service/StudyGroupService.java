@@ -1,8 +1,8 @@
 package com.studybuddy.service;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -10,7 +10,9 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 
 import com.studybuddy.model.AvailabilityGrid;
+import com.studybuddy.model.BusinessRuleException;
 import com.studybuddy.model.JoinRequest;
+import com.studybuddy.model.NotGroupLeaderException;
 import com.studybuddy.model.RequestStatus;
 import com.studybuddy.model.Student;
 import com.studybuddy.model.StudyGoal;
@@ -72,18 +74,18 @@ public class StudyGroupService {
             fieldErrors.put("goals", "Choose at least one study goal");
         } else {
             for (String goal : goals) {
-                if (toGoal(goal) == null) {
+                if (StudyGoal.fromName(goal) == null) {
                     fieldErrors.put("goals", "Choose study goals from the list");
                     break;
                 }
             }
         }
 
-        if (toMode(form.getMode()) == null) {
+        if (StudyMode.fromName(form.getMode()) == null) {
             fieldErrors.put("mode", "Choose a study mode");
         }
 
-        if (toVisibility(form.getVisibility()) == null) {
+        if (Visibility.fromName(form.getVisibility()) == null) {
             fieldErrors.put("visibility", "Choose who can see this group");
         }
 
@@ -112,7 +114,7 @@ public class StudyGroupService {
         group.setCourse(courseRepository.findByCode(trimOrEmpty(form.getCourseCode())));
         applyForm(group, form);
         group.setLeader(leader);
-        group.getMembers().add(leader);
+        group.addMember(leader);
         group.setOpen(true);
         groupRepository.save(group);
         return group;
@@ -128,13 +130,13 @@ public class StudyGroupService {
     public void closeGroup(String groupId, String leaderId) {
         StudyGroup group = findById(groupId);
         if (group == null) {
-            throw new IllegalStateException("This group could not be found");
+            throw new BusinessRuleException("This group could not be found");
         }
         if (!isLeader(group, leaderId)) {
-            throw new IllegalStateException("Only the group leader can close this group");
+            throw new NotGroupLeaderException("Only the group leader can close this group");
         }
         if (!group.isOpen()) {
-            throw new IllegalStateException("This group is already closed");
+            throw new BusinessRuleException("This group is already closed");
         }
         group.setOpen(false);
         groupRepository.save(group);
@@ -151,13 +153,13 @@ public class StudyGroupService {
     public void reopenGroup(String groupId, String leaderId) {
         StudyGroup group = findById(groupId);
         if (group == null) {
-            throw new IllegalStateException("This group could not be found");
+            throw new BusinessRuleException("This group could not be found");
         }
         if (!isLeader(group, leaderId)) {
-            throw new IllegalStateException("Only the group leader can reopen this group");
+            throw new NotGroupLeaderException("Only the group leader can reopen this group");
         }
         if (group.isOpen()) {
-            throw new IllegalStateException("This group is already open");
+            throw new BusinessRuleException("This group is already open");
         }
         group.setOpen(true);
         groupRepository.save(group);
@@ -223,8 +225,8 @@ public class StudyGroupService {
         group.setName(trimOrEmpty(form.getName()));
         group.setDescription(trimOrEmpty(form.getDescription()));
         group.setGoals(toGoals(form.getGoals()));
-        group.setMode(toMode(form.getMode()));
-        group.setVisibility(toVisibility(form.getVisibility()));
+        group.setMode(StudyMode.fromName(form.getMode()));
+        group.setVisibility(Visibility.fromName(form.getVisibility()));
         group.setMaxSize(parseWholeNumber(form.getMaxSize()));
         group.setAvailability(AvailabilityGrid.parse(form.getAvailabilityText()));
     }
@@ -246,48 +248,18 @@ public class StudyGroupService {
         }
     }
 
-    /** Returns the StudyGoal with this name, or null if there is none. */
-    private StudyGoal toGoal(String text) {
-        for (StudyGoal goal : StudyGoal.values()) {
-            if (goal.name().equals(text)) {
-                return goal;
-            }
-        }
-        return null;
-    }
-
-    /** Converts goal names to a set of StudyGoal, skipping unknown names. */
+    /** Converts goal names to a set of StudyGoal in declaration order, skipping unknown names. */
     private Set<StudyGoal> toGoals(List<String> names) {
-        Set<StudyGoal> goals = new HashSet<>();
+        Set<StudyGoal> goals = EnumSet.noneOf(StudyGoal.class);
         if (names == null) {
             return goals;
         }
         for (String name : names) {
-            StudyGoal goal = toGoal(name);
+            StudyGoal goal = StudyGoal.fromName(name);
             if (goal != null) {
                 goals.add(goal);
             }
         }
         return goals;
-    }
-
-    /** Returns the StudyMode with this name, or null if there is none. */
-    private StudyMode toMode(String text) {
-        for (StudyMode mode : StudyMode.values()) {
-            if (mode.name().equals(text)) {
-                return mode;
-            }
-        }
-        return null;
-    }
-
-    /** Returns the Visibility with this name, or null if there is none. */
-    private Visibility toVisibility(String text) {
-        for (Visibility visibility : Visibility.values()) {
-            if (visibility.name().equals(text)) {
-                return visibility;
-            }
-        }
-        return null;
     }
 }

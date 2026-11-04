@@ -10,6 +10,7 @@ public class CourseFirstStrategy extends AbstractMatchingStrategy {
     /** The config key for this strategy. */
     public static final String NAME = "course-first";
     private static final String LABEL = "Course first";
+    private static final String DESCRIPTION = "Students in the same course rank highest.";
 
     /** Returns "course-first". */
     @Override
@@ -21,6 +22,12 @@ public class CourseFirstStrategy extends AbstractMatchingStrategy {
     @Override
     public String getLabel() {
         return LABEL;
+    }
+
+    /** Returns "Students in the same course rank highest." */
+    @Override
+    public String getDescription() {
+        return DESCRIPTION;
     }
 
     /** Returns a comparator on the course score, then mutual score. */

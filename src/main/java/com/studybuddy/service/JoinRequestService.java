@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.studybuddy.model.BusinessRuleException;
+import com.studybuddy.model.GroupFullException;
 import com.studybuddy.model.JoinRequest;
 import com.studybuddy.model.RequestStatus;
 import com.studybuddy.model.Student;
@@ -33,22 +35,22 @@ public class JoinRequestService {
     /** Validates eligibility and saves a new pending request, including after a decline. */
     public JoinRequest requestToJoin(Student student, StudyGroup group) {
         if (student == null) {
-            throw new IllegalStateException("Only students can request to join a group");
+            throw new BusinessRuleException("Only students can request to join a group");
         }
         if (group == null) {
-            throw new IllegalStateException("This group could not be found");
+            throw new BusinessRuleException("This group could not be found");
         }
         if (!group.isOpen()) {
-            throw new IllegalStateException("This group is closed");
+            throw new BusinessRuleException("This group is closed");
         }
         if (groupService.isFull(group)) {
-            throw new IllegalStateException("This group is full");
+            throw new GroupFullException("This group is full");
         }
         if (groupService.isMember(group, student.getId())) {
-            throw new IllegalStateException("You're already in this group");
+            throw new BusinessRuleException("You're already in this group");
         }
         if (hasPendingRequest(student.getId(), group.getId())) {
-            throw new IllegalStateException("You already asked to join");
+            throw new BusinessRuleException("You already asked to join");
         }
         JoinRequest request = new JoinRequest(requestRepository.nextId(), student, group);
         requestRepository.save(request);

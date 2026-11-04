@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.studybuddy.model.BusinessRuleException;
 import com.studybuddy.model.RequestStatus;
 import com.studybuddy.model.Student;
 import com.studybuddy.model.StudyGoal;
@@ -47,9 +48,6 @@ public class GroupBrowseController {
             @RequestParam(required = false) String goal, HttpSession session, Model model,
             RedirectAttributes redirectAttributes) {
         String userId = CurrentUser.getId(session);
-        if (userId == null || userService.findUser(userId) == null) {
-            return "redirect:/";
-        }
         StudyGoal selectedGoal = null;
         Map<String, String> fieldErrors = new HashMap<>();
         if (goal != null && !goal.isBlank()) {
@@ -77,9 +75,6 @@ public class GroupBrowseController {
     public String showGroup(@PathVariable String id, HttpSession session, Model model,
             RedirectAttributes redirectAttributes) {
         String userId = CurrentUser.getId(session);
-        if (userId == null || userService.findUser(userId) == null) {
-            return "redirect:/";
-        }
         StudyGroup group = groupService.findById(id);
         if (group == null) {
             return errorRedirect(redirectAttributes, "This group could not be found", "/groups");
@@ -101,9 +96,6 @@ public class GroupBrowseController {
     public String requestToJoin(@PathVariable String id, HttpSession session,
             RedirectAttributes redirectAttributes) {
         String userId = CurrentUser.getId(session);
-        if (userId == null || userService.findUser(userId) == null) {
-            return "redirect:/";
-        }
         StudyGroup group = groupService.findById(id);
         if (group == null) {
             return errorRedirect(redirectAttributes, "This group could not be found", "/groups");
@@ -111,31 +103,27 @@ public class GroupBrowseController {
         Student student = userService.findStudent(userId);
         try {
             requestService.requestToJoin(student, group);
-        } catch (IllegalStateException exception) {
+        } catch (BusinessRuleException exception) {
             return errorRedirect(redirectAttributes, exception.getMessage(), "/groups/" + id);
         }
-        redirectAttributes.addFlashAttribute("toastMessage", "Request sent to " + group.getName());
-        redirectAttributes.addFlashAttribute("toastType", "success");
+        Toasts.success(redirectAttributes, "Request sent to " + group.getName());
         return "redirect:/groups/" + id;
     }
 
     /** Shows every request submitted by the signed-in student. */
     @GetMapping("/groups/requests")
     public String showMyRequests(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
-        String userId = CurrentUser.getId(session);
-        if (userId == null || userService.findUser(userId) == null) {
-            return "redirect:/";
-        }
-        if (userService.findStudent(userId) == null) {
+        Student student = CurrentUser.studentOrNull(session, userService);
+        if (student == null) {
             return errorRedirect(redirectAttributes, "Only students have join requests", "/groups");
         }
-        model.addAttribute("requests", requestService.findByStudent(userId));
+        model.addAttribute("requests", requestService.findByStudent(student.getId()));
         return "group/my-requests";
     }
 
+    /** Adds an error toast and redirects to the given path. */
     private String errorRedirect(RedirectAttributes redirectAttributes, String message, String path) {
-        redirectAttributes.addFlashAttribute("toastMessage", message);
-        redirectAttributes.addFlashAttribute("toastType", "error");
+        Toasts.error(redirectAttributes, message);
         return "redirect:" + path;
     }
 }

@@ -22,8 +22,9 @@
         <optgroup label="Students">
           <option th:each="s : ${students}"
                   th:value="${s.id}"
-                  th:text="${s.id + ' · ' + s.name + ' · ' + s.profile.preferences.targetCourse.code
-                            + ' · Year ' + s.profile.yearOfStudy
+                  th:text="${s.id + ' · ' + s.name
+                            + (s.profile.preferences.targetCourse == null ? '' : ' · ' + s.profile.preferences.targetCourse.code
+                                + ' · Year ' + s.profile.yearOfStudy)
                             + (s.status.name() == 'SUSPENDED' ? ' · Suspended' : '')}">S001 · Tan Wei Jie · IS442 · Year 3</option>
         </optgroup>
       </select>

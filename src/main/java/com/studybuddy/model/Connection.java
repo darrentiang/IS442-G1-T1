@@ -1,6 +1,7 @@
 package com.studybuddy.model;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 /** An accepted match. While active, each side may see the other's connected view. */
 public class Connection {
@@ -54,5 +55,24 @@ public class Connection {
     @Override
     public String toString() {
         return "Connection[" + id + " " + a.getName() + " <-> " + b.getName() + "]";
+    }
+
+    /** Two connections are equal when they have the same id. */
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof Connection)) {
+            return false;
+        }
+        Connection that = (Connection) other;
+        return Objects.equals(id, that.id);
+    }
+
+    /** Returns a hash code from the id, consistent with equals. */
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

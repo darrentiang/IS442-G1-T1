@@ -9,9 +9,6 @@ import com.studybuddy.model.AvailabilityGrid;
 /** What a timetable import found: the hours in class, the class names, how many weekly slots, and warnings. Immutable. */
 public class TimetableImport {
 
-    private static final int DAYS = 7;
-    private static final int HOURS = 15;
-
     private final AvailabilityGrid busy;
     private final List<String> classNames;
     private final int classCount;
@@ -48,8 +45,8 @@ public class TimetableImport {
     /** Copies a grid cell by cell, so nobody outside can change this result. */
     private static AvailabilityGrid copyOf(AvailabilityGrid grid) {
         AvailabilityGrid copy = new AvailabilityGrid();
-        for (int day = 0; day < DAYS; day++) {
-            for (int hour = 0; hour < HOURS; hour++) {
+        for (int day = 0; day < AvailabilityGrid.DAYS; day++) {
+            for (int hour = 0; hour < AvailabilityGrid.HOURS_PER_DAY; hour++) {
                 copy.set(day, hour, grid.isAvailable(day, hour));
             }
         }

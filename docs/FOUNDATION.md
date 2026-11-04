@@ -35,7 +35,7 @@ com.studybuddy.service       services
 com.studybuddy.controller    controllers
 com.studybuddy.engine        matching: engine, config, results (+ filter, criteria, strategy sub-packages)
 com.studybuddy.importer      timetable import: reads a timetable file into class hours
-com.studybuddy.seed          seed data loaders
+com.studybuddy.seed          seed data: SeedDataLoader runs one Seeder per CSV file
 src/main/resources/templates/   Thymeleaf pages (.html)
 src/main/resources/static/      css, the one js file
 ```
@@ -51,6 +51,8 @@ Naming (Java Coding Conventions — these are graded):
 ## 3. The shared classes (the spine)
 
 Field-level definitions. Methods are only listed where they are part of the shared contract; everything else each sub-team designs in its own territory doc.
+
+Rules every entity follows: `equals`/`hashCode` compare by id (`User` and its subclasses, `StudyGroup`, `JoinRequest`, `MatchRequest`, `Connection`, `StudySession`) or by code (`Course`); a getter for an entity's own collection returns a read-only view and the matching setter copies its argument, so a collection only changes through its owner's methods (`StudyGroup.addMember`); goal sets are `EnumSet`s, so they always list in declaration order.
 
 ### Users
 
@@ -116,7 +118,14 @@ The contact number rule is the brief's "hidden until a match is accepted" requir
 ```java
 /** A student's weekly availability: 7 days x 15 hourly cells (08:00-23:00). */
 public class AvailabilityGrid {
-    private final boolean[][] cells = new boolean[7][15];   // [day][hourIndex]
+    public static final int DAYS = 7;              // the ONLY place the grid's shape is written down
+    public static final int HOURS_PER_DAY = 15;
+    public static final int FIRST_HOUR = 8;
+    public static final int LAST_HOUR = 23;
+    private final boolean[][] cells = new boolean[DAYS][HOURS_PER_DAY];   // [day][hourIndex]
+
+    public static String dayName(int day) { ... }       // 0 -> "MON" ... 6 -> "SUN"
+    public static int dayIndex(String name) { ... }     // "MON" -> 0; IllegalArgumentException otherwise
 
     public boolean isAvailable(int day, int hourIndex) { ... }
     public void set(int day, int hourIndex, boolean available) { ... }
@@ -175,7 +184,7 @@ public class MatchRequest {
     private String message;             // optional
     private RequestStatus status;       // PENDING -> ACCEPTED or DECLINED
 
-    public void accept() { ... }        // both throw IllegalStateException("This request was already handled")
+    public void accept() { ... }        // both throw RequestAlreadyHandledException("This request was already handled")
     public void decline() { ... }       // unless PENDING; there is no setStatus
 }
 
@@ -187,7 +196,7 @@ public class Pass {
 }
 
 /** Thrown when the rules refuse a buddy request (already pending, already connected, ...). */
-public class RequestNotAllowedException extends IllegalStateException { }
+public class RequestNotAllowedException extends BusinessRuleException { }
 
 /** An accepted match. While active, each side may see the other's connected view. */
 public class Connection {
@@ -266,6 +275,8 @@ public enum Rsvp          { GOING, CANT }
 public enum ActivityType  { MEMBER_JOINED, MEMBER_LEFT, SESSION_PROPOSED, SESSION_CONFIRMED, LEADERSHIP_TRANSFERRED }
 ```
 
+`Role`, `StudyMode`, `GroupFormat`, `StudyGoal`, `Intensity` and `Visibility` carry the text shown to people: `getLabel()` (`StudyMode.EITHER` is "In person or online"), used in templates as `${x.label}`. Each also has `public static X fromName(String text)`, which returns the constant whose `name()` is exactly the text, or null for null, blank or unknown text; services use it to read form values.
+
 ### The matching engine (Student team's territory)
 
 The engine is plain Java in `com.studybuddy.engine` and its sub-packages `filter`, `criteria` and `strategy`. The types below are the contract the services and the admin config page call; how it all fits together is in `docs/MATCHING_ENGINE.md`.
@@ -304,6 +315,7 @@ public class MatchContext {
 public interface MatchingStrategy {
     String getName();                                        // "balanced" — the config key
     String getLabel();                                       // "Balanced"
+    String getDescription();                                 // "Every criterion counts by its weight." (config page legend)
     List<MatchResult> rank(List<MatchResult> scored);        // returns a new sorted list
 }
 
@@ -400,7 +412,7 @@ public class TimetableImportService {
 
 ## 4. Class diagram
 
-Three small diagrams instead of one tangle. They live in the repo as `docs/diagram-users.mmd`, `docs/diagram-groups.mmd`, `docs/diagram-engine.mmd` (Mermaid renders on GitHub automatically).
+Small diagrams instead of one tangle. A to C also live in the repo as `docs/diagram-users.mmd`, `docs/diagram-groups.mmd`, `docs/diagram-engine.mmd` (Mermaid renders on GitHub automatically); D to F cover the cross-cutting pieces.
 
 **A — Users and matching entities:**
 
@@ -488,6 +500,73 @@ classDiagram
     Comparator <|.. MutualScoreComparator
     Comparator <|.. AvailabilityFirstComparator
     Comparator <|.. CourseFirstComparator
+```
+
+**D — Rule violations: one exception hierarchy.** A `BusinessRuleException` means an action broke a rule of the system (joining a closed group, answering a request twice), not a programming error. Services and entities throw it, or a subclass when some caller needs to tell that rule apart, with a message written for people. Controllers catch `BusinessRuleException` and show the message as an error toast. The two checked exceptions stay separate: they are about unreadable files, not rules.
+
+```mermaid
+classDiagram
+    direction TB
+    class RuntimeException
+    class BusinessRuleException
+    RuntimeException <|-- BusinessRuleException
+    BusinessRuleException <|-- GroupFullException
+    BusinessRuleException <|-- RequestNotAllowedException
+    BusinessRuleException <|-- RequestAlreadyHandledException
+    BusinessRuleException <|-- NotGroupLeaderException
+    class Exception
+    Exception <|-- TimetableImportException
+    Exception <|-- SeedDataException
+```
+
+**E — Web layer helpers (controller package).** `AuthInterceptor` runs before every page except the picker, sign-in, sign-out, static files, the error page and bare `/admin` (which only redirects to `/admin/users`). It redirects to `/` when nobody is signed in or the user no longer exists, signs out a suspended user with the toast "This account is suspended", and keeps everyone but administrators out of `/admin/...`. `WebConfig` registers it. A check every page needs is a cross-cutting concern, so it lives in one class instead of in every controller. `GridView` holds what every page grid shares (row and column labels, by inheritance); each subclass decides how a cell looks.
+
+```mermaid
+classDiagram
+    direction TB
+    class HandlerInterceptor { <<interface>> }
+    class WebMvcConfigurer { <<interface>> }
+    HandlerInterceptor <|.. AuthInterceptor
+    WebMvcConfigurer <|.. WebConfig
+    WebConfig ..> AuthInterceptor : registers
+    AuthInterceptor ..> CurrentUser
+    AuthInterceptor ..> Toasts
+    class GridView {
+        <<abstract>>
+        +getDayNames() String[]
+        +getHourLabels() String[]
+        +cellClass(day, hourIndex)* String
+    }
+    GridView <|-- AvailabilityGridView
+    GridView <|-- OverlapGridView
+```
+
+**F — Seed data.** `SeedDataLoader` (the only `@Component`) builds one `Seeder` per CSV file, each with only the repositories it needs, and runs them in order (courses, admins, students, groups, join requests, match requests, matching config), because each file refers to the ones before it. `CsvFile` reads one file from the classpath, gives its data rows by line number, and holds the cell parsers; every error names the file and line, e.g. "students.csv line 3: unknown mode 'FLYING'".
+
+```mermaid
+classDiagram
+    direction TB
+    class Seeder {
+        <<interface>>
+        +getFileName() String
+        +load(file) int
+    }
+    class CsvFile {
+        +getRowLineNumbers() List~Integer~
+        +splitRow(line, columns) String[]
+        +where(line) String
+        +parseEnum(type, value, column, line) E
+    }
+    SeedDataLoader "1" --> "7" Seeder : runs in order
+    SeedDataLoader ..> CsvFile : creates one per file
+    Seeder ..> CsvFile : reads
+    Seeder <|.. CourseSeeder
+    Seeder <|.. AdminSeeder
+    Seeder <|.. StudentSeeder
+    Seeder <|.. GroupSeeder
+    Seeder <|.. JoinRequestSeeder
+    Seeder <|.. MatchRequestSeeder
+    Seeder <|.. MatchingConfigSeeder
 ```
 
 Read them like the Week 3 slides: hollow-triangle arrows are `extends`/`implements`; plain arrows are "has a reference to"; dotted arrows are "uses"; numbers are multiplicity. Diagram C shows the whole engine; `docs/MATCHING_ENGINE.md` explains it.

@@ -16,10 +16,10 @@ A file that cannot be read (wrong type, empty, no events, a bad date, too large)
 - **Unfold first.** RFC 5545 folds long lines: a line starting with a space or tab continues the line before it, minus that one character. Without this, a long `SUMMARY` is cut in half and the second half looks like a broken property.
 - **Events only.** Only `BEGIN:VEVENT` ... `END:VEVENT` blocks count; `SUMMARY`, `DTSTART` and `DTEND` are read from each. A property name can carry parameters (`DTSTART;TZID=Asia/Singapore:20260826T153000`): the value is after the first `:`, the name before the first `;`.
 - **Time zones.** `yyyyMMdd'T'HHmmss` ending in `Z` is UTC and is converted to Singapore time. A `TZID` parameter or no zone at all is taken as Singapore time already.
-- **All-day events** (`VALUE=DATE`, e.g. "Recess Week") are skipped with a warning.
+- **All-day events** (a plain `yyyyMMdd` date, usually marked `VALUE=DATE`, e.g. "Recess Week") are skipped with a warning.
 - **Rounding and clipping.** Every hour the event touches is busy: start rounded down, end rounded up, so 15:30-18:45 marks 15, 16, 17 and 18. Hours outside 08:00-23:00 are clipped; an event entirely outside adds a warning.
 - **Recurrence collapses.** A class repeats every week, so the same weekday and time on different dates is one slot. `classCount` counts distinct (day, start, end) slots; class names are distinct, in first-seen order.
-- **Failures.** No `VEVENT` at all: "No classes found in this file. Is it an .ics calendar export?". A date that cannot be read: the message names the line number.
+- **Failures.** No `VEVENT` at all: "No classes found in this file. Is it an .ics calendar export?". A `DTSTART` or `DTEND` that is neither `yyyyMMdd` nor `yyyyMMdd'T'HHmmss` (optionally ending in `Z`), or a `VALUE=DATE` that is not a real date: "Line N: could not read the date ...".
 
 `java.time` is used in this class only, because calendar files carry real dates and zones. The grid stays `boolean[7][15]`.
 

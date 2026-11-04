@@ -3,8 +3,6 @@ package com.studybuddy.model;
 /** A run of whole hours on one day of the week, e.g. Wednesday 19:00 to 21:00. */
 public class TimeBlock {
 
-    private static final String[] DAY_NAMES = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};
-
     private final int day;
     private final int startHour;
     private final int endHour;
@@ -45,6 +43,6 @@ public class TimeBlock {
     /** Returns the block as text, e.g. "WED 19-21". */
     @Override
     public String toString() {
-        return DAY_NAMES[day] + " " + startHour + "-" + endHour;
+        return AvailabilityGrid.dayName(day) + " " + startHour + "-" + endHour;
     }
 }

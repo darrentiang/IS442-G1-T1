@@ -6,8 +6,11 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 import com.studybuddy.model.AccountStatus;
+import com.studybuddy.model.AvailabilityGrid;
 import com.studybuddy.model.Role;
 import com.studybuddy.model.Student;
+import com.studybuddy.model.StudentProfile;
+import com.studybuddy.model.StudyPreferences;
 import com.studybuddy.model.SystemAdministrator;
 import com.studybuddy.model.User;
 import com.studybuddy.repository.StudentRepository;
@@ -35,7 +38,8 @@ public class AdminService {
      */
     public Map<String, String> createAccount(String role, String name, String email) {
         Map<String, String> fieldErrors = new HashMap<>();
-        if (isBlank(role) || (!Role.STUDENT.name().equals(role) && !Role.ADMIN.name().equals(role))) {
+        Role chosenRole = Role.fromName(role);
+        if (chosenRole == null) {
             fieldErrors.put("role", "Choose an account type");
         }
         if (isBlank(name)) {
@@ -51,12 +55,25 @@ public class AdminService {
         if (!fieldErrors.isEmpty()) {
             return fieldErrors;
         }
-        if (Role.STUDENT.name().equals(role)) {
-            studentRepository.save(new Student(nextStudentId(), name.trim(), email.trim()));
+        if (chosenRole == Role.STUDENT) {
+            Student student = new Student(nextStudentId(), name.trim(), email.trim());
+            student.setProfile(emptyProfile());
+            studentRepository.save(student);
         } else {
             adminRepository.save(new SystemAdministrator(nextAdminId(), name.trim(), email.trim()));
         }
         return fieldErrors;
+    }
+
+    /**
+     * Returns a profile with nothing filled in yet: no courses, an empty availability grid and
+     * empty preferences. The student fills it in on My profile.
+     */
+    private StudentProfile emptyProfile() {
+        StudentProfile profile = new StudentProfile();
+        profile.setAvailability(new AvailabilityGrid());
+        profile.setPreferences(new StudyPreferences());
+        return profile;
     }
 
     /**

@@ -30,7 +30,7 @@
     <dl class="facts">
       <div>
         <dt>Looking for a buddy in</dt>
-        <dd th:text="${prefs.targetCourse.code + ' · ' + prefs.targetCourse.title}">IS442 · Object-Oriented Programming</dd>
+        <dd th:text="${prefs.targetCourse == null ? 'Not chosen' : prefs.targetCourse.code + ' · ' + prefs.targetCourse.title}">IS442 · Object-Oriented Programming</dd>
       </div>
       <div>
         <dt>Contact</dt>
@@ -49,22 +49,22 @@
       </div>
       <div>
         <dt>Study mode</dt>
-        <dd th:text="${prefs.mode.name() == 'EITHER' ? 'In person or online' : (prefs.mode.name() == 'IN_PERSON' ? 'In person' : 'Online')}">Online</dd>
+        <dd th:text="${prefs.mode == null ? 'Not chosen' : prefs.mode.label}">Online</dd>
       </div>
       <div>
         <dt>Group size</dt>
-        <dd th:text="${prefs.format.name() == 'EITHER' ? 'One-to-one or small group' : (prefs.format.name() == 'ONE_TO_ONE' ? 'One-to-one' : 'Small group')}">Small group</dd>
+        <dd th:text="${prefs.format == null ? 'Not chosen' : prefs.format.label}">Small group</dd>
       </div>
       <div>
         <dt>Study goals</dt>
         <dd>
           <span th:each="g, s : ${prefs.goals}"
-                th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(g.name(), '_', ' '))) + (s.last ? '' : ', ')}">Problem solving</span>
+                th:text="${g.label + (s.last ? '' : ', ')}">Problem solving</span>
         </dd>
       </div>
       <div>
         <dt>Intensity</dt>
-        <dd th:text="${#strings.capitalize(#strings.toLowerCase(prefs.intensity.name()))}">Grind</dd>
+        <dd th:text="${prefs.intensity == null ? 'Not chosen' : prefs.intensity.label}">Grind</dd>
       </div>
     </dl>
   </section>

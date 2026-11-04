@@ -58,6 +58,15 @@ public class MatchingConfigService {
         return labels;
     }
 
+    /** Returns strategy name to its one-sentence description, in engine order, for the config page legend. */
+    public Map<String, String> getStrategyDescriptions() {
+        Map<String, String> descriptions = new LinkedHashMap<>();
+        for (String name : getStrategyNames()) {
+            descriptions.put(name, matchingService.getStrategyDescription(name));
+        }
+        return descriptions;
+    }
+
     /** Returns criterion name to display name, e.g. "studyMode" to "Study mode", in engine order. */
     public Map<String, String> getCriterionLabels() {
         Map<String, String> labels = new LinkedHashMap<>();

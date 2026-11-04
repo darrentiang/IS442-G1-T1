@@ -13,6 +13,9 @@ public interface MatchingStrategy {
     /** Returns the name shown to people, e.g. "Balanced". */
     String getLabel();
 
+    /** Returns one sentence for the admin config page saying what ranks highest, e.g. "Every criterion counts by its weight." */
+    String getDescription();
+
     /**
      * Orders the scored results, best first.
      *

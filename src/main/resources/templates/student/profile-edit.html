@@ -69,7 +69,7 @@
         <option value="">Choose a mode…</option>
         <option th:each="option : ${modeOptions}" th:value="${option.name()}"
                 th:selected="${option.name() == form.mode}"
-                th:text="${option.name() == 'EITHER' ? 'In person or online' : (option.name() == 'IN_PERSON' ? 'In person' : 'Online')}">Online</option>
+                th:text="${option.label}">Online</option>
       </select>
       <p th:replace="~{fragments/field-error :: field-error('mode')}"></p>
 
@@ -78,7 +78,7 @@
         <option value="">Choose a group size…</option>
         <option th:each="option : ${formatOptions}" th:value="${option.name()}"
                 th:selected="${option.name() == form.format}"
-                th:text="${option.name() == 'EITHER' ? 'One-to-one or small group' : (option.name() == 'ONE_TO_ONE' ? 'One-to-one' : 'Small group')}">Small group</option>
+                th:text="${option.label}">Small group</option>
       </select>
       <p th:replace="~{fragments/field-error :: field-error('format')}"></p>
 
@@ -87,7 +87,7 @@
         <label th:each="goal : ${goalOptions}">
           <input type="checkbox" name="goals" th:value="${goal.name()}"
                  th:checked="${#lists.contains(form.goals, goal.name())}">
-          <span th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(goal.name(), '_', ' ')))}">Exam prep</span>
+          <span th:text="${goal.label}">Exam prep</span>
         </label>
       </fieldset>
       <p th:replace="~{fragments/field-error :: field-error('goals')}"></p>
@@ -97,7 +97,7 @@
         <option value="">Choose an intensity…</option>
         <option th:each="option : ${intensityOptions}" th:value="${option.name()}"
                 th:selected="${option.name() == form.intensity}"
-                th:text="${#strings.capitalize(#strings.toLowerCase(option.name()))}">Grind</option>
+                th:text="${option.label}">Grind</option>
       </select>
       <p th:replace="~{fragments/field-error :: field-error('intensity')}"></p>
 

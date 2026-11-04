@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.studybuddy.model.BusinessRuleException;
 import com.studybuddy.model.Student;
 import com.studybuddy.model.StudyGoal;
 import com.studybuddy.model.StudyGroup;
@@ -44,11 +45,8 @@ public class GroupController {
     /** Shows the empty create-group form. */
     @GetMapping("/groups/new")
     public String showCreateForm(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
-        String userId = CurrentUser.getId(session);
-        if (userId == null || userService.findUser(userId) == null) {
-            return "redirect:/";
-        }
-        if (userService.findStudent(userId) == null) {
+        Student student = CurrentUser.studentOrNull(session, userService);
+        if (student == null) {
             return errorRedirect(redirectAttributes, "Only students can create groups", "/home");
         }
         model.addAttribute("form", new GroupForm());
@@ -68,11 +66,7 @@ public class GroupController {
             @RequestParam(required = false) String maxSize,
             @RequestParam(required = false) String visibility,
             HttpSession session, Model model, RedirectAttributes redirectAttributes) {
-        String userId = CurrentUser.getId(session);
-        if (userId == null || userService.findUser(userId) == null) {
-            return "redirect:/";
-        }
-        Student student = userService.findStudent(userId);
+        Student student = CurrentUser.studentOrNull(session, userService);
         if (student == null) {
             return errorRedirect(redirectAttributes, "Only students can create groups", "/home");
         }
@@ -92,18 +86,15 @@ public class GroupController {
     @GetMapping("/groups/{id}/edit")
     public String showEditForm(@PathVariable String id, HttpSession session, Model model,
             RedirectAttributes redirectAttributes) {
-        String userId = CurrentUser.getId(session);
-        if (userId == null || userService.findUser(userId) == null) {
-            return "redirect:/";
-        }
-        if (userService.findStudent(userId) == null) {
+        Student student = CurrentUser.studentOrNull(session, userService);
+        if (student == null) {
             return errorRedirect(redirectAttributes, "Only students can manage groups", "/home");
         }
         StudyGroup group = groupService.findById(id);
         if (group == null) {
             return errorRedirect(redirectAttributes, "This group could not be found", "/groups");
         }
-        if (!groupService.isLeader(group, userId)) {
+        if (!groupService.isLeader(group, student.getId())) {
             return errorRedirect(redirectAttributes, "Only the group leader can edit this group", "/groups/" + id);
         }
         model.addAttribute("form", formFrom(group));
@@ -124,18 +115,15 @@ public class GroupController {
             @RequestParam(required = false) String maxSize,
             @RequestParam(required = false) String visibility,
             HttpSession session, Model model, RedirectAttributes redirectAttributes) {
-        String userId = CurrentUser.getId(session);
-        if (userId == null || userService.findUser(userId) == null) {
-            return "redirect:/";
-        }
-        if (userService.findStudent(userId) == null) {
+        Student student = CurrentUser.studentOrNull(session, userService);
+        if (student == null) {
             return errorRedirect(redirectAttributes, "Only students can manage groups", "/home");
         }
         StudyGroup group = groupService.findById(id);
         if (group == null) {
             return errorRedirect(redirectAttributes, "This group could not be found", "/groups");
         }
-        if (!groupService.isLeader(group, userId)) {
+        if (!groupService.isLeader(group, student.getId())) {
             return errorRedirect(redirectAttributes, "Only the group leader can edit this group", "/groups/" + id);
         }
         // The course never changes after creation, so the form keeps the group's own course.
@@ -156,19 +144,16 @@ public class GroupController {
     /** Closes the group and declines its pending requests; returns to the group with a toast. */
     @PostMapping("/groups/{id}/close")
     public String closeGroup(@PathVariable String id, HttpSession session, RedirectAttributes redirectAttributes) {
-        String userId = CurrentUser.getId(session);
-        if (userId == null || userService.findUser(userId) == null) {
-            return "redirect:/";
-        }
-        if (userService.findStudent(userId) == null) {
+        Student student = CurrentUser.studentOrNull(session, userService);
+        if (student == null) {
             return errorRedirect(redirectAttributes, "Only students can manage groups", "/home");
         }
         if (groupService.findById(id) == null) {
             return errorRedirect(redirectAttributes, "This group could not be found", "/groups");
         }
         try {
-            groupService.closeGroup(id, userId);
-        } catch (IllegalStateException exception) {
+            groupService.closeGroup(id, student.getId());
+        } catch (BusinessRuleException exception) {
             return errorRedirect(redirectAttributes, exception.getMessage(), "/groups/" + id);
         }
         return successRedirect(redirectAttributes, "Group closed. Pending requests were declined.", "/groups/" + id);
@@ -177,19 +162,16 @@ public class GroupController {
     /** Reopens a closed group for joining; returns to the group with a toast. */
     @PostMapping("/groups/{id}/reopen")
     public String reopenGroup(@PathVariable String id, HttpSession session, RedirectAttributes redirectAttributes) {
-        String userId = CurrentUser.getId(session);
-        if (userId == null || userService.findUser(userId) == null) {
-            return "redirect:/";
-        }
-        if (userService.findStudent(userId) == null) {
+        Student student = CurrentUser.studentOrNull(session, userService);
+        if (student == null) {
             return errorRedirect(redirectAttributes, "Only students can manage groups", "/home");
         }
         if (groupService.findById(id) == null) {
             return errorRedirect(redirectAttributes, "This group could not be found", "/groups");
         }
         try {
-            groupService.reopenGroup(id, userId);
-        } catch (IllegalStateException exception) {
+            groupService.reopenGroup(id, student.getId());
+        } catch (BusinessRuleException exception) {
             return errorRedirect(redirectAttributes, exception.getMessage(), "/groups/" + id);
         }
         return successRedirect(redirectAttributes, "Group reopened", "/groups/" + id);
@@ -198,15 +180,12 @@ public class GroupController {
     /** Shows the groups the signed-in student leads and the groups they are a member of. */
     @GetMapping("/groups/mine")
     public String showMyGroups(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
-        String userId = CurrentUser.getId(session);
-        if (userId == null || userService.findUser(userId) == null) {
-            return "redirect:/";
-        }
-        if (userService.findStudent(userId) == null) {
+        Student student = CurrentUser.studentOrNull(session, userService);
+        if (student == null) {
             return errorRedirect(redirectAttributes, "Only students have groups", "/home");
         }
-        model.addAttribute("ledGroups", groupService.findLedBy(userId));
-        model.addAttribute("joinedGroups", groupService.findJoinedBy(userId));
+        model.addAttribute("ledGroups", groupService.findLedBy(student.getId()));
+        model.addAttribute("joinedGroups", groupService.findJoinedBy(student.getId()));
         return "group/my-groups";
     }
 
@@ -248,15 +227,13 @@ public class GroupController {
 
     /** Adds an error toast and redirects to the given path. */
     private String errorRedirect(RedirectAttributes redirectAttributes, String message, String path) {
-        redirectAttributes.addFlashAttribute("toastMessage", message);
-        redirectAttributes.addFlashAttribute("toastType", "error");
+        Toasts.error(redirectAttributes, message);
         return "redirect:" + path;
     }
 
     /** Adds a success toast and redirects to the given path. */
     private String successRedirect(RedirectAttributes redirectAttributes, String message, String path) {
-        redirectAttributes.addFlashAttribute("toastMessage", message);
-        redirectAttributes.addFlashAttribute("toastType", "success");
+        Toasts.success(redirectAttributes, message);
         return "redirect:" + path;
     }
 }

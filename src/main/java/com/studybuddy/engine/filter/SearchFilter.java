@@ -3,7 +3,6 @@ package com.studybuddy.engine.filter;
 import com.studybuddy.engine.CandidateFilter;
 import com.studybuddy.engine.MatchContext;
 import com.studybuddy.engine.MatchingConfig;
-import com.studybuddy.model.Course;
 import com.studybuddy.model.Student;
 import com.studybuddy.model.StudentProfile;
 import com.studybuddy.model.StudyPreferences;
@@ -26,7 +25,7 @@ public class SearchFilter implements CandidateFilter {
         if (profile == null) {
             return false;
         }
-        if (context.getCourseCode() != null && !isTaking(profile, context.getCourseCode())) {
+        if (context.getCourseCode() != null && !profile.isTaking(context.getCourseCode())) {
             return false;
         }
         if (context.getGoal() != null) {
@@ -36,15 +35,5 @@ public class SearchFilter implements CandidateFilter {
             }
         }
         return true;
-    }
-
-    /** Returns true if the profile lists the course among its current courses. */
-    private boolean isTaking(StudentProfile profile, String courseCode) {
-        for (Course course : profile.getCoursesTaken()) {
-            if (course.getCode().equals(courseCode)) {
-                return true;
-            }
-        }
-        return false;
     }
 }

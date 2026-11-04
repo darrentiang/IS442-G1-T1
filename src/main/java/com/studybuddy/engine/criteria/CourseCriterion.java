@@ -1,7 +1,5 @@
 package com.studybuddy.engine.criteria;
 
-import java.util.List;
-
 import com.studybuddy.engine.CriterionScore;
 import com.studybuddy.engine.MatchCriterion;
 import com.studybuddy.engine.MatchingConfig;
@@ -49,24 +47,14 @@ public class CourseCriterion implements MatchCriterion {
                 && candidatePreferences.getTargetCourse().getCode().equals(targetCode)) {
             return new CriterionScore(SAME_TARGET, "Both looking for " + targetCode + " partners");
         }
-        if (isTaking(candidate.getCoursesTaken(), targetCode)) {
+        if (candidate.isTaking(targetCode)) {
             return new CriterionScore(TAKING_TARGET, "Also taking " + targetCode);
         }
         for (Course course : seeker.getCoursesTaken()) {
-            if (isTaking(candidate.getCoursesTaken(), course.getCode())) {
+            if (candidate.isTaking(course.getCode())) {
                 return new CriterionScore(SHARE_ANY_COURSE, null);
             }
         }
         return new CriterionScore(NO_FIT, null);
-    }
-
-    /** Returns true if the list holds a course with the given code. */
-    private boolean isTaking(List<Course> courses, String courseCode) {
-        for (Course course : courses) {
-            if (course.getCode().equals(courseCode)) {
-                return true;
-            }
-        }
-        return false;
     }
 }

@@ -14,6 +14,7 @@ import com.studybuddy.engine.MatchContext;
 import com.studybuddy.engine.MatchResult;
 import com.studybuddy.engine.MatchingConfig;
 import com.studybuddy.engine.MatchingEngine;
+import com.studybuddy.model.BusinessRuleException;
 import com.studybuddy.model.Connection;
 import com.studybuddy.model.MatchRequest;
 import com.studybuddy.model.Pass;
@@ -83,6 +84,11 @@ public class MatchingService {
         return engine.getStrategyLabel(name);
     }
 
+    /** Returns the one-sentence description of a strategy, e.g. "Shared free time ranks highest." */
+    public String getStrategyDescription(String name) {
+        return engine.getStrategyDescription(name);
+    }
+
     /** When the search names neither a course nor a goal, searches the seeker's own target course. */
     public void applyDefaults(Student seeker, BuddySearch search) {
         if (!isBlank(search.getCourseCode()) || !isBlank(search.getGoal())) {
@@ -103,8 +109,8 @@ public class MatchingService {
      * @return the results, best first
      */
     public List<MatchResult> findBuddies(Student seeker, BuddySearch search) {
-        MatchContext context = new MatchContext(blankToNull(search.getCourseCode()), parseGoal(search.getGoal()),
-                parseMode(search.getMode()), search.getMinHours(), excludedIds(seeker), pendingIncoming());
+        MatchContext context = new MatchContext(blankToNull(search.getCourseCode()), StudyGoal.fromName(search.getGoal()),
+                StudyMode.fromName(search.getMode()), search.getMinHours(), excludedIds(seeker), pendingIncoming());
         return engine.findMatches(seeker, studentRepository.findAll(), context, getConfig());
     }
 
@@ -117,12 +123,12 @@ public class MatchingService {
      * Hides the candidate from the seeker's future results. Passing twice on the same person
      * changes nothing.
      *
-     * @throws IllegalStateException if the candidate is unknown or is the seeker
+     * @throws BusinessRuleException if the candidate is unknown or is the seeker
      */
     public void pass(Student seeker, String candidateId) {
         Student candidate = studentRepository.findById(candidateId);
         if (candidate == null || candidate.getId().equals(seeker.getId())) {
-            throw new IllegalStateException("This student could not be found");
+            throw new BusinessRuleException("This student could not be found");
         }
         for (Pass pass : passRepository.findBySeeker(seeker.getId())) {
             if (pass.getCandidate().getId().equals(candidateId)) {
@@ -187,26 +193,6 @@ public class MatchingService {
             }
         }
         return counts;
-    }
-
-    /** Returns the goal with this name, or null when blank or unknown. */
-    private StudyGoal parseGoal(String name) {
-        for (StudyGoal goal : StudyGoal.values()) {
-            if (goal.name().equals(name)) {
-                return goal;
-            }
-        }
-        return null;
-    }
-
-    /** Returns the mode with this name, or null when blank or unknown. */
-    private StudyMode parseMode(String name) {
-        for (StudyMode mode : StudyMode.values()) {
-            if (mode.name().equals(name)) {
-                return mode;
-            }
-        }
-        return null;
     }
 
     /** Returns the trimmed text, or null when it is null or blank. */

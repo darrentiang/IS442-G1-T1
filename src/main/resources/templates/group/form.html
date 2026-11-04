@@ -42,7 +42,7 @@
         <label th:each="goal : ${goalOptions}">
           <input type="checkbox" name="goals" th:value="${goal.name()}"
                  th:checked="${#lists.contains(form.goals, goal.name())}">
-          <span th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(goal.name(), '_', ' ')))}">Exam prep</span>
+          <span th:text="${goal.label}">Exam prep</span>
         </label>
       </fieldset>
       <p th:replace="~{fragments/field-error :: field-error('goals')}"></p>
@@ -70,7 +70,7 @@
         <option value="">Choose…</option>
         <option th:each="visibility : ${visibilityOptions}" th:value="${visibility.name()}"
                 th:selected="${visibility.name() == form.visibility}"
-                th:text="${visibility.name() == 'PUBLIC' ? 'Public: anyone can find it' : 'Private: only people with the link'}">Public</option>
+                th:text="${visibility.label}">Public</option>
       </select>
       <p th:replace="~{fragments/field-error :: field-error('visibility')}"></p>
 

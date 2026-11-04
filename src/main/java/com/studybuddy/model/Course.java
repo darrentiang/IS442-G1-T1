@@ -1,5 +1,7 @@
 package com.studybuddy.model;
 
+import java.util.Objects;
+
 /** A course students can be matched on. We seed exactly 10. */
 public class Course {
 
@@ -33,5 +35,24 @@ public class Course {
     @Override
     public String toString() {
         return "Course[" + code + " " + title + "]";
+    }
+
+    /** Two courses are equal when they have the same course code. */
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof Course)) {
+            return false;
+        }
+        Course that = (Course) other;
+        return Objects.equals(code, that.code);
+    }
+
+    /** Returns a hash code from the code, consistent with equals. */
+    @Override
+    public int hashCode() {
+        return Objects.hash(code);
     }
 }

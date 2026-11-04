@@ -29,7 +29,7 @@
               th:value="${goalValue}" selected th:text="${goalValue}">Invalid goal</option>
       <option th:each="goal : ${goals}" th:value="${goal.name()}"
               th:selected="${goal == selectedGoal}"
-              th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(goal.name(), '_', ' ')))}">Exam prep</option>
+              th:text="${goal.label}">Exam prep</option>
     </select>
     <p th:replace="~{fragments/field-error :: field-error('goal')}"></p>
     <button type="submit" class="btn btn-secondary">Apply filters</button>
@@ -47,7 +47,7 @@
           <td th:text="${group.course.code}">IS442</td>
           <td>
             <div th:each="goal : ${group.goals}"
-                 th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(goal.name(), '_', ' ')))}">Exam prep</div>
+                 th:text="${goal.label}">Exam prep</div>
           </td>
           <td th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(group.mode.name(), '_', ' ')))}">Online</td>
           <td>

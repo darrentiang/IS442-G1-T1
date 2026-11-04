@@ -41,7 +41,7 @@ public class SharedCoursesCriterion implements MatchCriterion {
         StringBuilder sharedText = new StringBuilder();
         for (Course course : seeker.getCoursesTaken()) {
             String code = course.getCode();
-            if (code.equals(targetCode) || !isTaking(candidate, code)) {
+            if (code.equals(targetCode) || !candidate.isTaking(code)) {
                 continue;
             }
             if (shared > 0) {
@@ -56,15 +56,5 @@ public class SharedCoursesCriterion implements MatchCriterion {
             reason = "Also both taking " + sharedText;
         }
         return new CriterionScore(value, reason);
-    }
-
-    /** Returns true if the profile lists the course among its current courses. */
-    private boolean isTaking(StudentProfile profile, String courseCode) {
-        for (Course course : profile.getCoursesTaken()) {
-            if (course.getCode().equals(courseCode)) {
-                return true;
-            }
-        }
-        return false;
     }
 }

@@ -1,6 +1,7 @@
 package com.studybuddy.model;
 
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.Set;
 
 /** What a student wants in a buddy. */
@@ -9,7 +10,7 @@ public class StudyPreferences {
     private Course targetCourse;
     private StudyMode mode;
     private GroupFormat format;
-    private Set<StudyGoal> goals = new HashSet<>();
+    private Set<StudyGoal> goals = EnumSet.noneOf(StudyGoal.class);
     private Intensity intensity;
 
     /** Returns the course this student needs a buddy for, or null if not chosen yet. */
@@ -42,14 +43,15 @@ public class StudyPreferences {
         this.format = format;
     }
 
-    /** Returns the set of study goals; empty until chosen. */
+    /** Returns the study goals in declaration order, as a read-only view; empty until chosen. */
     public Set<StudyGoal> getGoals() {
-        return goals;
+        return Collections.unmodifiableSet(goals);
     }
 
-    /** Replaces the set of study goals. */
+    /** Replaces the study goals with a copy of the given set. */
     public void setGoals(Set<StudyGoal> goals) {
-        this.goals = goals;
+        this.goals = EnumSet.noneOf(StudyGoal.class);
+        this.goals.addAll(goals);
     }
 
     /** Returns the intended study intensity, or null if not chosen yet. */

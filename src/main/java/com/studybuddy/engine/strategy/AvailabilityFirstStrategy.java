@@ -10,6 +10,7 @@ public class AvailabilityFirstStrategy extends AbstractMatchingStrategy {
     /** The config key for this strategy. */
     public static final String NAME = "availability-first";
     private static final String LABEL = "Availability first";
+    private static final String DESCRIPTION = "Shared free time ranks highest.";
 
     /** Returns "availability-first". */
     @Override
@@ -21,6 +22,12 @@ public class AvailabilityFirstStrategy extends AbstractMatchingStrategy {
     @Override
     public String getLabel() {
         return LABEL;
+    }
+
+    /** Returns "Shared free time ranks highest." */
+    @Override
+    public String getDescription() {
+        return DESCRIPTION;
     }
 
     /** Returns a comparator on usable hours, then mutual score. */

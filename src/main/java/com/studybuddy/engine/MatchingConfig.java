@@ -1,5 +1,6 @@
 package com.studybuddy.engine;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -72,24 +73,24 @@ public class MatchingConfig {
         this.activeStrategyName = activeStrategyName;
     }
 
-    /** Returns the names of the criteria that are switched on. */
+    /** Returns the names of the criteria that are switched on, as a read-only view. */
     public Set<String> getEnabledCriteria() {
-        return enabledCriteria;
+        return Collections.unmodifiableSet(enabledCriteria);
     }
 
-    /** Replaces the set of switched-on criteria. */
+    /** Replaces the set of switched-on criteria with a copy of the given set. */
     public void setEnabledCriteria(Set<String> enabledCriteria) {
-        this.enabledCriteria = enabledCriteria;
+        this.enabledCriteria = new HashSet<>(enabledCriteria);
     }
 
-    /** Returns the weight per criterion name. */
+    /** Returns the weight per criterion name, as a read-only view. */
     public Map<String, Double> getWeights() {
-        return weights;
+        return Collections.unmodifiableMap(weights);
     }
 
-    /** Replaces the weight per criterion name. */
+    /** Replaces the weight per criterion name with a copy of the given map. */
     public void setWeights(Map<String, Double> weights) {
-        this.weights = weights;
+        this.weights = new HashMap<>(weights);
     }
 
     /** Returns the maximum number of results to show. */

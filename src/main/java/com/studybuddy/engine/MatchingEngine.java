@@ -177,6 +177,15 @@ public class MatchingEngine {
         return strategy.getLabel();
     }
 
+    /** Returns the one-sentence description of a strategy, or an empty string if it is not registered. */
+    public String getStrategyDescription(String name) {
+        MatchingStrategy strategy = strategies.get(name);
+        if (strategy == null) {
+            return "";
+        }
+        return strategy.getDescription();
+    }
+
     /** Step 1: keeps only the candidates every filter accepts. */
     private List<Student> filter(Student seeker, List<Student> pool, MatchContext context,
             MatchingConfig config) {

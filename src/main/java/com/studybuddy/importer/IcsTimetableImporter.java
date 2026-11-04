@@ -5,10 +5,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,15 +39,15 @@ public class IcsTimetableImporter implements TimetableImporter {
     private static final String UNTITLED = "Untitled class";
 
     private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss");
+    private static final DateTimeFormatter DATE_FORMAT =
+            DateTimeFormatter.ofPattern("uuuuMMdd").withResolverStyle(ResolverStyle.STRICT);
     private static final DateTimeFormatter CLOCK_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
     private static final ZoneId UTC = ZoneId.of("UTC");
     private static final ZoneId LOCAL_ZONE = ZoneId.of("Asia/Singapore");
 
-    private static final String[] DAY_NAMES = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};
-    private static final int FIRST_HOUR = 8;
-    private static final int LAST_HOUR = 23;
     private static final int HOURS_IN_DAY = 24;
-    private static final String GRID_RANGE = "08:00-23:00";
+    private static final String GRID_RANGE = String.format("%02d:00-%02d:00",
+            AvailabilityGrid.FIRST_HOUR, AvailabilityGrid.LAST_HOUR);
 
     private static final String NO_EVENTS_MESSAGE = "No classes found in this file. Is it an .ics calendar export?";
 
@@ -124,7 +126,7 @@ public class IcsTimetableImporter implements TimetableImporter {
             if (propertyName.equalsIgnoreCase(SUMMARY)) {
                 summary = unescape(value);
             } else if (propertyName.equalsIgnoreCase(DTSTART) || propertyName.equalsIgnoreCase(DTEND)) {
-                if (isDateOnly(nameAndParameters, value)) {
+                if (isDateOnly(nameAndParameters, value, lineNumbers.get(i))) {
                     allDay = true;
                 } else if (propertyName.equalsIgnoreCase(DTSTART)) {
                     start = parseDateTime(value, lineNumbers.get(i));
@@ -178,7 +180,7 @@ public class IcsTimetableImporter implements TimetableImporter {
     private void recordClass(String name, LocalDateTime start, LocalDateTime end, AvailabilityGrid busy,
             List<String> classNames, List<String> slotKeys, List<String> warnings) {
         int day = start.getDayOfWeek().getValue() - 1;     // DayOfWeek: MONDAY = 1
-        String when = DAY_NAMES[day] + " " + start.format(CLOCK_FORMAT) + "-" + end.format(CLOCK_FORMAT);
+        String when = AvailabilityGrid.dayName(day) + " " + start.format(CLOCK_FORMAT) + "-" + end.format(CLOCK_FORMAT);
         if (!end.isAfter(start)) {
             addOnce(warnings, "Skipped \"" + name + "\" on " + when + ": it ends before it starts");
             return;
@@ -192,8 +194,8 @@ public class IcsTimetableImporter implements TimetableImporter {
         if (end.toLocalDate().isAfter(start.toLocalDate())) {
             endHour = HOURS_IN_DAY;                         // runs past midnight: the rest of the day
         }
-        int from = Math.max(startHour, FIRST_HOUR);
-        int to = Math.min(endHour, LAST_HOUR);
+        int from = Math.max(startHour, AvailabilityGrid.FIRST_HOUR);
+        int to = Math.min(endHour, AvailabilityGrid.LAST_HOUR);
         if (from >= to) {
             addOnce(warnings, "Skipped \"" + name + "\" on " + when + ": it is outside " + GRID_RANGE);
             return;
@@ -204,20 +206,47 @@ public class IcsTimetableImporter implements TimetableImporter {
         }
 
         for (int hour = from; hour < to; hour++) {
-            busy.set(day, hour - FIRST_HOUR, true);
+            busy.set(day, hour - AvailabilityGrid.FIRST_HOUR, true);
         }
         addOnce(classNames, name);
         addOnce(slotKeys, when);
     }
 
-    /** Returns true for an all-day value: VALUE=DATE among the parameters, or a value with no time part. */
-    private boolean isDateOnly(String[] nameAndParameters, String value) {
+    /**
+     * Returns true for an all-day value, a plain date such as 20260826, and false for a value
+     * with a time part, which parseDateTime then reads. Anything else is refused: a VALUE=DATE
+     * parameter on a value that is not a date, or a value that is neither a date nor a date-time.
+     */
+    private boolean isDateOnly(String[] nameAndParameters, String value, int lineNumber)
+            throws TimetableImportException {
+        if (isDate(value)) {
+            return true;
+        }
+        boolean dateParameter = false;
         for (int i = 1; i < nameAndParameters.length; i++) {
             if (nameAndParameters[i].trim().equalsIgnoreCase(DATE_ONLY_PARAMETER)) {
-                return true;
+                dateParameter = true;
             }
         }
-        return value.indexOf('T') < 0;
+        if (dateParameter || value.indexOf('T') < 0) {
+            throw new TimetableImportException(unreadableDate(value, lineNumber));
+        }
+        return false;
+    }
+
+    /** Returns true if the value is a real calendar date written as yyyyMMdd. */
+    private boolean isDate(String value) {
+        try {
+            LocalDate.parse(value, DATE_FORMAT);
+            return true;
+        } catch (DateTimeParseException e) {
+            return false;
+        }
+    }
+
+    /** Returns the error message for a date that cannot be read, naming the file line. */
+    private String unreadableDate(String value, int lineNumber) {
+        return "Line " + lineNumber + ": could not read the date \"" + value + "\"";
     }
 
     /**
@@ -233,7 +262,7 @@ public class IcsTimetableImporter implements TimetableImporter {
             }
             return LocalDateTime.parse(value, DATE_TIME_FORMAT);
         } catch (DateTimeParseException e) {
-            throw new TimetableImportException("Line " + lineNumber + ": could not read the date \"" + value + "\"", e);
+            throw new TimetableImportException(unreadableDate(value, lineNumber), e);
         }
     }
 

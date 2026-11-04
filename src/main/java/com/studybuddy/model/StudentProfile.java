@@ -1,6 +1,7 @@
 package com.studybuddy.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /** A student's study-facing data. Account identity lives on User; this is what gets matched. */
@@ -51,24 +52,34 @@ public class StudentProfile {
         this.contactNumber = contactNumber;
     }
 
-    /** Returns the current courses (worksheet import fills this). */
+    /** Returns the current courses (worksheet import fills this), as a read-only view. */
     public List<Course> getCoursesTaken() {
-        return coursesTaken;
+        return Collections.unmodifiableList(coursesTaken);
     }
 
-    /** Replaces the current courses. */
+    /** Returns true if one of the current courses has this course code. */
+    public boolean isTaking(String courseCode) {
+        for (Course course : coursesTaken) {
+            if (course.getCode().equals(courseCode)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Replaces the current courses with a copy of the given list. */
     public void setCoursesTaken(List<Course> coursesTaken) {
-        this.coursesTaken = coursesTaken;
+        this.coursesTaken = new ArrayList<>(coursesTaken);
     }
 
-    /** Returns the completed courses (display + discovery panel only, never scored). */
+    /** Returns the completed courses (display + discovery panel only, never scored), as a read-only view. */
     public List<Course> getCompletedCourses() {
-        return completedCourses;
+        return Collections.unmodifiableList(completedCourses);
     }
 
-    /** Replaces the completed courses. */
+    /** Replaces the completed courses with a copy of the given list. */
     public void setCompletedCourses(List<Course> completedCourses) {
-        this.completedCourses = completedCourses;
+        this.completedCourses = new ArrayList<>(completedCourses);
     }
 
     /** Returns what this student wants in a buddy, or null if not set yet. */

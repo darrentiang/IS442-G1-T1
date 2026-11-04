@@ -2,9 +2,8 @@ package com.studybuddy.model;
 
 /**
  * Thrown when the rules refuse a buddy request, e.g. a request is already pending.
- * It is an IllegalStateException, so code that catches IllegalStateException catches it too.
  */
-public class RequestNotAllowedException extends IllegalStateException {
+public class RequestNotAllowedException extends BusinessRuleException {
 
     private static final long serialVersionUID = 1L;
 

@@ -6,13 +6,18 @@ import java.util.List;
 /** A weekly availability (a student's or a group's): 7 days x 15 hourly cells (08:00-23:00). Day 0 = Monday, hour index 0 = 08:00. */
 public class AvailabilityGrid {
 
-    private static final String[] DAY_NAMES = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};
-    private static final int FIRST_HOUR = 8;
-    private static final int LAST_HOUR = 23;
-    private static final int DAYS = 7;
-    private static final int HOURS_PER_DAY = 15;
+    /** Number of days in the grid, Monday to Sunday. */
+    public static final int DAYS = 7;
+    /** Number of hourly cells per day, 08:00 to 23:00. */
+    public static final int HOURS_PER_DAY = 15;
+    /** The clock hour of hour index 0. */
+    public static final int FIRST_HOUR = 8;
+    /** The clock hour the last cell ends at (exclusive). */
+    public static final int LAST_HOUR = 23;
 
-    private final boolean[][] cells = new boolean[7][15];
+    private static final String[] DAY_NAMES = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};
+
+    private final boolean[][] cells = new boolean[DAYS][HOURS_PER_DAY];
 
     /**
      * Builds a grid from text such as "MON 19-21;WED 19-21;SAT 14-18". The end hour is
@@ -45,7 +50,8 @@ public class AvailabilityGrid {
             int start = parseHour(hours[0], trimmed);
             int end = parseHour(hours[1], trimmed);
             if (start < FIRST_HOUR || end > LAST_HOUR) {
-                throw new IllegalArgumentException("hours must be within 8-23, found '" + trimmed + "'");
+                throw new IllegalArgumentException("hours must be within " + FIRST_HOUR + "-" + LAST_HOUR
+                        + ", found '" + trimmed + "'");
             }
             if (start >= end) {
                 throw new IllegalArgumentException("start hour must be before end hour, found '" + trimmed + "'");
@@ -57,8 +63,13 @@ public class AvailabilityGrid {
         return grid;
     }
 
-    /** Converts MON..SUN to 0..6, or throws for any other text. */
-    private static int dayIndex(String dayName) {
+    /** Returns the short name of a day, "MON" for 0 up to "SUN" for 6. */
+    public static String dayName(int day) {
+        return DAY_NAMES[day];
+    }
+
+    /** Converts MON..SUN to 0..6, or throws IllegalArgumentException for any other text. */
+    public static int dayIndex(String dayName) {
         for (int i = 0; i < DAY_NAMES.length; i++) {
             if (DAY_NAMES[i].equals(dayName)) {
                 return i;
@@ -89,8 +100,8 @@ public class AvailabilityGrid {
     /** Counts the hours per week where BOTH grids are true. */
     public int overlapHours(AvailabilityGrid other) {
         int count = 0;
-        for (int day = 0; day < 7; day++) {
-            for (int hour = 0; hour < 15; hour++) {
+        for (int day = 0; day < DAYS; day++) {
+            for (int hour = 0; hour < HOURS_PER_DAY; hour++) {
                 if (cells[day][hour] && other.cells[day][hour]) {
                     count++;
                 }

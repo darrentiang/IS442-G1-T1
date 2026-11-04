@@ -1,5 +1,7 @@
 package com.studybuddy.model;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -18,7 +20,7 @@ public class ProfileView {
     private final AvailabilityGrid availability;
     private final String lookingFor;
 
-    /** Creates a view; contactNumber is null for the public view. */
+    /** Creates a view; contactNumber is null for the public view. The course lists are copied, so the view never changes with the profile. */
     public ProfileView(String school, String programme, int yearOfStudy, String contactNumber,
             List<Course> coursesTaken, List<Course> completedCourses,
             StudyPreferences preferences, AvailabilityGrid availability, String lookingFor) {
@@ -26,8 +28,8 @@ public class ProfileView {
         this.programme = programme;
         this.yearOfStudy = yearOfStudy;
         this.contactNumber = contactNumber;
-        this.coursesTaken = coursesTaken;
-        this.completedCourses = completedCourses;
+        this.coursesTaken = Collections.unmodifiableList(new ArrayList<>(coursesTaken));
+        this.completedCourses = Collections.unmodifiableList(new ArrayList<>(completedCourses));
         this.preferences = preferences;
         this.availability = availability;
         this.lookingFor = lookingFor;

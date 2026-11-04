@@ -17,4 +17,17 @@ public enum Role {
     public String getLabel() {
         return label;
     }
+
+    /** Returns the Role whose name() is exactly this text, or null for null, blank or unknown text. */
+    public static Role fromName(String text) {
+        if (text == null || text.isBlank()) {
+            return null;
+        }
+        for (Role value : values()) {
+            if (value.name().equals(text)) {
+                return value;
+            }
+        }
+        return null;
+    }
 }

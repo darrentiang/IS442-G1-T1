@@ -1,8 +1,8 @@
 package com.studybuddy.service;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,8 +32,6 @@ public class ProfileEditService {
     private static final int MAX_YEAR = 5;
     private static final int MAX_LOOKING_FOR_LENGTH = 200;
     private static final String CONTACT_PATTERN = "[89][0-9]{7}";
-    private static final int DAYS = 7;
-    private static final int HOURS = 15;
     private static final String CELL_SEPARATOR = "-";
 
     private final StudentRepository studentRepository;
@@ -91,13 +89,13 @@ public class ProfileEditService {
             fieldErrors.put("targetCourseCode", "Pick a target course you're currently taking");
         }
 
-        if (toMode(form.getMode()) == null) {
+        if (StudyMode.fromName(form.getMode()) == null) {
             fieldErrors.put("mode", "Choose a study mode");
         }
-        if (toFormat(form.getFormat()) == null) {
+        if (GroupFormat.fromName(form.getFormat()) == null) {
             fieldErrors.put("format", "Choose a group size");
         }
-        if (toIntensity(form.getIntensity()) == null) {
+        if (Intensity.fromName(form.getIntensity()) == null) {
             fieldErrors.put("intensity", "Choose an intensity");
         }
 
@@ -106,7 +104,7 @@ public class ProfileEditService {
             fieldErrors.put("goals", "Pick at least one study goal");
         } else {
             for (String goal : goals) {
-                if (toGoal(goal) == null) {
+                if (StudyGoal.fromName(goal) == null) {
                     fieldErrors.put("goals", "Pick study goals from the list");
                     break;
                 }
@@ -146,9 +144,9 @@ public class ProfileEditService {
             profile.setPreferences(preferences);
         }
         preferences.setTargetCourse(courseRepository.findByCode(trimOrEmpty(form.getTargetCourseCode())));
-        preferences.setMode(toMode(form.getMode()));
-        preferences.setFormat(toFormat(form.getFormat()));
-        preferences.setIntensity(toIntensity(form.getIntensity()));
+        preferences.setMode(StudyMode.fromName(form.getMode()));
+        preferences.setFormat(GroupFormat.fromName(form.getFormat()));
+        preferences.setIntensity(Intensity.fromName(form.getIntensity()));
         preferences.setGoals(toGoals(form.getGoals()));
         studentRepository.save(student);
     }
@@ -169,7 +167,8 @@ public class ProfileEditService {
             }
             Integer day = parseWholeNumber(parts[0]);
             Integer hour = parseWholeNumber(parts[1]);
-            if (day == null || hour == null || day < 0 || day >= DAYS || hour < 0 || hour >= HOURS) {
+            if (day == null || hour == null || day < 0 || day >= AvailabilityGrid.DAYS
+                    || hour < 0 || hour >= AvailabilityGrid.HOURS_PER_DAY) {
                 continue;
             }
             grid.set(day, hour, true);
@@ -209,56 +208,16 @@ public class ProfileEditService {
         return courses;
     }
 
-    /** Converts goal names to a set of StudyGoal in the enum's order, skipping unknown names. */
+    /** Converts goal names to a set of StudyGoal in declaration order, skipping unknown names. */
     private Set<StudyGoal> toGoals(List<String> names) {
-        Set<StudyGoal> goals = new LinkedHashSet<>();
-        List<String> chosen = listOrEmpty(names);
-        for (StudyGoal goal : StudyGoal.values()) {
-            if (chosen.contains(goal.name())) {
+        Set<StudyGoal> goals = EnumSet.noneOf(StudyGoal.class);
+        for (String name : listOrEmpty(names)) {
+            StudyGoal goal = StudyGoal.fromName(name);
+            if (goal != null) {
                 goals.add(goal);
             }
         }
         return goals;
-    }
-
-    /** Returns the StudyGoal with this name, or null if there is none. */
-    private StudyGoal toGoal(String text) {
-        for (StudyGoal goal : StudyGoal.values()) {
-            if (goal.name().equals(text)) {
-                return goal;
-            }
-        }
-        return null;
-    }
-
-    /** Returns the StudyMode with this name, or null if there is none. */
-    private StudyMode toMode(String text) {
-        for (StudyMode mode : StudyMode.values()) {
-            if (mode.name().equals(text)) {
-                return mode;
-            }
-        }
-        return null;
-    }
-
-    /** Returns the GroupFormat with this name, or null if there is none. */
-    private GroupFormat toFormat(String text) {
-        for (GroupFormat format : GroupFormat.values()) {
-            if (format.name().equals(text)) {
-                return format;
-            }
-        }
-        return null;
-    }
-
-    /** Returns the Intensity with this name, or null if there is none. */
-    private Intensity toIntensity(String text) {
-        for (Intensity intensity : Intensity.values()) {
-            if (intensity.name().equals(text)) {
-                return intensity;
-            }
-        }
-        return null;
     }
 
     /** Returns the list, or an empty list when it is null. */

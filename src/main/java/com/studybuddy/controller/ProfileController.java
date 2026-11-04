@@ -20,7 +20,6 @@ import com.studybuddy.importer.TimetableImport;
 import com.studybuddy.importer.TimetableImportException;
 import com.studybuddy.model.GroupFormat;
 import com.studybuddy.model.Intensity;
-import com.studybuddy.model.Role;
 import com.studybuddy.model.Student;
 import com.studybuddy.model.StudyGoal;
 import com.studybuddy.model.StudyMode;
@@ -38,6 +37,7 @@ import jakarta.servlet.http.HttpSession;
 public class ProfileController {
 
     private static final String TIMETABLE_FIELD = "timetable";
+    private static final String NOT_A_STUDENT = "My profile is for students";
     private static final String TOO_LARGE_MESSAGE =
             "That file is too large to upload. A timetable export is usually only a few KB.";
 
@@ -60,11 +60,11 @@ public class ProfileController {
     /** Shows the signed-in student's own profile, contact number included. */
     @GetMapping("/profile")
     public String showProfile(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
-        String refusal = refuseNonStudent(session, redirectAttributes);
-        if (refusal != null) {
-            return refusal;
+        Student student = CurrentUser.studentOrNull(session, userService);
+        if (student == null || student.getProfile() == null) {
+            Toasts.error(redirectAttributes, NOT_A_STUDENT);
+            return "redirect:/home";
         }
-        Student student = userService.findStudent(CurrentUser.getId(session));
         model.addAttribute("student", student);
         model.addAttribute("profile", profileService.ownView(student));
         model.addAttribute("grid", new AvailabilityGridView(student.getProfile().getAvailability(), null));
@@ -74,11 +74,11 @@ public class ProfileController {
     /** Shows the edit-details form filled in with the current values (contact left blank). */
     @GetMapping("/profile/edit")
     public String showEditForm(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
-        String refusal = refuseNonStudent(session, redirectAttributes);
-        if (refusal != null) {
-            return refusal;
+        Student student = CurrentUser.studentOrNull(session, userService);
+        if (student == null || student.getProfile() == null) {
+            Toasts.error(redirectAttributes, NOT_A_STUDENT);
+            return "redirect:/home";
         }
-        Student student = userService.findStudent(CurrentUser.getId(session));
         model.addAttribute("form", ProfileForm.from(student.getProfile()));
         model.addAttribute("fieldErrors", new HashMap<String, String>());
         addFormOptions(model);
@@ -100,11 +100,11 @@ public class ProfileController {
             @RequestParam(required = false) String intensity,
             @RequestParam(required = false) String lookingFor,
             HttpSession session, Model model, RedirectAttributes redirectAttributes) {
-        String refusal = refuseNonStudent(session, redirectAttributes);
-        if (refusal != null) {
-            return refusal;
+        Student student = CurrentUser.studentOrNull(session, userService);
+        if (student == null || student.getProfile() == null) {
+            Toasts.error(redirectAttributes, NOT_A_STUDENT);
+            return "redirect:/home";
         }
-        Student student = userService.findStudent(CurrentUser.getId(session));
         ProfileForm form = new ProfileForm();
         form.setSchool(school);
         form.setProgramme(programme);
@@ -133,18 +133,18 @@ public class ProfileController {
             return "student/profile-edit";
         }
         editService.update(student, form);
-        toast(redirectAttributes, "Profile updated", "success");
+        Toasts.success(redirectAttributes, "Profile updated");
         return "redirect:/profile";
     }
 
     /** Shows the availability editor with the current grid ticked. */
     @GetMapping("/profile/availability")
     public String showAvailability(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
-        String refusal = refuseNonStudent(session, redirectAttributes);
-        if (refusal != null) {
-            return refusal;
+        Student student = CurrentUser.studentOrNull(session, userService);
+        if (student == null || student.getProfile() == null) {
+            Toasts.error(redirectAttributes, NOT_A_STUDENT);
+            return "redirect:/home";
         }
-        Student student = userService.findStudent(CurrentUser.getId(session));
         model.addAttribute("grid", new AvailabilityGridView(student.getProfile().getAvailability(), null));
         return "student/availability-edit";
     }
@@ -153,13 +153,13 @@ public class ProfileController {
     @PostMapping("/profile/availability")
     public String saveAvailability(@RequestParam(required = false) List<String> cells, HttpSession session,
             RedirectAttributes redirectAttributes) {
-        String refusal = refuseNonStudent(session, redirectAttributes);
-        if (refusal != null) {
-            return refusal;
+        Student student = CurrentUser.studentOrNull(session, userService);
+        if (student == null || student.getProfile() == null) {
+            Toasts.error(redirectAttributes, NOT_A_STUDENT);
+            return "redirect:/home";
         }
-        Student student = userService.findStudent(CurrentUser.getId(session));
         editService.updateAvailability(student, cells);
-        toast(redirectAttributes, "Availability saved", "success");
+        Toasts.success(redirectAttributes, "Availability saved");
         return "redirect:/profile";
     }
 
@@ -173,11 +173,11 @@ public class ProfileController {
     @PostMapping("/profile/availability/import")
     public String importTimetable(MultipartHttpServletRequest request, HttpSession session, Model model,
             RedirectAttributes redirectAttributes) {
-        String refusal = refuseNonStudent(session, redirectAttributes);
-        if (refusal != null) {
-            return refusal;
+        Student student = CurrentUser.studentOrNull(session, userService);
+        if (student == null || student.getProfile() == null) {
+            Toasts.error(redirectAttributes, NOT_A_STUDENT);
+            return "redirect:/home";
         }
-        Student student = userService.findStudent(CurrentUser.getId(session));
         AvailabilityGridView currentGrid = new AvailabilityGridView(student.getProfile().getAvailability(), null);
 
         MultipartFile file;
@@ -219,29 +219,5 @@ public class ProfileController {
         model.addAttribute("formatOptions", GroupFormat.values());
         model.addAttribute("intensityOptions", Intensity.values());
         model.addAttribute("goalOptions", StudyGoal.values());
-    }
-
-    /**
-     * Returns where to send someone who may not use My profile (the picker if nobody is
-     * signed in, home with an error toast for an admin or a student without a profile), or
-     * null if they may. Same pattern as BuddyController.
-     */
-    private String refuseNonStudent(HttpSession session, RedirectAttributes redirectAttributes) {
-        String userId = CurrentUser.getId(session);
-        if (userId == null || userService.findUser(userId) == null) {
-            return "redirect:/";
-        }
-        Student student = userService.findStudent(userId);
-        if (CurrentUser.getRole(session) != Role.STUDENT || student == null || student.getProfile() == null) {
-            toast(redirectAttributes, "My profile is for students", "error");
-            return "redirect:/home";
-        }
-        return null;
-    }
-
-    /** Shows a toast on the next page. */
-    private void toast(RedirectAttributes redirectAttributes, String message, String type) {
-        redirectAttributes.addFlashAttribute("toastMessage", message);
-        redirectAttributes.addFlashAttribute("toastType", type);
     }
 }

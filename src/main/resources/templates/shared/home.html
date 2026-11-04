@@ -19,12 +19,12 @@
 
   <div class="card" th:if="${student != null}">
     <h2>Your profile</h2>
-    <p th:text="${student.profile.programme + ' · Year ' + student.profile.yearOfStudy}">Information Systems · Year 3</p>
+    <p th:text="${#strings.isEmpty(student.profile.programme) ? 'Your details are not filled in yet' : student.profile.programme + ' · Year ' + student.profile.yearOfStudy}">Information Systems · Year 3</p>
     <p th:with="target=${student.profile.preferences.targetCourse}"
-       th:text="${'Looking for a buddy in ' + target.code + ' ' + target.title}">Looking for a buddy in IS442 Object-Oriented Programming</p>
+       th:text="${target == null ? 'Choose the course you need a buddy for' : 'Looking for a buddy in ' + target.code + ' ' + target.title}">Looking for a buddy in IS442 Object-Oriented Programming</p>
     <a class="btn btn-secondary" th:with="target=${student.profile.preferences.targetCourse}"
-       th:href="@{/buddies(course=${target.code})}"
-       th:text="${'Find buddies for ' + target.code}">Find buddies for IS442</a>
+       th:href="${target == null} ? @{/profile/edit} : @{/buddies(course=${target.code})}"
+       th:text="${target == null ? 'Edit your profile' : 'Find buddies for ' + target.code}">Find buddies for IS442</a>
   </div>
 </main>
 </body>

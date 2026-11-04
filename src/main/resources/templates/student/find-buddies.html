@@ -33,7 +33,7 @@
           <option value="">Any goal</option>
           <option th:each="g : ${goals}" th:value="${g.name()}"
                   th:selected="${g.name() == search.goal}"
-                  th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(g.name(), '_', ' ')))}">Problem solving</option>
+                  th:text="${g.label}">Problem solving</option>
         </select>
       </div>
     </div>
@@ -81,7 +81,7 @@
         <div class="match-who">
           <h2><a th:href="@{/buddies/{id}(id=${c.id})}" th:text="${c.name}">Irfan Zainal</a></h2>
           <p class="match-meta"
-             th:text="|${p.programme} · Year ${p.yearOfStudy} · looking for ${p.preferences.targetCourse.code} · ${m.name() == 'EITHER' ? 'In person or online' : (m.name() == 'IN_PERSON' ? 'In person' : 'Online')}|">Computer Science · Year 3 · looking for IS442 · Online</p>
+             th:text="|${p.programme} · Year ${p.yearOfStudy} · looking for ${p.preferences.targetCourse == null ? 'no course yet' : p.preferences.targetCourse.code} · ${m == null ? 'any mode' : m.label}|">Computer Science · Year 3 · looking for IS442 · Online</p>
         </div>
         <div class="match-score">
           <span class="match-percent" th:text="${#numbers.formatDecimal(r.mutualScore * 100, 1, 0) + '%'}">87%</span>

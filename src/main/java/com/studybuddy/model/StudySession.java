@@ -1,9 +1,11 @@
 package com.studybuddy.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * A planned meeting. Works for 2 buddies (from a Connection) or a whole group:
@@ -82,24 +84,24 @@ public class StudySession {
         this.location = location;
     }
 
-    /** Returns the students this session belongs to. */
+    /** Returns the students this session belongs to, as a read-only view. */
     public List<Student> getParticipants() {
-        return participants;
+        return Collections.unmodifiableList(participants);
     }
 
-    /** Replaces the students this session belongs to. */
+    /** Replaces the students this session belongs to with a copy of the given list. */
     public void setParticipants(List<Student> participants) {
-        this.participants = participants;
+        this.participants = new ArrayList<>(participants);
     }
 
-    /** Returns each participant's RSVP answer. */
+    /** Returns each participant's RSVP answer, as a read-only view. */
     public Map<Student, Rsvp> getRsvps() {
-        return rsvps;
+        return Collections.unmodifiableMap(rsvps);
     }
 
-    /** Replaces the RSVP answers. */
+    /** Replaces the RSVP answers with a copy of the given map. */
     public void setRsvps(Map<Student, Rsvp> rsvps) {
-        this.rsvps = rsvps;
+        this.rsvps = new HashMap<>(rsvps);
     }
 
     /** Returns the session status: PROPOSED, CONFIRMED or PAST. */
@@ -116,5 +118,24 @@ public class StudySession {
     @Override
     public String toString() {
         return "StudySession[" + id + " day " + day + " " + startHour + "-" + endHour + " " + status + "]";
+    }
+
+    /** Two sessions are equal when they have the same id. */
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof StudySession)) {
+            return false;
+        }
+        StudySession that = (StudySession) other;
+        return Objects.equals(id, that.id);
+    }
+
+    /** Returns a hash code from the id, consistent with equals. */
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

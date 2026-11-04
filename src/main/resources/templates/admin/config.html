@@ -22,9 +22,7 @@
       <p th:replace="~{fragments/field-error :: field-error('activeStrategyName')}"></p>
 
       <ul class="legend">
-        <li><span class="legend-name" th:text="${strategies.get('balanced')}">Balanced</span> Every criterion counts by its weight.</li>
-        <li><span class="legend-name" th:text="${strategies.get('availability-first')}">Availability first</span> Shared free time ranks highest.</li>
-        <li><span class="legend-name" th:text="${strategies.get('course-first')}">Course first</span> Students in the same course rank highest.</li>
+        <li th:each="s : ${strategies}"><span class="legend-name" th:text="${s.value}">Balanced</span> [[${strategyDescriptions.get(s.key)}]]</li>
       </ul>
 
       <h2>Criteria</h2>

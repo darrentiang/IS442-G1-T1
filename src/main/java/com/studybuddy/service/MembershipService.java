@@ -6,8 +6,10 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.studybuddy.model.AccountStatus;
-import com.studybuddy.model.Course;
+import com.studybuddy.model.BusinessRuleException;
 import com.studybuddy.model.JoinRequest;
+import com.studybuddy.model.NotGroupLeaderException;
+import com.studybuddy.model.RequestAlreadyHandledException;
 import com.studybuddy.model.RequestStatus;
 import com.studybuddy.model.Student;
 import com.studybuddy.model.StudyGroup;
@@ -17,7 +19,7 @@ import com.studybuddy.repository.StudyGroupRepository;
 
 /**
  * Business rules for who is in a group: answering join requests and removing members.
- * Every failure throws IllegalStateException with a user-readable message.
+ * Every failure throws a BusinessRuleException (or a subclass) with a user-readable message.
  */
 @Service
 public class MembershipService {
@@ -51,15 +53,7 @@ public class MembershipService {
 
     /** Returns true if the student's current courses include the group's course. */
     public boolean takesGroupCourse(StudyGroup group, Student student) {
-        if (student.getProfile() == null || student.getProfile().getCoursesTaken() == null) {
-            return false;
-        }
-        for (Course course : student.getProfile().getCoursesTaken()) {
-            if (course.getCode().equals(group.getCourse().getCode())) {
-                return true;
-            }
-        }
-        return false;
+        return student.getProfile() != null && student.getProfile().isTaking(group.getCourse().getCode());
     }
 
     /** Accepts a PENDING request from an active student to an open, not-full group led by this leader; returns the new member. */
@@ -67,10 +61,10 @@ public class MembershipService {
         StudyGroup group = findGroupLedBy(groupId, leaderId);
         JoinRequest request = findPendingRequest(group, requestId);
         if (!group.isOpen()) {
-            throw new IllegalStateException("This group is closed");
+            throw new BusinessRuleException("This group is closed");
         }
         if (request.getStudent().getStatus() == AccountStatus.SUSPENDED) {
-            throw new IllegalStateException(request.getStudent().getName() + "'s account is suspended");
+            throw new BusinessRuleException(request.getStudent().getName() + "'s account is suspended");
         }
         // addMember goes first: it throws (full, already a member) before changing anything, and
         // accept() cannot fail on a PENDING request. The repositories hold these same objects, so
@@ -95,7 +89,7 @@ public class MembershipService {
         StudyGroup group = findGroupLedBy(groupId, leaderId);
         Student student = studentRepository.findById(studentId);
         if (student == null) {
-            throw new IllegalStateException("That student does not exist");
+            throw new BusinessRuleException("That student does not exist");
         }
         group.removeMember(student);
         groupRepository.save(group);
@@ -112,10 +106,10 @@ public class MembershipService {
     private StudyGroup findGroupLedBy(String groupId, String leaderId) {
         StudyGroup group = groupRepository.findById(groupId);
         if (group == null) {
-            throw new IllegalStateException("That group no longer exists");
+            throw new BusinessRuleException("That group no longer exists");
         }
         if (!groupService.isLeader(group, leaderId)) {
-            throw new IllegalStateException("Only the group leader can manage members");
+            throw new NotGroupLeaderException("Only the group leader can manage members");
         }
         return group;
     }
@@ -124,10 +118,10 @@ public class MembershipService {
     private JoinRequest findPendingRequest(StudyGroup group, String requestId) {
         JoinRequest request = requestRepository.findById(requestId);
         if (request == null || !request.getGroup().getId().equals(group.getId())) {
-            throw new IllegalStateException("That request does not belong to this group");
+            throw new BusinessRuleException("That request does not belong to this group");
         }
         if (request.getStatus() != RequestStatus.PENDING) {
-            throw new IllegalStateException("This request was already handled");
+            throw new RequestAlreadyHandledException("This request was already handled");
         }
         return request;
     }

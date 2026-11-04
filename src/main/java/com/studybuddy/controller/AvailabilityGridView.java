@@ -7,11 +7,7 @@ import com.studybuddy.model.AvailabilityGrid;
  * checkboxes on the availability editor. After a timetable import it also knows which
  * cells are class hours, so the page can mark them "class" and disable them.
  */
-public class AvailabilityGridView {
-
-    private static final String[] DAY_NAMES = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};
-    private static final int HOURS = 15;
-    private static final int FIRST_HOUR = 8;
+public class AvailabilityGridView extends GridView {
 
     private final AvailabilityGrid availability;
     private final AvailabilityGrid classes;
@@ -33,6 +29,7 @@ public class AvailabilityGridView {
     }
 
     /** Returns "cell-free" or "cell-busy" for one cell of the read-only grid. */
+    @Override
     public String cellClass(int day, int hourIndex) {
         return isFree(day, hourIndex) ? "cell-free" : "cell-busy";
     }
@@ -40,19 +37,5 @@ public class AvailabilityGridView {
     /** Returns the checkbox value for one cell, "day-hourIndex", e.g. "2-11". */
     public String cellValue(int day, int hourIndex) {
         return day + "-" + hourIndex;
-    }
-
-    /** Returns the row labels, MON to SUN. */
-    public String[] getDayNames() {
-        return DAY_NAMES.clone();
-    }
-
-    /** Returns the column labels, "08" to "22" (each column is the hour starting then). */
-    public String[] getHourLabels() {
-        String[] labels = new String[HOURS];
-        for (int i = 0; i < HOURS; i++) {
-            labels[i] = String.format("%02d", FIRST_HOUR + i);
-        }
-        return labels;
     }
 }

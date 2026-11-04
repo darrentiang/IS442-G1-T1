@@ -41,7 +41,7 @@
         <dd>
           <span th:if="${#sets.isEmpty(group.goals)}">No study goals provided.</span>
           <div th:each="goal : ${group.goals}"
-               th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(goal.name(), '_', ' ')))}">Exam prep</div>
+               th:text="${goal.label}">Exam prep</div>
         </dd>
       </div>
       <div>

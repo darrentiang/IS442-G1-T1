@@ -1,7 +1,9 @@
 package com.studybuddy.controller;
 
 import com.studybuddy.model.Role;
+import com.studybuddy.model.Student;
 import com.studybuddy.model.User;
+import com.studybuddy.service.UserService;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -34,6 +36,15 @@ public final class CurrentUser {
     /** Returns the signed-in user's role (Role.STUDENT or Role.ADMIN), or null if nobody is signed in. */
     public static Role getRole(HttpSession session) {
         return (Role) session.getAttribute(ROLE);
+    }
+
+    /** Returns the signed-in user as a Student, or null if nobody is signed in or the user is not a student. */
+    public static Student studentOrNull(HttpSession session, UserService userService) {
+        String id = getId(session);
+        if (id == null) {
+            return null;
+        }
+        return userService.findStudent(id);
     }
 
     /** Signs the user out by throwing the whole session away. */

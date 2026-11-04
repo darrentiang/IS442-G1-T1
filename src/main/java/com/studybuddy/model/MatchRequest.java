@@ -1,5 +1,7 @@
 package com.studybuddy.model;
 
+import java.util.Objects;
+
 /** A buddy request from one student to another. */
 public class MatchRequest {
 
@@ -47,22 +49,22 @@ public class MatchRequest {
         return status;
     }
 
-    /** Marks the request ACCEPTED; throws IllegalStateException unless it is PENDING. Does not create the connection. */
+    /** Marks the request ACCEPTED; throws RequestAlreadyHandledException unless it is PENDING. Does not create the connection. */
     public void accept() {
         requirePending();
         status = RequestStatus.ACCEPTED;
     }
 
-    /** Marks the request DECLINED; throws IllegalStateException unless it is PENDING. */
+    /** Marks the request DECLINED; throws RequestAlreadyHandledException unless it is PENDING. */
     public void decline() {
         requirePending();
         status = RequestStatus.DECLINED;
     }
 
-    /** Throws IllegalStateException if this request has already been answered. */
+    /** Throws RequestAlreadyHandledException if this request has already been answered. */
     private void requirePending() {
         if (status != RequestStatus.PENDING) {
-            throw new IllegalStateException("This request was already handled");
+            throw new RequestAlreadyHandledException("This request was already handled");
         }
     }
 
@@ -70,5 +72,24 @@ public class MatchRequest {
     @Override
     public String toString() {
         return "MatchRequest[" + id + " " + from.getName() + " -> " + to.getName() + " " + status + "]";
+    }
+
+    /** Two buddy requests are equal when they have the same id. */
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof MatchRequest)) {
+            return false;
+        }
+        MatchRequest that = (MatchRequest) other;
+        return Objects.equals(id, that.id);
+    }
+
+    /** Returns a hash code from the id, consistent with equals. */
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

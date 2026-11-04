@@ -24,17 +24,11 @@ public class HomeController {
         this.editService = editService;
     }
 
-    /** Shows the home page, or sends the visitor to the picker if nobody is signed in. */
+    /** Shows the home page for the signed-in user. */
     @GetMapping("/home")
     public String showHome(HttpSession session, Model model) {
         String userId = CurrentUser.getId(session);
-        if (userId == null) {
-            return "redirect:/";
-        }
         User user = userService.findUser(userId);
-        if (user == null) {
-            return "redirect:/";
-        }
         Student student = userService.findStudent(userId);                // null for an admin
         model.addAttribute("user", user);
         model.addAttribute("student", student);

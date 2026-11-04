@@ -20,8 +20,6 @@ import com.studybuddy.model.AvailabilityGrid;
 @Service
 public class TimetableImportService {
 
-    private static final int DAYS = 7;
-    private static final int HOURS = 15;
     private static final String UNSUPPORTED_MESSAGE = "Upload an .ics calendar file";
 
     private final List<TimetableImporter> importers = new ArrayList<>();
@@ -53,8 +51,8 @@ public class TimetableImportService {
     public AvailabilityGrid draftFrom(TimetableImport imported) {
         AvailabilityGrid busy = imported.getBusy();
         AvailabilityGrid draft = new AvailabilityGrid();
-        for (int day = 0; day < DAYS; day++) {
-            for (int hour = 0; hour < HOURS; hour++) {
+        for (int day = 0; day < AvailabilityGrid.DAYS; day++) {
+            for (int hour = 0; hour < AvailabilityGrid.HOURS_PER_DAY; hour++) {
                 draft.set(day, hour, !busy.isAvailable(day, hour));
             }
         }

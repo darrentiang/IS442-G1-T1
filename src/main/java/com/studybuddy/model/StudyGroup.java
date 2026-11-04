@@ -1,8 +1,10 @@
 package com.studybuddy.model;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -19,7 +21,7 @@ public class StudyGroup {
     private List<Student> members = new ArrayList<>();
     private int maxSize;
     private Visibility visibility;
-    private Set<StudyGoal> goals = new HashSet<>();
+    private Set<StudyGoal> goals = EnumSet.noneOf(StudyGoal.class);
     private StudyMode mode;
     private boolean open;
     private AvailabilityGrid availability = new AvailabilityGrid();
@@ -74,9 +76,9 @@ public class StudyGroup {
         this.leader = leader;
     }
 
-    /** Returns the group members. */
+    /** Returns the group members as a read-only view; use addMember and removeMember to change them. */
     public List<Student> getMembers() {
-        return members;
+        return Collections.unmodifiableList(members);
     }
 
     /** Returns true if this student is in members (the leader is always in members). */
@@ -94,10 +96,10 @@ public class StudyGroup {
         return members.size() >= maxSize;
     }
 
-    /** Adds a student to members; throws GroupFullException if full, IllegalStateException if already a member. */
+    /** Adds a student to members; throws GroupFullException if full, BusinessRuleException if already a member. */
     public void addMember(Student student) {
         if (hasMember(student)) {
-            throw new IllegalStateException(student.getName() + " is already in this group");
+            throw new BusinessRuleException(student.getName() + " is already in this group");
         }
         if (isFull()) {
             throw new GroupFullException("This group is full");
@@ -105,13 +107,13 @@ public class StudyGroup {
         members.add(student);
     }
 
-    /** Removes a student from members; throws IllegalStateException for the leader or a non-member. */
+    /** Removes a student from members; throws BusinessRuleException for the leader or a non-member. */
     public void removeMember(Student student) {
         if (leader != null && leader.getId().equals(student.getId())) {
-            throw new IllegalStateException("The group leader can't be removed");
+            throw new BusinessRuleException("The group leader can't be removed");
         }
         if (!hasMember(student)) {
-            throw new IllegalStateException(student.getName() + " is not in this group");
+            throw new BusinessRuleException(student.getName() + " is not in this group");
         }
         for (int i = 0; i < members.size(); i++) {
             if (members.get(i).getId().equals(student.getId())) {
@@ -141,14 +143,15 @@ public class StudyGroup {
         this.visibility = visibility;
     }
 
-    /** Returns the group's study goals. */
+    /** Returns the group's study goals in declaration order, as a read-only view. */
     public Set<StudyGoal> getGoals() {
-        return goals;
+        return Collections.unmodifiableSet(goals);
     }
 
-    /** Replaces the group's study goals. */
+    /** Replaces the group's study goals with a copy of the given set. */
     public void setGoals(Set<StudyGoal> goals) {
-        this.goals = goals;
+        this.goals = EnumSet.noneOf(StudyGoal.class);
+        this.goals.addAll(goals);
     }
 
     /** Returns the group's study mode. */
@@ -185,5 +188,24 @@ public class StudyGroup {
     @Override
     public String toString() {
         return "StudyGroup[" + id + " " + name + "]";
+    }
+
+    /** Two groups are equal when they have the same id. */
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof StudyGroup)) {
+            return false;
+        }
+        StudyGroup that = (StudyGroup) other;
+        return Objects.equals(id, that.id);
+    }
+
+    /** Returns a hash code from the id, consistent with equals. */
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

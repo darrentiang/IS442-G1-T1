@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.studybuddy.model.BusinessRuleException;
 import com.studybuddy.model.JoinRequest;
 import com.studybuddy.model.Student;
 import com.studybuddy.model.StudyGroup;
@@ -37,9 +38,6 @@ public class MembershipController {
     public String showManagePage(@PathVariable String id, HttpSession session, Model model,
             RedirectAttributes redirectAttributes) {
         String userId = CurrentUser.getId(session);
-        if (userId == null) {
-            return "redirect:/";
-        }
         String notLeader = redirectIfNotLeader(id, userId, redirectAttributes);
         if (notLeader != null) {
             return notLeader;
@@ -63,18 +61,15 @@ public class MembershipController {
     public String acceptRequest(@PathVariable String id, @PathVariable String requestId, HttpSession session,
             RedirectAttributes redirectAttributes) {
         String userId = CurrentUser.getId(session);
-        if (userId == null) {
-            return "redirect:/";
-        }
         String notLeader = redirectIfNotLeader(id, userId, redirectAttributes);
         if (notLeader != null) {
             return notLeader;
         }
         try {
             Student student = membershipService.acceptRequest(id, requestId, userId);
-            addToast(redirectAttributes, student.getName() + " added to the group", "success");
-        } catch (IllegalStateException e) {
-            addToast(redirectAttributes, e.getMessage(), "error");
+            Toasts.success(redirectAttributes, student.getName() + " added to the group");
+        } catch (BusinessRuleException e) {
+            Toasts.error(redirectAttributes, e.getMessage());
         }
         return "redirect:/groups/" + id + "/manage";
     }
@@ -84,18 +79,15 @@ public class MembershipController {
     public String rejectRequest(@PathVariable String id, @PathVariable String requestId, HttpSession session,
             RedirectAttributes redirectAttributes) {
         String userId = CurrentUser.getId(session);
-        if (userId == null) {
-            return "redirect:/";
-        }
         String notLeader = redirectIfNotLeader(id, userId, redirectAttributes);
         if (notLeader != null) {
             return notLeader;
         }
         try {
             Student student = membershipService.rejectRequest(id, requestId, userId);
-            addToast(redirectAttributes, "Request from " + student.getName() + " declined", "success");
-        } catch (IllegalStateException e) {
-            addToast(redirectAttributes, e.getMessage(), "error");
+            Toasts.success(redirectAttributes, "Request from " + student.getName() + " declined");
+        } catch (BusinessRuleException e) {
+            Toasts.error(redirectAttributes, e.getMessage());
         }
         return "redirect:/groups/" + id + "/manage";
     }
@@ -105,18 +97,15 @@ public class MembershipController {
     public String removeMember(@PathVariable String id, @PathVariable String studentId, HttpSession session,
             RedirectAttributes redirectAttributes) {
         String userId = CurrentUser.getId(session);
-        if (userId == null) {
-            return "redirect:/";
-        }
         String notLeader = redirectIfNotLeader(id, userId, redirectAttributes);
         if (notLeader != null) {
             return notLeader;
         }
         try {
             Student student = membershipService.removeMember(id, studentId, userId);
-            addToast(redirectAttributes, student.getName() + " removed from the group", "success");
-        } catch (IllegalStateException e) {
-            addToast(redirectAttributes, e.getMessage(), "error");
+            Toasts.success(redirectAttributes, student.getName() + " removed from the group");
+        } catch (BusinessRuleException e) {
+            Toasts.error(redirectAttributes, e.getMessage());
         }
         return "redirect:/groups/" + id + "/manage";
     }
@@ -128,19 +117,13 @@ public class MembershipController {
     private String redirectIfNotLeader(String groupId, String userId, RedirectAttributes redirectAttributes) {
         StudyGroup group = groupService.findById(groupId);
         if (group == null) {
-            addToast(redirectAttributes, "That group no longer exists", "error");
+            Toasts.error(redirectAttributes, "That group no longer exists");
             return "redirect:/groups";
         }
         if (!groupService.isLeader(group, userId)) {
-            addToast(redirectAttributes, "Only the group leader can manage members", "error");
+            Toasts.error(redirectAttributes, "Only the group leader can manage members");
             return "redirect:/groups/" + groupId;
         }
         return null;
-    }
-
-    /** Adds a toast for the next page (Post/Redirect/Get); type is "success" or "error". */
-    private void addToast(RedirectAttributes redirectAttributes, String message, String type) {
-        redirectAttributes.addFlashAttribute("toastMessage", message);
-        redirectAttributes.addFlashAttribute("toastType", type);
     }
 }

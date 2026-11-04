@@ -1,5 +1,7 @@
 package com.studybuddy.model;
 
+import java.util.Objects;
+
 /** Anyone with an account. Abstract: you are either a Student or an Administrator. */
 public abstract class User {
 
@@ -57,5 +59,24 @@ public abstract class User {
     /** Returns the role shown to people, e.g. "Student". */
     public String getRoleLabel() {
         return getRole().getLabel();
+    }
+
+    /** Two users are equal when they have the same id. Student and SystemAdministrator inherit this. */
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof User)) {
+            return false;
+        }
+        User that = (User) other;
+        return Objects.equals(id, that.id);
+    }
+
+    /** Returns a hash code from the id, consistent with equals. */
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

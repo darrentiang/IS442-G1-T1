@@ -38,18 +38,15 @@ public class UserPickerController {
             RedirectAttributes redirectAttributes) {
         User user = userService.findUser(userId);
         if (user == null) {
-            redirectAttributes.addFlashAttribute("toastMessage", "Choose a user to continue");
-            redirectAttributes.addFlashAttribute("toastType", "error");
+            Toasts.error(redirectAttributes, "Choose a user to continue");
             return "redirect:/";
         }
         if (user.getStatus() == AccountStatus.SUSPENDED) {
-            redirectAttributes.addFlashAttribute("toastMessage", "This account is suspended");
-            redirectAttributes.addFlashAttribute("toastType", "error");
+            Toasts.error(redirectAttributes, "This account is suspended");
             return "redirect:/";
         }
         CurrentUser.signIn(session, user);
-        redirectAttributes.addFlashAttribute("toastMessage", "Signed in as " + user.getName());
-        redirectAttributes.addFlashAttribute("toastType", "success");
+        Toasts.success(redirectAttributes, "Signed in as " + user.getName());
         return "redirect:/home";
     }
 
