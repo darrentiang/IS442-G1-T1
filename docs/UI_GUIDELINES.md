@@ -6,6 +6,7 @@ How the app looks and how it gives feedback. Every value here is a CSS variable 
 |---|---|---|
 | 1.0 | 19-09-2026 | Initial guidelines |
 | 1.1 | 04-11-2026 | Find Buddies: chips, match card, reason tags, "Why this match" details, week grid |
+| 1.2 | 04-11-2026 | My profile: checkbox availability grid with disabled "class" cells, hint text, page actions |
 
 ## Principles
 
@@ -75,6 +76,9 @@ Class names are what pages use. Never restyle these in a page.
 | Reason tag | `.tag`, `.tag-warning` | Quiet muted pill, 13px. `.tag-warning` (amber) only for the "N pending requests" note. Not a status badge |
 | Expandable details | `<details class="match-details">` with `<summary>` | Native disclosure, no JavaScript: "Why this match" opens the fit line (`.fit-line`) and one `.score-row` per criterion (label, `.score-bar`, value). `<details class="request-details">` with a button-styled `<summary>` reveals an inline form and moves onto its own line when open |
 | Week grid | `.avail-week` with `.avail-label` and `.cell`, plus `.avail-legend` | 7 rows (MON-SUN) x 15 hours (08-22) with a label column; same `.cell-both` / `.cell-free` / `.cell-busy` colours, and a legend underneath |
+| Availability editor | `.avail-editor` table > `label.avail-toggle` > `input[type=checkbox]`, inside `.avail-editor-scroll` | The checkbox-grid pattern: 7 day rows x 15 hour columns, one checkbox per hour (`name="cells"`, `value="day-hourIndex"`). The checkbox is hidden; its label is the cell: muted grey when unticked, accent tint (`:has(input:checked)`) when free. Pure CSS, no JavaScript. A class hour from an imported timetable adds `.avail-toggle-class`: the checkbox is `disabled`, the cell is a darker grey with the word "class", and it cannot be ticked. Legend uses `.cell-free` / `.cell-busy` / `.cell-class` |
+| Hint | `.hint` | 13px secondary text, one line, directly under a field or a card title ("Leave blank to keep your current number") |
+| Page actions | `.page-actions` (in a `.page-header`) | Secondary buttons side by side on the right of a page title |
 | Availability grid | `.avail-grid` with `.cell` | Small rounded cells. `.cell-free` = light accent tint, `.cell-busy` = muted grey, `.cell-both` = solid accent. Group heatmap uses `.heat-1` to `.heat-4` (lighter to darker accent) |
 
 ## Status colours

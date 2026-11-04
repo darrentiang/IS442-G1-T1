@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<!--
+  Edit my details. On a field error the controller returns this view with the submitted values.
+  Expects: form (ProfileForm), fieldErrors, courses, modeOptions, formatOptions, intensityOptions, goalOptions.
+-->
+<head th:replace="~{fragments/head :: head('Edit details')}"></head>
+<body>
+<header th:replace="~{fragments/nav :: nav('profile')}"></header>
+<div th:replace="~{fragments/toast :: toast}"></div>
+
+<main>
+  <div>
+    <a class="back-link" th:href="@{/profile}">← My profile</a>
+    <h1>Edit details</h1>
+  </div>
+
+  <div class="card card-narrow">
+    <form th:action="@{/profile/edit}" method="post">
+      <label for="school">School</label>
+      <input id="school" name="school" th:value="${form.school}">
+      <p th:replace="~{fragments/field-error :: field-error('school')}"></p>
+
+      <label for="programme">Programme</label>
+      <input id="programme" name="programme" th:value="${form.programme}">
+      <p th:replace="~{fragments/field-error :: field-error('programme')}"></p>
+
+      <label for="year">Year of study (1 to 5)</label>
+      <input id="year" name="year" type="number" min="1" max="5" th:value="${form.year}">
+      <p th:replace="~{fragments/field-error :: field-error('year')}"></p>
+
+      <label for="newContactNumber">New contact number</label>
+      <input id="newContactNumber" name="newContactNumber" inputmode="numeric" maxlength="8"
+             aria-describedby="contact-hint" th:value="${form.newContactNumber}">
+      <p class="hint" id="contact-hint">Leave blank to keep your current number</p>
+      <p th:replace="~{fragments/field-error :: field-error('newContactNumber')}"></p>
+
+      <fieldset class="form-fieldset checkbox-columns">
+        <legend>Current courses</legend>
+        <label th:each="course : ${courses}">
+          <input type="checkbox" name="currentCourseCodes" th:value="${course.code}"
+                 th:checked="${#lists.contains(form.currentCourseCodes, course.code)}">
+          <span th:text="${course.code}">IS442</span>
+        </label>
+      </fieldset>
+      <p th:replace="~{fragments/field-error :: field-error('currentCourseCodes')}"></p>
+
+      <fieldset class="form-fieldset checkbox-columns">
+        <legend>Completed courses</legend>
+        <label th:each="course : ${courses}">
+          <input type="checkbox" name="completedCourseCodes" th:value="${course.code}"
+                 th:checked="${#lists.contains(form.completedCourseCodes, course.code)}">
+          <span th:text="${course.code}">IS111</span>
+        </label>
+      </fieldset>
+      <p th:replace="~{fragments/field-error :: field-error('completedCourseCodes')}"></p>
+
+      <label for="targetCourseCode">Course you need a buddy for</label>
+      <select id="targetCourseCode" name="targetCourseCode">
+        <option value="">Choose a course…</option>
+        <option th:each="course : ${courses}" th:value="${course.code}"
+                th:selected="${course.code == form.targetCourseCode}"
+                th:text="${course.code + ' · ' + course.title}">IS442 · Object-Oriented Programming</option>
+      </select>
+      <p th:replace="~{fragments/field-error :: field-error('targetCourseCode')}"></p>
+
+      <label for="mode">Study mode</label>
+      <select id="mode" name="mode">
+        <option value="">Choose a mode…</option>
+        <option th:each="option : ${modeOptions}" th:value="${option.name()}"
+                th:selected="${option.name() == form.mode}"
+                th:text="${option.name() == 'EITHER' ? 'In person or online' : (option.name() == 'IN_PERSON' ? 'In person' : 'Online')}">Online</option>
+      </select>
+      <p th:replace="~{fragments/field-error :: field-error('mode')}"></p>
+
+      <label for="format">Group size</label>
+      <select id="format" name="format">
+        <option value="">Choose a group size…</option>
+        <option th:each="option : ${formatOptions}" th:value="${option.name()}"
+                th:selected="${option.name() == form.format}"
+                th:text="${option.name() == 'EITHER' ? 'One-to-one or small group' : (option.name() == 'ONE_TO_ONE' ? 'One-to-one' : 'Small group')}">Small group</option>
+      </select>
+      <p th:replace="~{fragments/field-error :: field-error('format')}"></p>
+
+      <fieldset class="form-fieldset">
+        <legend>Study goals</legend>
+        <label th:each="goal : ${goalOptions}">
+          <input type="checkbox" name="goals" th:value="${goal.name()}"
+                 th:checked="${#lists.contains(form.goals, goal.name())}">
+          <span th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(goal.name(), '_', ' ')))}">Exam prep</span>
+        </label>
+      </fieldset>
+      <p th:replace="~{fragments/field-error :: field-error('goals')}"></p>
+
+      <label for="intensity">Intensity</label>
+      <select id="intensity" name="intensity">
+        <option value="">Choose an intensity…</option>
+        <option th:each="option : ${intensityOptions}" th:value="${option.name()}"
+                th:selected="${option.name() == form.intensity}"
+                th:text="${#strings.capitalize(#strings.toLowerCase(option.name()))}">Grind</option>
+      </select>
+      <p th:replace="~{fragments/field-error :: field-error('intensity')}"></p>
+
+      <label for="lookingFor">What you're looking for in a buddy (up to 200 characters)</label>
+      <textarea id="lookingFor" name="lookingFor" rows="3" maxlength="200" th:text="${form.lookingFor}"></textarea>
+      <p th:replace="~{fragments/field-error :: field-error('lookingFor')}"></p>
+
+      <button type="submit" class="btn btn-primary btn-block">Save details</button>
+    </form>
+  </div>
+</main>
+</body>
+</html>

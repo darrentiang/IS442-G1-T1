@@ -1191,3 +1191,168 @@ textarea:focus {
         grid-template-columns: 1fr;
     }
 }
+
+
+/* --------------------------------------------------------------------------
+   16. My profile — page actions, hints, course tags, the availability
+       editor (a checkbox grid) and the timetable upload.
+   -------------------------------------------------------------------------- */
+
+/* Buttons in a page header, side by side. */
+.page-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+/* A one-line hint under a field or title; pulled up into the field's 16px gap like a field error. */
+.hint {
+    margin: -12px 0 16px;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+}
+
+.card > .hint,
+h2 + .hint {
+    margin: -8px 0 16px;
+}
+
+.card > .hint:last-child {
+    margin: 16px 0 0;
+}
+
+/* Reason-style tags inside a definition list, without the match card's top gap. */
+.tag-list-tight {
+    margin: 0;
+}
+
+/* Many short checkboxes (course codes) laid out in columns instead of one per line. */
+.checkbox-columns {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0 16px;
+}
+
+.checkbox-columns legend {
+    grid-column: 1 / -1;
+}
+
+/* Read by screen readers, not shown. */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* Several messages in one banner. */
+.banner-list {
+    margin: 0;
+    padding-left: 18px;
+}
+
+/* File input and its button on one line. */
+.upload-form {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.upload-form input[type="file"] {
+    flex: 1 1 240px;
+    width: auto;
+    margin: 0;
+}
+
+/* Buttons under a form, side by side. */
+.form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+/* The availability editor: a table of 7 day rows x 15 hour columns, one checkbox per cell. */
+.avail-editor-scroll {
+    overflow-x: auto;
+}
+
+.avail-editor {
+    width: 100%;
+    min-width: 640px;
+    border-collapse: separate;
+    border-spacing: 3px;
+    table-layout: fixed;
+}
+
+.avail-editor th {
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.avail-editor th[scope="row"] {
+    width: 44px;
+}
+
+.avail-editor td {
+    padding: 0;
+}
+
+/* Each cell is a label wrapping a hidden checkbox: grey when busy, accent tint when ticked. */
+.avail-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 28px;
+    margin: 0;
+    border-radius: 4px;
+    background: var(--color-surface-muted);
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.avail-toggle input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.avail-toggle:hover {
+    background: var(--color-border);
+}
+
+.avail-toggle:has(input:checked) {
+    background: color-mix(in srgb, var(--color-accent) 18%, transparent);
+}
+
+.avail-toggle:has(input:checked):hover {
+    background: color-mix(in srgb, var(--color-accent) 28%, transparent);
+}
+
+.avail-toggle:has(input:focus-visible) {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 30%, transparent);
+}
+
+/* A class hour from an imported timetable: greyed out, labelled "class", cannot be ticked. */
+.avail-toggle-class,
+.avail-toggle-class:hover,
+.cell-class {
+    background: var(--color-border);
+}
+
+.avail-toggle-class {
+    cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+    .checkbox-columns {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

@@ -34,10 +34,13 @@ com.studybuddy.repository    repository interfaces + InMemory implementations
 com.studybuddy.service       services
 com.studybuddy.controller    controllers
 com.studybuddy.engine        matching: engine, config, results (+ filter, criteria, strategy sub-packages)
+com.studybuddy.importer      timetable import: reads a timetable file into class hours
 com.studybuddy.seed          seed data loaders
 src/main/resources/templates/   Thymeleaf pages (.html)
 src/main/resources/static/      css, the one js file
 ```
+
+`model`, `engine` and `importer` are plain Java: nothing in them imports `org.springframework.*` or `jakarta.*`.
 
 Naming (Java Coding Conventions — these are graded):
 - Classes `PascalCase`, methods/fields `camelCase`, constants `UPPER_SNAKE`.
@@ -338,6 +341,62 @@ public class MatchingEngine {
     public String getStrategyLabel(String name);
 }
 ```
+
+### My profile and timetable import (Student team's territory)
+
+The importer is plain Java in `com.studybuddy.importer`; how it reads a file is in `docs/TIMETABLE_IMPORT.md`.
+
+```java
+/** Reads one kind of timetable file. B3b adds ScreenshotTimetableImporter behind this same interface. */
+public interface TimetableImporter {
+    String getName();                                        // "ics"
+    boolean supports(String fileName);                       // by extension, case-insensitive
+    TimetableImport read(InputStream input) throws TimetableImportException;
+}
+
+/** What an import found. Immutable: the grid and lists are copies. */
+public class TimetableImport {
+    private final AvailabilityGrid busy;        // true = in class
+    private final List<String> classNames;      // distinct, first-seen order
+    private final int classCount;               // distinct weekly (day, start, end) slots
+    private final List<String> warnings;        // skipped or clipped entries
+}
+
+/** Thrown when an uploaded timetable cannot be read. Checked. */
+public class TimetableImportException extends Exception { }
+
+/** Reads an .ics calendar export (RFC 5545). The only class allowed to use java.time. */
+public class IcsTimetableImporter implements TimetableImporter { }
+```
+
+In `com.studybuddy.service`:
+
+```java
+/** Raw values from the edit-profile form, all as text. from(profile) prefills it (contact left blank). */
+public class ProfileForm {
+    private String school, programme, year, newContactNumber;   // blank contact = keep the current one
+    private List<String> currentCourseCodes, completedCourseCodes, goals;
+    private String targetCourseCode, mode, format, intensity, lookingFor;
+}
+
+/** A student editing their OWN profile. ProfileService keeps the viewing rules. */
+@Service
+public class ProfileEditService {
+    public Map<String, String> validate(ProfileForm form);              // field name -> message
+    public void update(Student student, ProfileForm form);
+    public void updateAvailability(Student student, List<String> cells); // "day-hourIndex", e.g. "2-11"
+    public boolean needsAvailability(Student student);                   // drives the Home banner
+}
+
+/** Turns an uploaded timetable into a DRAFT grid; saves nothing. */
+@Service
+public class TimetableImportService {
+    public TimetableImport importTimetable(String fileName, InputStream input) throws TimetableImportException;
+    public AvailabilityGrid draftFrom(TimetableImport imported);         // every non-class hour ticked
+}
+```
+
+`ProfileService.ownView(student)` returns the student's own profile through `toConnectedView()`, so My profile can show their own contact number without a getter.
 
 ## 4. Class diagram
 

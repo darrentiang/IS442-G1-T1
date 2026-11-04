@@ -12,6 +12,11 @@
     <p class="text-secondary" th:text="${user.roleLabel}">Student</p>
   </div>
 
+  <div class="banner banner-warning banner-action" th:if="${needsAvailability}">
+    <span>Set your availability to get matched properly</span>
+    <a class="btn btn-secondary btn-small" th:href="@{/profile/availability}">Set availability</a>
+  </div>
+
   <div class="card" th:if="${student != null}">
     <h2>Your profile</h2>
     <p th:text="${student.profile.programme + ' · Year ' + student.profile.yearOfStudy}">Information Systems · Year 3</p>

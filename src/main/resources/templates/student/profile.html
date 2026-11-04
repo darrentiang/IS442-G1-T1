@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<!--
+  My profile: the signed-in student's own profile, contact number included.
+  Expects: student, profile (ProfileView from ProfileService.ownView), grid (AvailabilityGridView).
+-->
+<head th:replace="~{fragments/head :: head('My profile')}"></head>
+<body>
+<header th:replace="~{fragments/nav :: nav('profile')}"></header>
+<div th:replace="~{fragments/toast :: toast}"></div>
+
+<main th:with="prefs=${profile.preferences}">
+  <div class="page-header">
+    <div>
+      <h1 th:text="${student.name}">Marcus Lim</h1>
+      <p class="text-secondary" th:text="${student.email}">marcus.lim.2024@scis.smu.edu.sg</p>
+    </div>
+    <div class="page-actions">
+      <a class="btn btn-secondary" th:href="@{/profile/edit}">Edit details</a>
+      <a class="btn btn-secondary" th:href="@{/profile/availability}">Edit availability</a>
+    </div>
+  </div>
+
+  <section class="card">
+    <h2>Details</h2>
+    <dl class="facts">
+      <div>
+        <dt>School</dt>
+        <dd th:text="${profile.school}">SCIS</dd>
+      </div>
+      <div>
+        <dt>Programme</dt>
+        <dd th:text="${profile.programme}">Computer Science</dd>
+      </div>
+      <div>
+        <dt>Year</dt>
+        <dd th:text="${profile.yearOfStudy}">3</dd>
+      </div>
+      <div>
+        <dt>Contact number</dt>
+        <dd th:text="${profile.contactNumber != null ? profile.contactNumber : 'Not set'}">90000411</dd>
+      </div>
+    </dl>
+    <p class="hint">Your name and email belong to your account; ask an administrator to change them.</p>
+  </section>
+
+  <section class="card">
+    <h2>Courses</h2>
+    <dl class="facts">
+      <div>
+        <dt>Current courses</dt>
+        <dd>
+          <ul class="tag-list tag-list-tight">
+            <li class="tag" th:each="course : ${profile.coursesTaken}" th:text="${course.code}">IS442</li>
+          </ul>
+        </dd>
+      </div>
+      <div>
+        <dt>Completed courses</dt>
+        <dd>
+          <ul class="tag-list tag-list-tight" th:unless="${#lists.isEmpty(profile.completedCourses)}">
+            <li class="tag" th:each="course : ${profile.completedCourses}" th:text="${course.code}">IS111</li>
+          </ul>
+          <span th:if="${#lists.isEmpty(profile.completedCourses)}">None yet</span>
+        </dd>
+      </div>
+      <div>
+        <dt>Looking for a buddy in</dt>
+        <dd th:text="${prefs != null and prefs.targetCourse != null ? prefs.targetCourse.code + ' · ' + prefs.targetCourse.title : 'Not chosen'}">IS442 · Object-Oriented Programming</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section class="card" th:if="${prefs != null}">
+    <h2>Preferences</h2>
+    <dl class="facts">
+      <div>
+        <dt>Study mode</dt>
+        <dd th:text="${prefs.mode == null ? 'Not chosen' : (prefs.mode.name() == 'EITHER' ? 'In person or online' : (prefs.mode.name() == 'IN_PERSON' ? 'In person' : 'Online'))}">Online</dd>
+      </div>
+      <div>
+        <dt>Group size</dt>
+        <dd th:text="${prefs.format == null ? 'Not chosen' : (prefs.format.name() == 'EITHER' ? 'One-to-one or small group' : (prefs.format.name() == 'ONE_TO_ONE' ? 'One-to-one' : 'Small group'))}">Small group</dd>
+      </div>
+      <div>
+        <dt>Study goals</dt>
+        <dd>
+          <span th:each="g, s : ${prefs.goals}"
+                th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(g.name(), '_', ' '))) + (s.last ? '' : ', ')}">Problem solving</span>
+        </dd>
+      </div>
+      <div>
+        <dt>Intensity</dt>
+        <dd th:text="${prefs.intensity == null ? 'Not chosen' : #strings.capitalize(#strings.toLowerCase(prefs.intensity.name()))}">Grind</dd>
+      </div>
+      <div>
+        <dt>Looking for</dt>
+        <dd th:text="${#strings.isEmpty(profile.lookingFor) ? 'Nothing written yet' : profile.lookingFor}">Someone to debug practice problems with when I get stuck</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section class="card" aria-labelledby="week-heading">
+    <h2 id="week-heading">Weekly availability</h2>
+    <div class="avail-week">
+      <span></span>
+      <span class="avail-label" th:each="hour : ${grid.hourLabels}" th:text="${hour}">08</span>
+      <th:block th:each="day, d : ${grid.dayNames}">
+        <span class="avail-label" th:text="${day}">MON</span>
+        <span class="cell" th:each="hour, h : ${grid.hourLabels}"
+              th:classappend="${grid.cellClass(d.index, h.index)}"
+              th:title="|${day} ${hour}:00 · ${grid.isFree(d.index, h.index) ? 'free' : 'busy'}|"></span>
+      </th:block>
+    </div>
+    <ul class="avail-legend">
+      <li><span class="cell cell-free"></span>Free</li>
+      <li><span class="cell cell-busy"></span>Busy</li>
+    </ul>
+  </section>
+</main>
+</body>
+</html>

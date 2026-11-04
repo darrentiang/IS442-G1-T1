@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<!--
+  Edit availability: a 7 x 15 grid of checkboxes (one per hour) and a timetable upload.
+  After an import the grid is a draft: class hours are disabled and marked "class", every
+  other hour is ticked, and nothing is saved until the student clicks Save.
+  Expects: grid (AvailabilityGridView); optionally imported (TimetableImport) or importError.
+-->
+<head th:replace="~{fragments/head :: head('Edit availability')}"></head>
+<body>
+<header th:replace="~{fragments/nav :: nav('profile')}"></header>
+<div th:replace="~{fragments/toast :: toast}"></div>
+
+<main>
+  <div>
+    <a class="back-link" th:href="@{/profile}">← My profile</a>
+    <h1>Edit availability</h1>
+    <p class="text-secondary">Tick every hour you're usually free to study each week. Matching uses this grid.</p>
+  </div>
+
+  <div class="banner banner-danger" th:if="${importError != null}" role="alert" th:text="${importError}">
+    Upload an .ics calendar file
+  </div>
+
+  <th:block th:if="${imported != null}">
+    <div class="banner banner-info" role="status">
+      Found <span th:text="${imported.classCount}">4</span> weekly <span th:text="${imported.classCount == 1 ? 'class' : 'classes'}">classes</span><th:block th:unless="${#lists.isEmpty(imported.classNames)}">: <span th:text="${#strings.listJoin(imported.classNames, ', ')}">IS442 Object-Oriented Programming</span></th:block>. Untick anything else you're busy with, then save.
+    </div>
+    <div class="banner banner-warning" th:unless="${#lists.isEmpty(imported.warnings)}">
+      <ul class="banner-list">
+        <li th:each="warning : ${imported.warnings}" th:text="${warning}">Skipped all-day event "Recess Week"</li>
+      </ul>
+    </div>
+  </th:block>
+
+  <section class="card">
+    <h2>Import from timetable (.ics)</h2>
+    <p class="hint">Export your timetable as an .ics calendar file and upload it here.</p>
+    <form class="upload-form" method="post" enctype="multipart/form-data"
+          th:action="@{/profile/availability/import}">
+      <label for="timetable" class="visually-hidden">Timetable file</label>
+      <input id="timetable" name="timetable" type="file" accept=".ics,text/calendar">
+      <button type="submit" class="btn btn-secondary">Import</button>
+    </form>
+  </section>
+
+  <section class="card" aria-labelledby="grid-heading">
+    <h2 id="grid-heading">Your week</h2>
+    <form method="post" th:action="@{/profile/availability}">
+      <div class="avail-editor-scroll">
+        <table class="avail-editor">
+          <thead>
+            <tr>
+              <th scope="col"><span class="visually-hidden">Day</span></th>
+              <th scope="col" th:each="hour : ${grid.hourLabels}" th:text="${hour}">08</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="day, d : ${grid.dayNames}">
+              <th scope="row" th:text="${day}">MON</th>
+              <td th:each="hour, h : ${grid.hourLabels}"
+                  th:with="inClass=${grid.isClass(d.index, h.index)}">
+                <label class="avail-toggle" th:classappend="${inClass} ? 'avail-toggle-class'">
+                  <input type="checkbox" name="cells"
+                         th:value="${grid.cellValue(d.index, h.index)}"
+                         th:checked="${grid.isFree(d.index, h.index)}"
+                         th:disabled="${inClass}">
+                  <span class="visually-hidden" th:text="|${day} ${hour}:00|">MON 08:00</span>
+                  <span th:if="${inClass}">class</span>
+                </label>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="avail-legend">
+        <li><span class="cell cell-free"></span>Free</li>
+        <li><span class="cell cell-busy"></span>Busy</li>
+        <li><span class="cell cell-class"></span>Class (from your timetable)</li>
+      </ul>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save availability</button>
+        <a class="btn btn-secondary" th:href="@{/profile}">Cancel</a>
+      </div>
+    </form>
+  </section>
+</main>
+</body>
+</html>

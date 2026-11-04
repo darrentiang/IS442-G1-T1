@@ -8,7 +8,7 @@ import com.studybuddy.model.Student;
 /**
  * Decides what one student may see of another's profile. This is where the "contact number
  * hidden until a request is accepted" rule is enforced: toConnectedView() is called only here,
- * and only for an active connection.
+ * and only for an active connection or for the student's own profile.
  */
 @Service
 public class ProfileService {
@@ -45,6 +45,14 @@ public class ProfileService {
             return target.getProfile().toConnectedView();
         }
         return target.getProfile().toPublicView();
+    }
+
+    /** Returns a student's own profile with the contact number included (anyone may see their own), or null if none. */
+    public ProfileView ownView(Student student) {
+        if (student.getProfile() == null) {
+            return null;
+        }
+        return student.getProfile().toConnectedView();
     }
 
     /** Returns how the viewer stands with the target: CONNECTED, REQUEST_SENT, REQUEST_RECEIVED or NONE. */

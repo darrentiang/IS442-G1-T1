@@ -18,10 +18,10 @@ Run: `.\mvnw.cmd spring-boot:run`, then open http://localhost:8080.
 ## Hard rules
 
 1. **No database, no JPA, no Spring Data, no Lombok, no validation starter, no CSS or JS frameworks, no CDN links, no new dependencies** of any kind without team agreement.
-2. **Domain firewall:** nothing in `com.studybuddy.model` or `com.studybuddy.engine` may import `org.springframework.*` or `jakarta.*`. Plain Java only.
+2. **Domain firewall:** nothing in `com.studybuddy.model`, `com.studybuddy.engine` or `com.studybuddy.importer` may import `org.springframework.*` or `jakarta.*`. Plain Java only.
 3. **Spring annotations allowed:** `@SpringBootApplication`, `@Controller`, `@RestController`, `@GetMapping`, `@PostMapping`, `@PathVariable`, `@RequestParam`, `@Service`, `@Repository` (InMemory implementations only), `@Component` (startup tasks only, e.g. SeedDataLoader). Constructor injection only. **Never field `@Autowired`.**
-4. **No `Optional`, no streams, no lambdas** in `model`, `engine`, `repository` or `service` — return the object or `null`, use plain loops.
-5. **Availability is `boolean[7][15]`** — day 0 = Monday, hour index 0 = 08:00. No `java.time` in it. `LocalDate`/`LocalDateTime` only where FOUNDATION.md shows them.
+4. **No `Optional`, no streams, no lambdas** in `model`, `engine`, `importer`, `repository` or `service` — return the object or `null`, use plain loops.
+5. **Availability is `boolean[7][15]`** — day 0 = Monday, hour index 0 = 08:00. No `java.time` in it. `LocalDate`/`LocalDateTime` only where FOUNDATION.md shows them, plus `IcsTimetableImporter` (calendar parsing).
 6. **Java Coding Conventions:** 4-space indent, braces on the same line, PascalCase classes, camelCase members, UPPER_SNAKE constants, one class per file.
 7. **Javadoc on every class and every public method:** one line stating its responsibility.
 8. **`contactNumber` on StudentProfile has NO getter.** Read it only through `toPublicView()` / `toConnectedView()`. Never add a getter.
@@ -35,13 +35,14 @@ Packages are by layer. Dependencies point down only: controller → service → 
 |---|---|---|---|
 | `com.studybuddy.model` | Entities and enums | `Student`, `StudyGroup`, `RequestStatus` | Plain Java. No Spring, no repositories, no HTML |
 | `com.studybuddy.engine` | Matching: criteria, strategies, config, results | `AvailabilityCriterion`, `BalancedStrategy` | Plain Java. Criteria implement `MatchCriterion`, strategies implement `MatchingStrategy` |
+| `com.studybuddy.importer` | Timetable import | `TimetableImporter` (interface), `IcsTimetableImporter`, `TimetableImport`, `TimetableImportException` | Plain Java, same firewall as `engine`. One importer class per file format |
 | `com.studybuddy.repository` | Storage | `XRepository` (interface) + `InMemoryXRepository` (`@Repository`) | The ONLY place that holds data. Add finder methods your feature needs to the interface and implementation |
 | `com.studybuddy.service` | Business rules | `XService` (`@Service`) | Calls repositories and other services. Returns model objects, never HTML, never touches `Model` |
 | `com.studybuddy.controller` | Web requests | `XController` (`@Controller`); JSON endpoints in `XApiController` (`@RestController`) | Thin: read input, call a service, choose a page. No business rules, no data storage |
 | `com.studybuddy.seed` | Startup demo data | `SeedDataLoader` (`@Component`) | Only saves through repositories |
 | `src/main/resources/seed/` | Demo data as CSV | `courses.csv`, `admins.csv`, `students.csv` | Edit the CSV, not Java. Lists use `\|`, availability uses `DAY start-end;...`, no commas inside a cell |
 
-Controllers by area: `UserPickerController` and `HomeController` (shared pages), `CourseController`, `ProfileController`, `MatchController`, `BuddyController` (Find Buddies and candidate profiles), `ConnectionController`, `GroupController`, `SessionController`, `AdminController`. Add to the existing one for your area before creating a new one.
+Controllers by area: `UserPickerController` and `HomeController` (shared pages), `CourseController`, `ProfileController` (My profile, availability grid, timetable import), `MatchController`, `BuddyController` (Find Buddies and candidate profiles), `ConnectionController`, `GroupController`, `SessionController`, `AdminController`. Add to the existing one for your area before creating a new one.
 
 **URLs:** lowercase, kebab-case, by area: `/profile`, `/matches`, `/connections`, `/groups/{id}`, `/groups/{id}/join`, `/admin/config`. GET shows a page; POST performs an action. JSON endpoints start with `/api/`.
 

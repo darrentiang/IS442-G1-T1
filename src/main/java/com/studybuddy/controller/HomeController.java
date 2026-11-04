@@ -4,7 +4,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import com.studybuddy.model.Student;
 import com.studybuddy.model.User;
+import com.studybuddy.service.ProfileEditService;
 import com.studybuddy.service.UserService;
 
 import jakarta.servlet.http.HttpSession;
@@ -14,10 +16,12 @@ import jakarta.servlet.http.HttpSession;
 public class HomeController {
 
     private final UserService userService;
+    private final ProfileEditService editService;
 
-    /** Creates the controller with the service it delegates to (constructor injection). */
-    public HomeController(UserService userService) {
+    /** Creates the controller with the services it delegates to (constructor injection). */
+    public HomeController(UserService userService, ProfileEditService editService) {
         this.userService = userService;
+        this.editService = editService;
     }
 
     /** Shows the home page, or sends the visitor to the picker if nobody is signed in. */
@@ -31,8 +35,10 @@ public class HomeController {
         if (user == null) {
             return "redirect:/";
         }
+        Student student = userService.findStudent(userId);                // null for an admin
         model.addAttribute("user", user);
-        model.addAttribute("student", userService.findStudent(userId));   // null for an admin
+        model.addAttribute("student", student);
+        model.addAttribute("needsAvailability", student != null && editService.needsAvailability(student));
         return "shared/home";                // -> templates/shared/home.html
     }
 }
