@@ -15,7 +15,9 @@ import com.studybuddy.engine.criteria.StudyGoalCriterion;
 import com.studybuddy.engine.criteria.StudyModeCriterion;
 import com.studybuddy.engine.criteria.YearCriterion;
 import com.studybuddy.engine.filter.ActiveAccountFilter;
+import com.studybuddy.engine.filter.AvailabilityFilter;
 import com.studybuddy.engine.filter.ExcludedFilter;
+import com.studybuddy.engine.filter.ModeFilter;
 import com.studybuddy.engine.filter.SearchFilter;
 import com.studybuddy.engine.filter.SelfFilter;
 import com.studybuddy.engine.strategy.AvailabilityFirstStrategy;
@@ -34,6 +36,7 @@ public class MatchingEngine {
 
     private static final double NOT_YET_COMBINED = 0.0;
     private static final int NO_HOURS = 0;
+    private static final int NO_HOUR_LIMIT = 0;
 
     private final List<CandidateFilter> filters;
     private final Map<String, MatchCriterion> criteria = new LinkedHashMap<>();
@@ -61,7 +64,7 @@ public class MatchingEngine {
     }
 
     /**
-     * Builds the engine the app uses: 4 filters, 8 criteria, 3 strategies. This is the ONE
+     * Builds the engine the app uses: 6 filters, 8 criteria, 3 strategies. This is the ONE
      * place they are assembled, so adding a criterion means writing one class and adding one
      * line here; nothing else changes (the open/closed principle).
      *
@@ -73,6 +76,8 @@ public class MatchingEngine {
         filters.add(new ActiveAccountFilter());
         filters.add(new SearchFilter());
         filters.add(new ExcludedFilter());
+        filters.add(new ModeFilter());
+        filters.add(new AvailabilityFilter());
 
         List<MatchCriterion> criteria = new ArrayList<>();
         criteria.add(new CourseCriterion());
@@ -107,7 +112,7 @@ public class MatchingEngine {
             return new ArrayList<>();
         }
         // 1. Filter: remove candidates who can never work
-        List<Student> candidates = filter(seeker, pool, context);
+        List<Student> candidates = filter(seeker, pool, context, config);
         // 2. Score: each enabled criterion scores seeker to candidate, with a reason
         List<MatchResult> scored = score(seeker, candidates, context, config);
         // 3. Combine: weighted fit both ways, then the harmonic mean of the two
@@ -120,6 +125,28 @@ public class MatchingEngine {
         List<MatchResult> cut = cut(ranked, config);
         // 7. Explain: attach the top reasons for each result
         return explain(cut, config);
+    }
+
+    /**
+     * Scores one pair on its own, for a candidate's profile page: score, combine and explain,
+     * with no filters, no congestion adjustment and no cut.
+     *
+     * @param seeker the student looking at the profile
+     * @param candidate the student being looked at
+     * @param config the admin's settings
+     * @return the result for this pair, or null if either student has no profile
+     */
+    public MatchResult evaluate(Student seeker, Student candidate, MatchingConfig config) {
+        if (seeker.getProfile() == null || candidate.getProfile() == null) {
+            return null;
+        }
+        List<Student> single = new ArrayList<>();
+        single.add(candidate);
+        MatchContext noSearch = new MatchContext(null, null, null, NO_HOUR_LIMIT, null, null);
+        List<MatchResult> scored = score(seeker, single, noSearch, config);
+        List<MatchResult> combined = combine(seeker, scored, config);
+        List<MatchResult> explained = explain(combined, config);
+        return explained.get(0);
     }
 
     /** Returns the registered criterion names, in registration order. */
@@ -151,10 +178,11 @@ public class MatchingEngine {
     }
 
     /** Step 1: keeps only the candidates every filter accepts. */
-    private List<Student> filter(Student seeker, List<Student> pool, MatchContext context) {
+    private List<Student> filter(Student seeker, List<Student> pool, MatchContext context,
+            MatchingConfig config) {
         List<Student> kept = new ArrayList<>();
         for (Student candidate : pool) {
-            if (passesAllFilters(seeker, candidate, context)) {
+            if (passesAllFilters(seeker, candidate, context, config)) {
                 kept.add(candidate);
             }
         }
@@ -162,9 +190,10 @@ public class MatchingEngine {
     }
 
     /** Returns true if no filter rejects the candidate. */
-    private boolean passesAllFilters(Student seeker, Student candidate, MatchContext context) {
+    private boolean passesAllFilters(Student seeker, Student candidate, MatchContext context,
+            MatchingConfig config) {
         for (CandidateFilter filter : filters) {
-            if (!filter.accepts(seeker, candidate, context)) {
+            if (!filter.accepts(seeker, candidate, context, config)) {
                 return false;
             }
         }

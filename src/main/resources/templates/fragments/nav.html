@@ -17,6 +17,10 @@
         <a th:href="@{/home}"
            th:classappend="${active == 'home'} ? 'active'"
            th:attr="aria-current=${active == 'home'} ? 'page'">Home</a>
+        <a th:href="@{/buddies}"
+           th:if="${session.currentUserRole != null && session.currentUserRole.name() == 'STUDENT'}"
+           th:classappend="${active == 'buddies'} ? 'active'"
+           th:attr="aria-current=${active == 'buddies'} ? 'page'">Find buddies</a>
         <a th:href="@{/courses}"
            th:classappend="${active == 'courses'} ? 'active'"
            th:attr="aria-current=${active == 'courses'} ? 'page'">Courses</a>

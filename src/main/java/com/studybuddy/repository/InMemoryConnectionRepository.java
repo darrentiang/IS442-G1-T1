@@ -32,4 +32,18 @@ public class InMemoryConnectionRepository implements ConnectionRepository {
     public List<Connection> findAll() {
         return new ArrayList<>(store.values());
     }
+
+    /** Returns the active connections where this student is either side. */
+    @Override
+    public List<Connection> findActiveFor(String studentId) {
+        List<Connection> result = new ArrayList<>();
+        for (Connection connection : store.values()) {
+            boolean involved = connection.getA().getId().equals(studentId)
+                    || connection.getB().getId().equals(studentId);
+            if (connection.isActive() && involved) {
+                result.add(connection);
+            }
+        }
+        return result;
+    }
 }

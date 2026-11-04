@@ -41,7 +41,7 @@ Packages are by layer. Dependencies point down only: controller → service → 
 | `com.studybuddy.seed` | Startup demo data | `SeedDataLoader` (`@Component`) | Only saves through repositories |
 | `src/main/resources/seed/` | Demo data as CSV | `courses.csv`, `admins.csv`, `students.csv` | Edit the CSV, not Java. Lists use `\|`, availability uses `DAY start-end;...`, no commas inside a cell |
 
-Controllers by area: `UserPickerController` and `HomeController` (shared pages), `CourseController`, `ProfileController`, `MatchController`, `ConnectionController`, `GroupController`, `SessionController`, `AdminController`. Add to the existing one for your area before creating a new one.
+Controllers by area: `UserPickerController` and `HomeController` (shared pages), `CourseController`, `ProfileController`, `MatchController`, `BuddyController` (Find Buddies and candidate profiles), `ConnectionController`, `GroupController`, `SessionController`, `AdminController`. Add to the existing one for your area before creating a new one.
 
 **URLs:** lowercase, kebab-case, by area: `/profile`, `/matches`, `/connections`, `/groups/{id}`, `/groups/{id}/join`, `/admin/config`. GET shows a page; POST performs an action. JSON endpoints start with `/api/`.
 

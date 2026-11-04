@@ -8,7 +8,7 @@ How Study Buddy Matcher turns a pool of students into a short, explained list of
 
 | Step | What happens | Class |
 |---|---|---|
-| 1. Filter | Remove candidates who can never work (dealbreakers) | the 4 `CandidateFilter`s |
+| 1. Filter | Remove candidates who can never work (dealbreakers) and apply the search options | the 6 `CandidateFilter`s |
 | 2. Score | Each enabled criterion scores seeker to candidate, 0.0 to 1.0, with a reason | the 8 `MatchCriterion`s |
 | 3. Combine | Weighted fit both ways, then the harmonic mean of the two | `ReciprocalScorer` |
 | 4. Adjust | Gently lower candidates who already have many pending requests | `CongestionPenalty` |
@@ -16,7 +16,9 @@ How Study Buddy Matcher turns a pool of students into a short, explained list of
 | 6. Cut | Drop results below `minimumScore`, keep the first `maxResults` | `MatchingEngine` |
 | 7. Explain | Up to 2 reasons (highest weight x score), plus "N pending requests" if N >= 3 | `ExplanationBuilder` |
 
-Filters: `SelfFilter` (not yourself), `ActiveAccountFilter` (ACTIVE with a profile), `SearchFilter` (the course and goal searched for), `ExcludedFilter` (already connected, a pending request either way, or declined you before).
+Filters (each gets the seeker, the candidate, the `MatchContext` and the `MatchingConfig`): `SelfFilter` (not yourself), `ActiveAccountFilter` (ACTIVE with a profile), `SearchFilter` (the course and goal searched for), `ExcludedFilter` (already connected, a pending request either way, declined you before, or you passed on them), `ModeFilter` (IN_PERSON keeps IN_PERSON or EITHER; ONLINE keeps ONLINE or EITHER; null or EITHER keeps everyone), `AvailabilityFilter` (when `minUsableHours` > 0, keeps candidates with at least that many usable hours together, counting blocks of `minSessionHours`).
+
+`MatchingEngine.evaluate(seeker, candidate, config)` scores one pair for a candidate's profile page: steps 2, 3 and 7 only (score, combine, explain), with no filters, no congestion adjustment and no cut. It reuses the same private step methods as `findMatches`.
 
 Strategies: `balanced` (mutual score), `availability-first` (usable hours, then mutual score), `course-first` (course score, then mutual score). Each extends `AbstractMatchingStrategy` (Template Method) and supplies a named `Comparator` class. An unknown strategy name falls back to `balanced`.
 

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<!--
+  Find buddies: search bar, ranked match cards with "Why this match", pass/undo and
+  send request. Every POST form carries the current search in its URL so the redirect
+  comes back to the same results.
+-->
+<head th:replace="~{fragments/head :: head('Find buddies')}"></head>
+<body>
+<header th:replace="~{fragments/nav :: nav('buddies')}"></header>
+<div th:replace="~{fragments/toast :: toast}"></div>
+
+<main>
+  <div>
+    <h1>Find buddies</h1>
+    <p class="text-secondary">Search by course or by study goal. Matches are scored both ways, so they work for you and for them.</p>
+  </div>
+
+  <form class="card" th:action="@{/buddies}" method="get">
+    <div class="search-fields">
+      <div>
+        <label for="course">Course</label>
+        <select id="course" name="course">
+          <option value="">Any course</option>
+          <option th:each="c : ${courses}" th:value="${c.code}"
+                  th:selected="${c.code == search.courseCode}"
+                  th:text="${c.code + ' · ' + c.title}">IS442 · Object-Oriented Programming</option>
+        </select>
+      </div>
+      <div>
+        <label for="goal">Study goal</label>
+        <select id="goal" name="goal">
+          <option value="">Any goal</option>
+          <option th:each="g : ${goals}" th:value="${g.name()}"
+                  th:selected="${g.name() == search.goal}"
+                  th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(g.name(), '_', ' ')))}">Problem solving</option>
+        </select>
+      </div>
+    </div>
+    <div class="search-footer">
+      <fieldset class="chip-group">
+        <legend>Mode</legend>
+        <label class="chip"><input type="radio" name="mode" value=""
+               th:checked="${search.mode == null or search.mode == ''}">Any</label>
+        <label class="chip"><input type="radio" name="mode" value="IN_PERSON"
+               th:checked="${search.mode == 'IN_PERSON'}">In person</label>
+        <label class="chip"><input type="radio" name="mode" value="ONLINE"
+               th:checked="${search.mode == 'ONLINE'}">Online</label>
+      </fieldset>
+      <fieldset class="chip-group">
+        <legend>Free together</legend>
+        <label class="chip"><input type="radio" name="minHours" value="0"
+               th:checked="${search.minHours != 2 and search.minHours != 4}">Any</label>
+        <label class="chip"><input type="radio" name="minHours" value="2"
+               th:checked="${search.minHours == 2}">2h+</label>
+        <label class="chip"><input type="radio" name="minHours" value="4"
+               th:checked="${search.minHours == 4}">4h+</label>
+      </fieldset>
+      <button type="submit" class="btn btn-secondary">Search</button>
+    </div>
+  </form>
+
+  <div class="banner banner-info banner-action" th:if="${lastPassedName != null}">
+    <span th:text="|You passed on ${lastPassedName}. They won't appear again.|">You passed on Gabriel Sim. They won't appear again.</span>
+    <form method="post"
+          th:action="@{/buddies/{id}/undo-pass(id=${lastPassedId}, course=${search.courseCode}, goal=${search.goal}, mode=${search.mode}, minHours=${search.minHours})}">
+      <button type="submit" class="btn btn-secondary btn-small">Undo</button>
+    </form>
+  </div>
+
+  <div class="results-summary">
+    <span th:text="|${#lists.size(results)} ${#lists.size(results) == 1 ? 'match' : 'matches'} above ${minimumPercent}%|">10 matches above 20%</span>
+    <span th:text="|Ranked by: ${strategyLabel}|">Ranked by: Balanced</span>
+  </div>
+
+  <div class="match-list" th:unless="${#lists.isEmpty(results)}">
+    <article class="card" th:each="r, row : ${results}"
+             th:with="c=${r.candidate}, p=${r.candidate.profile}, m=${r.candidate.profile.preferences.mode}">
+      <div class="match-header">
+        <span class="match-rank" th:text="${row.count}">1</span>
+        <div class="match-who">
+          <h2><a th:href="@{/buddies/{id}(id=${c.id})}" th:text="${c.name}">Irfan Zainal</a></h2>
+          <p class="match-meta"
+             th:text="|${p.programme} · Year ${p.yearOfStudy} · looking for ${p.preferences.targetCourse.code} · ${m.name() == 'EITHER' ? 'In person or online' : (m.name() == 'IN_PERSON' ? 'In person' : 'Online')}|">Computer Science · Year 3 · looking for IS442 · Online</p>
+        </div>
+        <div class="match-score">
+          <span class="match-percent" th:text="${#numbers.formatDecimal(r.mutualScore * 100, 1, 0) + '%'}">87%</span>
+          <span class="match-score-label">mutual fit</span>
+        </div>
+      </div>
+
+      <ul class="tag-list" th:unless="${#lists.isEmpty(r.reasons)}">
+        <li class="tag" th:each="reason : ${r.reasons}"
+            th:classappend="${r.pendingRequests >= 3 and reason == r.pendingRequests + ' pending requests'} ? 'tag-warning'"
+            th:text="${reason}">Both free 6h a week</li>
+      </ul>
+
+      <details class="match-details">
+        <summary>Why this match</summary>
+        <p class="fit-line"
+           th:text="|Fit for you ${#numbers.formatDecimal(r.fitForSeeker * 100, 1, 0)}% · Fit for them ${#numbers.formatDecimal(r.fitForCandidate * 100, 1, 0)}% · Usable time together ${r.usableHours}h/week|">Fit for you 90% · Fit for them 84% · Usable time together 6h/week</p>
+        <div class="score-row" th:each="entry : ${r.criterionScores}">
+          <span th:text="${criterionLabels[entry.key]}">Availability</span>
+          <div class="score-bar">
+            <div class="score-fill" th:style="|width: ${#numbers.formatDecimal(entry.value.value * 100, 1, 0)}%|"></div>
+          </div>
+          <span class="score-value" th:text="${#numbers.formatDecimal(entry.value.value * 100, 1, 0) + '%'}">100%</span>
+        </div>
+      </details>
+
+      <div class="match-actions">
+        <a class="btn btn-secondary" th:href="@{/buddies/{id}(id=${c.id})}">View profile</a>
+        <form method="post"
+              th:action="@{/buddies/{id}/pass(id=${c.id}, course=${search.courseCode}, goal=${search.goal}, mode=${search.mode}, minHours=${search.minHours})}">
+          <button type="submit" class="btn btn-secondary">Pass</button>
+        </form>
+        <details class="request-details">
+          <summary class="btn btn-primary">Send request</summary>
+          <form method="post"
+                th:action="@{/buddies/{id}/request(id=${c.id}, course=${search.courseCode}, goal=${search.goal}, mode=${search.mode}, minHours=${search.minHours})}">
+            <label th:for="${'message-' + c.id}">Message (optional)</label>
+            <textarea th:id="${'message-' + c.id}" name="message" rows="3" maxlength="300"
+                      placeholder="Say what you'd like to work on together"></textarea>
+            <button type="submit" class="btn btn-primary" th:text="${'Send request to ' + c.name}">Send request</button>
+          </form>
+        </details>
+      </div>
+    </article>
+  </div>
+
+  <div class="card" th:if="${#lists.isEmpty(results)}">
+    <div th:replace="~{fragments/empty-state :: empty-state('No matches with these filters. Try Any, or search by study goal.')}"></div>
+  </div>
+</main>
+</body>
+</html>

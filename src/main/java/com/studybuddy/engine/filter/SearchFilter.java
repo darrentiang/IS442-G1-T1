@@ -2,6 +2,7 @@ package com.studybuddy.engine.filter;
 
 import com.studybuddy.engine.CandidateFilter;
 import com.studybuddy.engine.MatchContext;
+import com.studybuddy.engine.MatchingConfig;
 import com.studybuddy.model.Course;
 import com.studybuddy.model.Student;
 import com.studybuddy.model.StudentProfile;
@@ -20,7 +21,7 @@ public class SearchFilter implements CandidateFilter {
 
     /** Keeps the candidate only if they match every search option that is set. */
     @Override
-    public boolean accepts(Student seeker, Student candidate, MatchContext context) {
+    public boolean accepts(Student seeker, Student candidate, MatchContext context, MatchingConfig config) {
         StudentProfile profile = candidate.getProfile();
         if (profile == null) {
             return false;

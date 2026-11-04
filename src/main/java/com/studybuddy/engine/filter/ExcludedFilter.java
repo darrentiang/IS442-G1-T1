@@ -2,6 +2,7 @@ package com.studybuddy.engine.filter;
 
 import com.studybuddy.engine.CandidateFilter;
 import com.studybuddy.engine.MatchContext;
+import com.studybuddy.engine.MatchingConfig;
 import com.studybuddy.model.Student;
 
 /**
@@ -20,7 +21,7 @@ public class ExcludedFilter implements CandidateFilter {
 
     /** Keeps the candidate only if their id is not in the context's excluded ids. */
     @Override
-    public boolean accepts(Student seeker, Student candidate, MatchContext context) {
+    public boolean accepts(Student seeker, Student candidate, MatchContext context, MatchingConfig config) {
         return !context.getExcludedIds().contains(candidate.getId());
     }
 }

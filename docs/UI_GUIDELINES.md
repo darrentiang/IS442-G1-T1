@@ -5,6 +5,7 @@ How the app looks and how it gives feedback. Every value here is a CSS variable 
 | Version | Date | Change |
 |---|---|---|
 | 1.0 | 19-09-2026 | Initial guidelines |
+| 1.1 | 04-11-2026 | Find Buddies: chips, match card, reason tags, "Why this match" details, week grid |
 
 ## Principles
 
@@ -69,6 +70,11 @@ Class names are what pages use. Never restyle these in a page.
 | Toast | `.toast .toast-success` / `.toast-error` (fragment `toast`) | Fixed top-right card with `--shadow-md`; fades out by itself (success after 4s, error after 8s). Pure CSS, no JavaScript |
 | Empty state | `.empty-state` (fragment `empty-state`) | Centred, 48px vertical padding, secondary text, optional action below |
 | Score bar | `.score-bar` > `.score-fill` | 5px track in muted grey, accent fill; width set by the score |
+| Chips | `.chip-group` (a `fieldset`) > `label.chip` > `input[type=radio]` | Radio buttons drawn as pills; the checked one is solid near-black. Used for small filter choices (Mode, Free together) |
+| Match card | `.card` with `.match-header` (`.match-rank`, `.match-who`, `.match-score` > `.match-percent`), `.tag-list`, `.match-actions` | Rank circle, name and meta line, big mutual % on the right; actions underneath |
+| Reason tag | `.tag`, `.tag-warning` | Quiet muted pill, 13px. `.tag-warning` (amber) only for the "N pending requests" note. Not a status badge |
+| Expandable details | `<details class="match-details">` with `<summary>` | Native disclosure, no JavaScript: "Why this match" opens the fit line (`.fit-line`) and one `.score-row` per criterion (label, `.score-bar`, value). `<details class="request-details">` with a button-styled `<summary>` reveals an inline form and moves onto its own line when open |
+| Week grid | `.avail-week` with `.avail-label` and `.cell`, plus `.avail-legend` | 7 rows (MON-SUN) x 15 hours (08-22) with a label column; same `.cell-both` / `.cell-free` / `.cell-busy` colours, and a legend underneath |
 | Availability grid | `.avail-grid` with `.cell` | Small rounded cells. `.cell-free` = light accent tint, `.cell-busy` = muted grey, `.cell-both` = solid accent. Group heatmap uses `.heat-1` to `.heat-4` (lighter to darker accent) |
 
 ## Status colours

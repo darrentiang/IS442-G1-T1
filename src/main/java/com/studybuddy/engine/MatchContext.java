@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.studybuddy.model.StudyGoal;
+import com.studybuddy.model.StudyMode;
 
 /**
  * The details of one search that the engine needs but cannot look up itself: the search
@@ -19,6 +20,8 @@ public class MatchContext {
 
     private final String courseCode;
     private final StudyGoal goal;
+    private final StudyMode mode;
+    private final int minUsableHours;
     private final Set<String> excludedIds;
     private final Map<String, Integer> pendingIncoming;
 
@@ -27,13 +30,17 @@ public class MatchContext {
      *
      * @param courseCode only show candidates taking this course, or null for any course
      * @param goal only show candidates with this goal, or null for any goal
+     * @param mode only show candidates who can meet this way, or null (or EITHER) for any mode
+     * @param minUsableHours only show candidates with at least this many usable hours together; 0 for no limit
      * @param excludedIds ids of students to leave out; null means none
      * @param pendingIncoming candidate id to the number of PENDING requests they have received; null means none
      */
-    public MatchContext(String courseCode, StudyGoal goal, Set<String> excludedIds,
-            Map<String, Integer> pendingIncoming) {
+    public MatchContext(String courseCode, StudyGoal goal, StudyMode mode, int minUsableHours,
+            Set<String> excludedIds, Map<String, Integer> pendingIncoming) {
         this.courseCode = courseCode;
         this.goal = goal;
+        this.mode = mode;
+        this.minUsableHours = minUsableHours;
         Set<String> excludedCopy = new HashSet<>();
         if (excludedIds != null) {
             excludedCopy.addAll(excludedIds);
@@ -54,6 +61,16 @@ public class MatchContext {
     /** Returns the goal searched for, or null for any goal. */
     public StudyGoal getGoal() {
         return goal;
+    }
+
+    /** Returns the study mode searched for, or null for any mode. */
+    public StudyMode getMode() {
+        return mode;
+    }
+
+    /** Returns the fewest usable hours together a candidate must have; 0 means no limit. */
+    public int getMinUsableHours() {
+        return minUsableHours;
     }
 
     /** Returns the ids of students to leave out (read-only). */

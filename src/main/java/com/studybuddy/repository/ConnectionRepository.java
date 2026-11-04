@@ -15,4 +15,7 @@ public interface ConnectionRepository {
 
     /** Returns all connections. */
     List<Connection> findAll();
+
+    /** Returns the active connections where this student is either side. */
+    List<Connection> findActiveFor(String studentId);
 }

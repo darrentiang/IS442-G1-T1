@@ -3,6 +3,7 @@ classDiagram
     class MatchingEngine {
         +createDefault()$ MatchingEngine
         +findMatches(seeker, pool, context, config) List~MatchResult~
+        +evaluate(seeker, candidate, config) MatchResult
     }
     class CandidateFilter { <<interface>> }
     class MatchCriterion { <<interface>> }
@@ -28,6 +29,8 @@ classDiagram
     CandidateFilter <|.. ActiveAccountFilter
     CandidateFilter <|.. SearchFilter
     CandidateFilter <|.. ExcludedFilter
+    CandidateFilter <|.. ModeFilter
+    CandidateFilter <|.. AvailabilityFilter
     MatchCriterion <|.. CourseCriterion
     MatchCriterion <|.. AvailabilityCriterion
     MatchCriterion <|.. StudyModeCriterion

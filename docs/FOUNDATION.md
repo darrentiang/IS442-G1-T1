@@ -171,7 +171,20 @@ public class MatchRequest {
     private final Student to;
     private String message;             // optional
     private RequestStatus status;       // PENDING -> ACCEPTED or DECLINED
+
+    public void accept() { ... }        // both throw IllegalStateException("This request was already handled")
+    public void decline() { ... }       // unless PENDING; there is no setStatus
 }
+
+/** Recorded when a student clicks Pass on Find Buddies; the candidate is hidden from that student's future results. */
+public class Pass {
+    private final Student seeker;
+    private final Student candidate;
+    private final LocalDate date;
+}
+
+/** Thrown when the rules refuse a buddy request (already pending, already connected, ...). */
+public class RequestNotAllowedException extends IllegalStateException { }
 
 /** An accepted match. While active, each side may see the other's connected view. */
 public class Connection {
@@ -271,13 +284,15 @@ public interface MatchCriterion {
 /** A dealbreaker check, applied before scoring. */
 public interface CandidateFilter {
     String getName();
-    boolean accepts(Student seeker, Student candidate, MatchContext context);
+    boolean accepts(Student seeker, Student candidate, MatchContext context, MatchingConfig config);
 }
 
 /** One search's details, built by the service. Immutable. */
 public class MatchContext {
     private final String courseCode;                     // nullable
     private final StudyGoal goal;                        // nullable
+    private final StudyMode mode;                        // nullable; null or EITHER = any mode
+    private final int minUsableHours;                    // 0 = no limit
     private final Set<String> excludedIds;
     private final Map<String, Integer> pendingIncoming;  // candidate id -> PENDING requests received
 }
@@ -313,9 +328,10 @@ public class MatchResult {
     private final List<String> reasons;
 }
 
-/** Runs the pipeline. MatchingEngine.createDefault() assembles the 4 filters, 8 criteria and 3 strategies. */
+/** Runs the pipeline. MatchingEngine.createDefault() assembles the 6 filters, 8 criteria and 3 strategies. */
 public class MatchingEngine {
     public List<MatchResult> findMatches(Student seeker, List<Student> pool, MatchContext context, MatchingConfig config);
+    public MatchResult evaluate(Student seeker, Student candidate, MatchingConfig config);   // one pair: no filters, congestion or cut
     public List<String> getCriterionNames();
     public List<String> getStrategyNames();
     public String getCriterionLabel(String name);
@@ -367,6 +383,7 @@ classDiagram
     class MatchingEngine {
         +createDefault()$ MatchingEngine
         +findMatches(seeker, pool, context, config) List~MatchResult~
+        +evaluate(seeker, candidate, config) MatchResult
     }
     class CandidateFilter { <<interface>> }
     class MatchCriterion { <<interface>> }
@@ -392,6 +409,8 @@ classDiagram
     CandidateFilter <|.. ActiveAccountFilter
     CandidateFilter <|.. SearchFilter
     CandidateFilter <|.. ExcludedFilter
+    CandidateFilter <|.. ModeFilter
+    CandidateFilter <|.. AvailabilityFilter
     MatchCriterion <|.. CourseCriterion
     MatchCriterion <|.. AvailabilityCriterion
     MatchCriterion <|.. StudyModeCriterion
@@ -434,7 +453,24 @@ public class InMemoryStudentRepository implements StudentRepository {
 }
 ```
 
-Same shape for Course, SystemAdministrator (`SystemAdministratorRepository`), MatchRequest, Connection, StudyGroup, JoinRequest, StudySession, ActivityEvent. The Student, Course and SystemAdministrator implementations use a `LinkedHashMap`, which keeps insertion order, so `findAll()` returns rows in seed CSV order. Add finder methods your feature needs (`findByCourse(...)`) to your own repository interface — that is normal and does not need a spine change.
+Same shape for Course, SystemAdministrator (`SystemAdministratorRepository`), MatchRequest, Connection, StudyGroup, JoinRequest, StudySession, ActivityEvent, Pass. The Student, Course and SystemAdministrator implementations use a `LinkedHashMap`, which keeps insertion order, so `findAll()` returns rows in seed CSV order. Add finder methods your feature needs (`findByCourse(...)`) to your own repository interface — that is normal and does not need a spine change.
+
+Shared finders other teams rely on:
+
+```java
+// MatchRequestRepository
+String nextId();                                   // "R001", "R002", ...
+List<MatchRequest> findFrom(String studentId);     // any status, saved order
+List<MatchRequest> findTo(String studentId);       // any status, saved order
+
+// ConnectionRepository
+List<Connection> findActiveFor(String studentId);  // active, student is a or b
+
+// PassRepository (list-backed, like ActivityEvent)
+void save(Pass pass);
+List<Pass> findBySeeker(String seekerId);
+boolean delete(String seekerId, String candidateId);
+```
 
 ## 6. The worked example: Course, all four layers
 

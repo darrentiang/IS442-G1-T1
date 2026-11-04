@@ -871,3 +871,323 @@ textarea:focus {
         grid-template-columns: 1fr;
     }
 }
+
+
+/* --------------------------------------------------------------------------
+   15. Find buddies — search bar, match cards, "Why this match" details and
+       the candidate's week grid. Shared classes keep their base styles.
+   -------------------------------------------------------------------------- */
+
+/* Search bar: course and goal side by side, then the chip rows. */
+.search-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 16px;
+}
+
+.search-footer {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.search-footer .chip-group {
+    margin: 0;
+}
+
+/* Radio buttons shown as pills; the checked one is filled. */
+.chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 16px;
+    padding: 0;
+    border: 0;
+}
+
+.chip-group legend {
+    width: 100%;
+    margin-bottom: 6px;
+    padding: 0;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.chip {
+    display: inline-block;
+    margin: 0;
+    padding: 4px 14px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    color: var(--color-text);
+    font-size: 14px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.chip input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.chip:hover {
+    background: var(--color-surface-muted);
+}
+
+.chip:has(input:checked) {
+    background: var(--color-text);
+    border-color: var(--color-text);
+    color: #ffffff;
+}
+
+.chip:has(input:focus-visible) {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 30%, transparent);
+}
+
+/* "N matches above X%" on the left, the ranking strategy on the right. */
+.results-summary {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+}
+
+.match-list > * + * {
+    margin-top: 16px;
+}
+
+/* A banner with a small action on its right, e.g. the pass banner's Undo. */
+.banner-action {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.banner-action form {
+    margin: 0;
+}
+
+.btn-small {
+    padding: 4px 12px;
+    font-size: 13px;
+}
+
+/* Match card: rank, who, and the big mutual score on one line. */
+.match-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.match-rank {
+    display: grid;
+    place-items: center;
+    flex: 0 0 32px;
+    height: 32px;
+    border-radius: var(--radius-pill);
+    background: var(--color-surface-muted);
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.match-who {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.match-who h2 {
+    margin: 0;
+}
+
+.match-meta {
+    margin: 2px 0 0;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+}
+
+.match-score {
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.match-percent {
+    display: block;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+
+.match-score-label {
+    color: var(--color-text-secondary);
+    font-size: 12px;
+}
+
+/* Reason tags: quiet pills; the busy note is amber. */
+.tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 16px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.tag {
+    --tag-color: var(--color-text-secondary);
+    padding: 2px 10px;
+    border-radius: var(--radius-pill);
+    background: var(--color-surface-muted);
+    color: var(--tag-color);
+    font-size: 13px;
+}
+
+.tag-warning {
+    --tag-color: var(--color-warning);
+    background: color-mix(in srgb, var(--color-warning) 10%, transparent);
+    font-weight: 500;
+}
+
+/* "Why this match": native <details>, no JavaScript. */
+.match-details {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--color-divider);
+}
+
+.match-details > summary {
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.match-details > summary:hover {
+    color: var(--color-accent);
+}
+
+.fit-line {
+    margin: 12px 0 16px;
+    font-size: 14px;
+}
+
+.score-row {
+    display: grid;
+    grid-template-columns: 140px minmax(0, 1fr) 44px;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+    font-size: 13px;
+}
+
+.score-value {
+    color: var(--color-text-secondary);
+    text-align: right;
+}
+
+/* Card actions; the Send request <details> opens onto its own line. */
+.match-actions {
+    display: flex;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.match-actions form {
+    margin: 0;
+}
+
+.request-details > summary {
+    list-style: none;
+}
+
+.request-details > summary::-webkit-details-marker {
+    display: none;
+}
+
+.request-details[open] {
+    flex-basis: 100%;
+}
+
+.request-details[open] > summary {
+    display: none;
+}
+
+.request-details form {
+    max-width: 560px;
+}
+
+/* Candidate profile: label/value pairs in two columns. */
+.facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 32px;
+    margin: 0;
+}
+
+.facts dt {
+    margin-bottom: 4px;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.facts dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+/* A week as 7 rows (MON-SUN) of 15 hourly cells (08-22), with a label column. */
+.avail-week {
+    display: grid;
+    grid-template-columns: 40px repeat(15, minmax(0, 1fr));
+    gap: 3px;
+    align-items: center;
+}
+
+.avail-label {
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    text-align: center;
+}
+
+.avail-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin: 16px 0 0;
+    padding: 0;
+    list-style: none;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+}
+
+.avail-legend li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.avail-legend .cell {
+    width: 14px;
+    height: 14px;
+}
+
+@media (max-width: 600px) {
+    .search-fields,
+    .facts {
+        grid-template-columns: 1fr;
+    }
+}

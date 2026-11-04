@@ -19,6 +19,7 @@ import com.studybuddy.model.Course;
 import com.studybuddy.model.GroupFormat;
 import com.studybuddy.model.Intensity;
 import com.studybuddy.model.JoinRequest;
+import com.studybuddy.model.MatchRequest;
 import com.studybuddy.model.RequestStatus;
 import com.studybuddy.model.Student;
 import com.studybuddy.model.StudentProfile;
@@ -30,6 +31,7 @@ import com.studybuddy.model.SystemAdministrator;
 import com.studybuddy.model.Visibility;
 import com.studybuddy.repository.CourseRepository;
 import com.studybuddy.repository.JoinRequestRepository;
+import com.studybuddy.repository.MatchRequestRepository;
 import com.studybuddy.repository.StudentRepository;
 import com.studybuddy.repository.StudyGroupRepository;
 import com.studybuddy.repository.SystemAdministratorRepository;
@@ -46,35 +48,41 @@ public class SeedDataLoader implements CommandLineRunner {
     private static final String STUDENTS_FILE = "students.csv";
     private static final String GROUPS_FILE = "groups.csv";
     private static final String JOIN_REQUESTS_FILE = "join-requests.csv";
+    private static final String MATCH_REQUESTS_FILE = "match-requests.csv";
 
     private static final int COURSE_COLUMNS = 3;
     private static final int ADMIN_COLUMNS = 3;
     private static final int STUDENT_COLUMNS = 17;
     private static final int GROUP_COLUMNS = 12;
     private static final int JOIN_REQUEST_COLUMNS = 4;
+    private static final int MATCH_REQUEST_COLUMNS = 5;
 
     private final CourseRepository courseRepository;
     private final SystemAdministratorRepository adminRepository;
     private final StudentRepository studentRepository;
     private final StudyGroupRepository groupRepository;
     private final JoinRequestRepository joinRequestRepository;
+    private final MatchRequestRepository matchRequestRepository;
 
     /** Creates the loader with the repositories it fills (constructor injection). */
     public SeedDataLoader(CourseRepository courseRepository,
             SystemAdministratorRepository adminRepository,
             StudentRepository studentRepository,
             StudyGroupRepository groupRepository,
-            JoinRequestRepository joinRequestRepository) {
+            JoinRequestRepository joinRequestRepository,
+            MatchRequestRepository matchRequestRepository) {
         this.courseRepository = courseRepository;
         this.adminRepository = adminRepository;
         this.studentRepository = studentRepository;
         this.groupRepository = groupRepository;
         this.joinRequestRepository = joinRequestRepository;
+        this.matchRequestRepository = matchRequestRepository;
     }
 
     /**
-     * Loads courses, admins, students, groups, then join requests. Each file refers to the
-     * ones loaded before it (students name courses, groups name students, requests name groups).
+     * Loads courses, admins, students, groups, join requests, then match requests. Each file
+     * refers to the ones loaded before it (students name courses, groups name students,
+     * requests name groups and students).
      */
     @Override
     public void run(String... args) throws SeedDataException {
@@ -83,9 +91,10 @@ public class SeedDataLoader implements CommandLineRunner {
         int students = loadStudents();
         int groups = loadGroups();
         int joinRequests = loadJoinRequests();
+        int matchRequests = loadMatchRequests();
         String adminWord = (admins == 1) ? " admin, " : " admins, ";
         System.out.println("Seeded " + courses + " courses, " + admins + adminWord + students + " students, "
-                + groups + " groups, " + joinRequests + " join requests");
+                + groups + " groups, " + joinRequests + " join requests, " + matchRequests + " match requests");
     }
 
     /** Columns: code,title,school. */
@@ -247,6 +256,44 @@ public class SeedDataLoader implements CommandLineRunner {
                 request.decline();
             }
             joinRequestRepository.save(request);
+            count++;
+        }
+        return count;
+    }
+
+    /**
+     * Columns: id,from,to,status,message. From and to must be different known students. Only
+     * PENDING and DECLINED are allowed: an ACCEPTED request needs a connection, which is
+     * created by accepting a request in the app. An empty message is stored as null.
+     */
+    private int loadMatchRequests() throws SeedDataException {
+        List<String> lines = readLines(MATCH_REQUESTS_FILE);
+        int count = 0;
+        for (int i = 1; i < lines.size(); i++) {     // line 1 (index 0) is the header
+            if (lines.get(i).isBlank()) {
+                continue;
+            }
+            String where = MATCH_REQUESTS_FILE + " line " + (i + 1);
+            String[] cells = splitRow(lines.get(i), MATCH_REQUEST_COLUMNS, where);
+
+            Student from = findStudent(cells[1], where);
+            Student to = findStudent(cells[2], where);
+            if (from == to) {
+                throw new SeedDataException(where + ": from and to are both " + cells[1]);
+            }
+            RequestStatus status = parseEnum(RequestStatus.class, cells[3], "status", where);
+            if (status == RequestStatus.ACCEPTED) {
+                throw new SeedDataException(where + ": status must be PENDING or DECLINED, found ACCEPTED");
+            }
+
+            MatchRequest request = new MatchRequest(cells[0], from, to);     // starts PENDING
+            if (!cells[4].isEmpty()) {
+                request.setMessage(cells[4]);
+            }
+            if (status == RequestStatus.DECLINED) {
+                request.decline();
+            }
+            matchRequestRepository.save(request);
             count++;
         }
         return count;
