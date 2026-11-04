@@ -6,13 +6,16 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import com.studybuddy.engine.MatchingConfig;
 import com.studybuddy.model.AccountStatus;
 import com.studybuddy.model.AvailabilityGrid;
 import com.studybuddy.model.Course;
@@ -32,6 +35,7 @@ import com.studybuddy.model.Visibility;
 import com.studybuddy.repository.CourseRepository;
 import com.studybuddy.repository.JoinRequestRepository;
 import com.studybuddy.repository.MatchRequestRepository;
+import com.studybuddy.repository.MatchingConfigRepository;
 import com.studybuddy.repository.StudentRepository;
 import com.studybuddy.repository.StudyGroupRepository;
 import com.studybuddy.repository.SystemAdministratorRepository;
@@ -49,6 +53,7 @@ public class SeedDataLoader implements CommandLineRunner {
     private static final String GROUPS_FILE = "groups.csv";
     private static final String JOIN_REQUESTS_FILE = "join-requests.csv";
     private static final String MATCH_REQUESTS_FILE = "match-requests.csv";
+    private static final String MATCHING_CONFIG_FILE = "matching-config.csv";
 
     private static final int COURSE_COLUMNS = 3;
     private static final int ADMIN_COLUMNS = 3;
@@ -56,6 +61,7 @@ public class SeedDataLoader implements CommandLineRunner {
     private static final int GROUP_COLUMNS = 12;
     private static final int JOIN_REQUEST_COLUMNS = 4;
     private static final int MATCH_REQUEST_COLUMNS = 5;
+    private static final int MATCHING_CONFIG_COLUMNS = 8;
 
     private final CourseRepository courseRepository;
     private final SystemAdministratorRepository adminRepository;
@@ -63,6 +69,7 @@ public class SeedDataLoader implements CommandLineRunner {
     private final StudyGroupRepository groupRepository;
     private final JoinRequestRepository joinRequestRepository;
     private final MatchRequestRepository matchRequestRepository;
+    private final MatchingConfigRepository matchingConfigRepository;
 
     /** Creates the loader with the repositories it fills (constructor injection). */
     public SeedDataLoader(CourseRepository courseRepository,
@@ -70,19 +77,21 @@ public class SeedDataLoader implements CommandLineRunner {
             StudentRepository studentRepository,
             StudyGroupRepository groupRepository,
             JoinRequestRepository joinRequestRepository,
-            MatchRequestRepository matchRequestRepository) {
+            MatchRequestRepository matchRequestRepository,
+            MatchingConfigRepository matchingConfigRepository) {
         this.courseRepository = courseRepository;
         this.adminRepository = adminRepository;
         this.studentRepository = studentRepository;
         this.groupRepository = groupRepository;
         this.joinRequestRepository = joinRequestRepository;
         this.matchRequestRepository = matchRequestRepository;
+        this.matchingConfigRepository = matchingConfigRepository;
     }
 
     /**
-     * Loads courses, admins, students, groups, join requests, then match requests. Each file
-     * refers to the ones loaded before it (students name courses, groups name students,
-     * requests name groups and students).
+     * Loads courses, admins, students, groups, join requests, match requests, then the matching
+     * configuration. Each file refers to the ones loaded before it (students name courses,
+     * groups name students, requests name groups and students).
      */
     @Override
     public void run(String... args) throws SeedDataException {
@@ -92,9 +101,12 @@ public class SeedDataLoader implements CommandLineRunner {
         int groups = loadGroups();
         int joinRequests = loadJoinRequests();
         int matchRequests = loadMatchRequests();
+        MatchingConfig config = loadMatchingConfig();
         String adminWord = (admins == 1) ? " admin, " : " admins, ";
         System.out.println("Seeded " + courses + " courses, " + admins + adminWord + students + " students, "
-                + groups + " groups, " + joinRequests + " join requests, " + matchRequests + " match requests");
+                + groups + " groups, " + joinRequests + " join requests, " + matchRequests + " match requests, "
+                + "1 matching config (" + config.getActiveStrategyName() + ", "
+                + config.getEnabledCriteria().size() + " criteria on)");
     }
 
     /** Columns: code,title,school. */
@@ -299,6 +311,60 @@ public class SeedDataLoader implements CommandLineRunner {
         return count;
     }
 
+    /**
+     * Columns: strategy,enabled_criteria,weights,max_results,minimum_score,target_usable_hours,
+     * min_session_hours,congestion_strength. Weights look like "course=0.20|availability=0.25".
+     * The file must hold exactly one configuration row.
+     */
+    private MatchingConfig loadMatchingConfig() throws SeedDataException {
+        List<String> lines = readLines(MATCHING_CONFIG_FILE);
+        MatchingConfig config = null;
+        for (int i = 1; i < lines.size(); i++) {     // line 1 (index 0) is the header
+            if (lines.get(i).isBlank()) {
+                continue;
+            }
+            String where = MATCHING_CONFIG_FILE + " line " + (i + 1);
+            String[] cells = splitRow(lines.get(i), MATCHING_CONFIG_COLUMNS, where);
+
+            if (config != null) {
+                throw new SeedDataException(where + ": only one configuration row is allowed");
+            }
+            config = new MatchingConfig();
+            config.setActiveStrategyName(cells[0]);
+
+            Set<String> enabled = new HashSet<>();
+            for (String name : cells[1].split("\\|")) {
+                enabled.add(name.trim());
+            }
+            config.setEnabledCriteria(enabled);
+
+            Map<String, Double> weights = new HashMap<>();
+            for (String pair : cells[2].split("\\|")) {
+                String[] parts = pair.split("=");
+                if (parts.length != 2) {
+                    throw new SeedDataException(where + ": expected name=weight but found '" + pair + "'");
+                }
+                try {
+                    weights.put(parts[0].trim(), Double.valueOf(parts[1].trim()));
+                } catch (NumberFormatException e) {
+                    throw new SeedDataException(where + ": weight must be a number, found '" + parts[1] + "'", e);
+                }
+            }
+            config.setWeights(weights);
+
+            config.setMaxResults(parseWholeNumber(cells[3], "max_results", where));
+            config.setMinimumScore(parseNumber(cells[4], "minimum_score", where));
+            config.setTargetUsableHours(parseWholeNumber(cells[5], "target_usable_hours", where));
+            config.setMinSessionHours(parseWholeNumber(cells[6], "min_session_hours", where));
+            config.setCongestionStrength(parseNumber(cells[7], "congestion_strength", where));
+        }
+        if (config == null) {
+            throw new SeedDataException(MATCHING_CONFIG_FILE + ": expected one configuration row, found none");
+        }
+        matchingConfigRepository.save(config);
+        return config;
+    }
+
     /** Reads every line of one seed file, header included. */
     private List<String> readLines(String fileName) throws SeedDataException {
         // Read from the classpath, not a file path: the seed folder is copied into the
@@ -428,6 +494,15 @@ public class SeedDataLoader implements CommandLineRunner {
             return Integer.parseInt(cell);
         } catch (NumberFormatException e) {
             throw new SeedDataException(where + ": " + column + " must be a whole number, found '" + cell + "'", e);
+        }
+    }
+
+    /** Reads a cell as a number with an optional decimal point, such as a config's minimum_score. */
+    private double parseNumber(String cell, String column, String where) throws SeedDataException {
+        try {
+            return Double.parseDouble(cell);
+        } catch (NumberFormatException e) {
+            throw new SeedDataException(where + ": " + column + " must be a number, found '" + cell + "'", e);
         }
     }
 

@@ -1,0 +1,2 @@
+strategy,enabled_criteria,weights,max_results,minimum_score,target_usable_hours,min_session_hours,congestion_strength
+balanced,course|availability|studyMode|studyGoal|groupSize|year|intensity|sharedCourses,course=0.20|availability=0.25|studyMode=0.12|studyGoal=0.15|groupSize=0.08|year=0.07|intensity=0.08|sharedCourses=0.05,10,0.20,4,2,0.05

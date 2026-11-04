@@ -23,43 +23,64 @@ import com.studybuddy.model.StudyGoal;
 import com.studybuddy.model.StudyMode;
 import com.studybuddy.repository.ConnectionRepository;
 import com.studybuddy.repository.MatchRequestRepository;
+import com.studybuddy.repository.MatchingConfigRepository;
 import com.studybuddy.repository.PassRepository;
 import com.studybuddy.repository.StudentRepository;
 
 /**
  * Runs Find Buddies: turns a search into a MatchContext (who to leave out, who is busy) and
- * asks the matching engine for ranked results. Also records passes.
+ * asks the matching engine for ranked results, using the admin's configuration from
+ * MatchingConfigRepository. Also records passes and lists the engine's criteria and strategies.
  */
 @Service
 public class MatchingService {
 
     private final MatchingEngine engine = MatchingEngine.createDefault();
-    /**
-     * The settings in use. They move to the admin's MatchingConfigRepository when Group 3's
-     * config branch is merged; getConfig() is the single access point, so only that method changes then.
-     */
-    private final MatchingConfig config = MatchingConfig.defaults();
 
     private final StudentRepository studentRepository;
     private final MatchRequestRepository requestRepository;
     private final ConnectionRepository connectionRepository;
     private final PassRepository passRepository;
+    private final MatchingConfigRepository configRepository;
 
     /** Creates the service with the repositories it reads and writes (constructor injection). */
     public MatchingService(StudentRepository studentRepository, MatchRequestRepository requestRepository,
-            ConnectionRepository connectionRepository, PassRepository passRepository) {
+            ConnectionRepository connectionRepository, PassRepository passRepository,
+            MatchingConfigRepository configRepository) {
         this.studentRepository = studentRepository;
         this.requestRepository = requestRepository;
         this.connectionRepository = connectionRepository;
         this.passRepository = passRepository;
+        this.configRepository = configRepository;
     }
 
     /**
-     * Returns the matching settings in use. The single access point: when the admin's
-     * MatchingConfigRepository arrives, only this method changes.
+     * Returns the admin's active matching configuration. MatchingConfigRepository is the only
+     * place it lives (seeded from matching-config.csv, changed on the Matching config page),
+     * so a saved change applies to the next search.
      */
     public MatchingConfig getConfig() {
-        return config;
+        return configRepository.get();
+    }
+
+    /** Returns the engine's criterion names, e.g. "availability", in engine order. */
+    public List<String> getCriterionNames() {
+        return engine.getCriterionNames();
+    }
+
+    /** Returns the display name of a criterion, e.g. "Availability", or the name itself if unknown. */
+    public String getCriterionLabel(String name) {
+        return engine.getCriterionLabel(name);
+    }
+
+    /** Returns the engine's strategy names, e.g. "balanced", in engine order. */
+    public List<String> getStrategyNames() {
+        return engine.getStrategyNames();
+    }
+
+    /** Returns the display name of a strategy, e.g. "Availability first", or the name itself if unknown. */
+    public String getStrategyLabel(String name) {
+        return engine.getStrategyLabel(name);
     }
 
     /** When the search names neither a course nor a goal, searches the seeker's own target course. */
@@ -118,14 +139,14 @@ public class MatchingService {
 
     /** Returns the display name of the strategy in use, e.g. "Balanced". */
     public String getStrategyLabel() {
-        return engine.getStrategyLabel(getConfig().getActiveStrategyName());
+        return getStrategyLabel(getConfig().getActiveStrategyName());
     }
 
     /** Returns criterion name to display name, e.g. "availability" to "Availability", in engine order. */
     public Map<String, String> getCriterionLabels() {
         Map<String, String> labels = new LinkedHashMap<>();
-        for (String name : engine.getCriterionNames()) {
-            labels.put(name, engine.getCriterionLabel(name));
+        for (String name : getCriterionNames()) {
+            labels.put(name, getCriterionLabel(name));
         }
         return labels;
     }

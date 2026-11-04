@@ -35,6 +35,10 @@
            th:if="${session.currentUserRole != null && session.currentUserRole.name() == 'ADMIN'}"
            th:classappend="${active == 'admin'} ? 'active'"
            th:attr="aria-current=${active == 'admin'} ? 'page'">Accounts</a>
+        <a th:href="@{/admin/config}"
+           th:if="${session.currentUserRole != null && session.currentUserRole.name() == 'ADMIN'}"
+           th:classappend="${active == 'config'} ? 'active'"
+           th:attr="aria-current=${active == 'config'} ? 'page'">Matching config</a>
       </div>
       <div class="topbar-user" th:if="${session.currentUserName != null}">
         <span class="topbar-user-name" th:text="${session.currentUserName}">Tan Wei Jie</span>

@@ -1,5 +1,7 @@
 package com.studybuddy.controller;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Controller;
@@ -13,6 +15,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.studybuddy.model.Role;
 import com.studybuddy.model.User;
 import com.studybuddy.service.AdminService;
+import com.studybuddy.service.MatchingConfigForm;
+import com.studybuddy.service.MatchingConfigService;
 import com.studybuddy.service.UserService;
 
 import jakarta.servlet.http.HttpSession;
@@ -23,11 +27,14 @@ public class AdminController {
 
     private final UserService userService;
     private final AdminService adminService;
+    private final MatchingConfigService matchingConfigService;
 
     /** Creates the controller with the services it delegates to (constructor injection). */
-    public AdminController(UserService userService, AdminService adminService) {
+    public AdminController(UserService userService, AdminService adminService,
+            MatchingConfigService matchingConfigService) {
         this.userService = userService;
         this.adminService = adminService;
+        this.matchingConfigService = matchingConfigService;
     }
 
     /** Sends /admin to the account list, the admin area's landing page. */
@@ -160,6 +167,56 @@ public class AdminController {
         redirectAttributes.addFlashAttribute("toastMessage", "Account deleted");
         redirectAttributes.addFlashAttribute("toastType", "success");
         return "redirect:/admin/users";
+    }
+
+    /** Shows the matching configuration form with the current values, or sends the visitor away if no administrator is signed in. */
+    @GetMapping("/admin/config")
+    public String showConfig(HttpSession session, Model model) {
+        if (!isAdmin(session)) {
+            return "redirect:/";
+        }
+        MatchingConfigForm form = matchingConfigService.toForm(matchingConfigService.getConfig());
+        fillConfigModel(model, form);
+        return "admin/config";
+    }
+
+    /** Saves the matching configuration; re-shows the form with field errors, or returns to it with a toast. */
+    @PostMapping("/admin/config")
+    public String saveConfig(@RequestParam Map<String, String> params,
+            @RequestParam(required = false) List<String> enabledCriteria,
+            HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+        if (!isAdmin(session)) {
+            return "redirect:/";
+        }
+        MatchingConfigForm form = new MatchingConfigForm();
+        form.setActiveStrategyName(params.get("activeStrategyName"));
+        form.setEnabledCriteria(enabledCriteria == null ? new ArrayList<>() : enabledCriteria);
+        for (String name : matchingConfigService.getCriterionNames()) {
+            form.getWeights().put(name, params.get("weight_" + name));
+        }
+        form.setMaxResults(params.get("maxResults"));
+        form.setMinimumScore(params.get("minimumScore"));
+        form.setTargetUsableHours(params.get("targetUsableHours"));
+        form.setMinSessionHours(params.get("minSessionHours"));
+        form.setCongestionStrength(params.get("congestionStrength"));
+
+        Map<String, String> fieldErrors = matchingConfigService.validate(form);
+        if (!fieldErrors.isEmpty()) {
+            model.addAttribute("fieldErrors", fieldErrors);
+            fillConfigModel(model, form);
+            return "admin/config";
+        }
+        matchingConfigService.update(form);
+        redirectAttributes.addFlashAttribute("toastMessage", "Matching configuration saved");
+        redirectAttributes.addFlashAttribute("toastType", "success");
+        return "redirect:/admin/config";
+    }
+
+    /** Puts the form values and the engine's strategies and criteria (name to label) into the model for the config page. */
+    private void fillConfigModel(Model model, MatchingConfigForm form) {
+        model.addAttribute("form", form);
+        model.addAttribute("strategies", matchingConfigService.getStrategyLabels());
+        model.addAttribute("criteria", matchingConfigService.getCriterionLabels());
     }
 
     /** Returns whether an administrator is signed in for this session. */

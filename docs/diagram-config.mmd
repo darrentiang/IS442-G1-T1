@@ -1,0 +1,10 @@
+classDiagram
+    direction TB
+    MatchingConfigRepository <|.. InMemoryMatchingConfigRepository
+    InMemoryMatchingConfigRepository "1" --> "1" MatchingConfig : holds
+    MatchingConfigService "1" --> "1" MatchingConfigRepository : saves
+    MatchingConfigService "1" --> "1" MatchingService : names and labels
+    MatchingService "1" --> "1" MatchingConfigRepository : reads
+    MatchingService "1" --> "1" MatchingEngine
+    MatchingConfigService ..> MatchingConfigForm : validates and applies
+    AdminController "1" --> "1" MatchingConfigService
