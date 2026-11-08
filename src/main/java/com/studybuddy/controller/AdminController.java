@@ -12,10 +12,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.studybuddy.model.Role;
 import com.studybuddy.model.User;
 import com.studybuddy.service.AdminService;
 import com.studybuddy.service.MatchingConfigForm;
 import com.studybuddy.service.MatchingConfigService;
+import com.studybuddy.service.UsageService;
 import com.studybuddy.service.UserService;
 
 import jakarta.servlet.http.HttpSession;
@@ -27,13 +29,15 @@ public class AdminController {
     private final UserService userService;
     private final AdminService adminService;
     private final MatchingConfigService matchingConfigService;
+    private final UsageService usageService;
 
     /** Creates the controller with the services it delegates to (constructor injection). */
     public AdminController(UserService userService, AdminService adminService,
-            MatchingConfigService matchingConfigService) {
+            MatchingConfigService matchingConfigService, UsageService usageService) {
         this.userService = userService;
         this.adminService = adminService;
         this.matchingConfigService = matchingConfigService;
+        this.usageService = usageService;
     }
 
     /** Sends /admin to the account list, the admin area's landing page. */
@@ -57,6 +61,9 @@ public class AdminController {
             return "redirect:/admin/users";
         }
         model.addAttribute("user", user);
+        if (user.getRole() == Role.STUDENT) {
+            model.addAttribute("usage", usageService.getUsage(id));
+        }
         return "admin/user-detail";
     }
 

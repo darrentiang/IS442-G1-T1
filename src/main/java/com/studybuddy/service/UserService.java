@@ -1,17 +1,19 @@
 package com.studybuddy.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.studybuddy.model.Role;
 import com.studybuddy.model.Student;
 import com.studybuddy.model.SystemAdministrator;
 import com.studybuddy.model.User;
 import com.studybuddy.repository.StudentRepository;
 import com.studybuddy.repository.SystemAdministratorRepository;
 
-/** Finds users (students and administrators). Knows nothing about web sessions. */
+/** Finds users (students and administrators) and records their sign-ins. Knows nothing about web sessions. */
 @Service
 public class UserService {
 
@@ -54,5 +56,15 @@ public class UserService {
         users.addAll(findAllStudents());
         users.addAll(findAllAdmins());
         return users;
+    }
+
+    /** Stamps the current time as this user's last sign-in and saves the user. */
+    public void recordSignIn(User user) {
+        user.setLastSignedIn(LocalDateTime.now());
+        if (user.getRole() == Role.STUDENT) {
+            studentRepository.save((Student) user);
+        } else {
+            adminRepository.save((SystemAdministrator) user);
+        }
     }
 }
