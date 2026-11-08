@@ -41,6 +41,16 @@
     </div>
   </div>
 
+  <div class="banner banner-warning" role="status" th:if="${ledGroups != null and !#lists.isEmpty(ledGroups)}">
+    <p th:text="${user.name} + ' leads a study group. Deleting this account hands each group over:'">Tan Wei Jie leads a study group. Deleting this account hands each group over:</p>
+    <ul>
+      <li th:each="g : ${ledGroups}"
+          th:text="${g.nextLeader() != null}
+                   ? ${g.name} + ': ' + ${g.nextLeader().name} + ' becomes the leader'
+                   : ${g.name} + ': no other members, so the group is closed'">IS442 Finals Crammers: Lim Jia Hui becomes the leader</li>
+    </ul>
+  </div>
+
   <div class="card">
     <h2>Manage account</h2>
     <p class="text-secondary">Change the name or email, or delete the account permanently. Deleting cannot be undone.</p>

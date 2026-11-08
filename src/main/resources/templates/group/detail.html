@@ -85,6 +85,10 @@
       <form th:unless="${group.open}" th:action="@{/groups/{id}/reopen(id=${group.id})}" method="post">
         <button type="submit" class="btn btn-secondary">Reopen group</button>
       </form>
+      <form th:if="${group.nextLeader() != null}" th:action="@{/groups/{id}/leave(id=${group.id})}" method="post">
+        <button type="submit" class="btn btn-danger"
+                th:text="'Leave and make ' + ${group.nextLeader().name} + ' leader'">Leave and make Lim Jia Hui leader</button>
+      </form>
     </div>
   </section>
 
@@ -93,7 +97,12 @@
       <h2 id="members-heading">Members</h2>
       <span class="group-member-count" th:text="${#lists.size(group.members) + '/' + group.maxSize}">4/5</span>
     </div>
-    <p th:if="${member and !leader}">You're a member</p>
+    <th:block th:if="${member and !leader}">
+      <p>You're a member</p>
+      <form th:action="@{/groups/{id}/leave(id=${group.id})}" method="post">
+        <button type="submit" class="btn btn-danger">Leave this group</button>
+      </form>
+    </th:block>
     <p th:if="${student == null}">Administrators can view groups. Only students can request to join.</p>
     <p th:if="${student != null and !member and !leader and (!group.open or full)}">New join requests are unavailable.</p>
     <ul class="group-member-list" th:unless="${#lists.isEmpty(group.members)}">

@@ -110,6 +110,30 @@ public class GroupBrowseController {
         return "redirect:/groups/" + id;
     }
 
+    /** Takes the signed-in student out of a group, handing over leadership if they led it. */
+    @PostMapping("/groups/{id}/leave")
+    public String leaveGroup(@PathVariable String id, HttpSession session,
+            RedirectAttributes redirectAttributes) {
+        String userId = CurrentUser.getId(session);
+        StudyGroup group = groupService.findById(id);
+        if (group == null) {
+            return errorRedirect(redirectAttributes, "This group could not be found", "/groups");
+        }
+        Student newLeader;
+        try {
+            newLeader = groupService.leaveGroup(id, userId);
+        } catch (BusinessRuleException exception) {
+            return errorRedirect(redirectAttributes, exception.getMessage(), "/groups/" + id);
+        }
+        if (newLeader != null) {
+            Toasts.success(redirectAttributes, "You left " + group.getName() + ". "
+                    + newLeader.getName() + " is now the leader");
+        } else {
+            Toasts.success(redirectAttributes, "You left " + group.getName());
+        }
+        return "redirect:/groups/" + id;
+    }
+
     /** Shows every request submitted by the signed-in student. */
     @GetMapping("/groups/requests")
     public String showMyRequests(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
