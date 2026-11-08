@@ -1,15 +1,19 @@
 package com.studybuddy.seed;
 
+import java.time.LocalDate;
+
+import com.studybuddy.model.Connection;
 import com.studybuddy.model.MatchRequest;
 import com.studybuddy.model.RequestStatus;
 import com.studybuddy.model.Student;
+import com.studybuddy.repository.ConnectionRepository;
 import com.studybuddy.repository.MatchRequestRepository;
 import com.studybuddy.repository.StudentRepository;
 
 /**
  * Loads match-requests.csv. Columns: id,from,to,status,message. From and to must be different
- * known students. Only PENDING and DECLINED are allowed: an ACCEPTED request needs a connection,
- * which is created by accepting a request in the app. An empty message is stored as null.
+ * known students. An ACCEPTED request also creates the connection between the two students,
+ * just as accepting it in the app would. An empty message is stored as null.
  */
 public class MatchRequestSeeder implements Seeder {
 
@@ -19,11 +23,14 @@ public class MatchRequestSeeder implements Seeder {
 
     private final MatchRequestRepository matchRequestRepository;
     private final StudentRepository studentRepository;
+    private final ConnectionRepository connectionRepository;
 
-    /** Creates the seeder with the repository it fills and the one it looks students up in. */
-    public MatchRequestSeeder(MatchRequestRepository matchRequestRepository, StudentRepository studentRepository) {
+    /** Creates the seeder with the repositories it fills and the one it looks students up in. */
+    public MatchRequestSeeder(MatchRequestRepository matchRequestRepository, StudentRepository studentRepository,
+            ConnectionRepository connectionRepository) {
         this.matchRequestRepository = matchRequestRepository;
         this.studentRepository = studentRepository;
+        this.connectionRepository = connectionRepository;
     }
 
     /** Returns "match-requests.csv". */
@@ -32,7 +39,7 @@ public class MatchRequestSeeder implements Seeder {
         return FILE_NAME;
     }
 
-    /** Saves one buddy request per row. */
+    /** Saves one buddy request per row, plus a connection for each ACCEPTED one. */
     @Override
     public int load(CsvFile file) throws SeedDataException {
         int count = 0;
@@ -45,9 +52,6 @@ public class MatchRequestSeeder implements Seeder {
                 throw new SeedDataException(file.where(line) + ": from and to are both " + cells[1]);
             }
             RequestStatus status = file.parseEnum(RequestStatus.class, cells[3], "status", line);
-            if (status == RequestStatus.ACCEPTED) {
-                throw new SeedDataException(file.where(line) + ": status must be PENDING or DECLINED, found ACCEPTED");
-            }
 
             MatchRequest request = new MatchRequest(cells[0], from, to);     // starts PENDING
             if (!cells[4].isEmpty()) {
@@ -55,6 +59,10 @@ public class MatchRequestSeeder implements Seeder {
             }
             if (status == RequestStatus.DECLINED) {
                 request.decline();
+            }
+            if (status == RequestStatus.ACCEPTED) {
+                request.accept();
+                connectionRepository.save(new Connection(connectionRepository.nextId(), from, to, LocalDate.now()));
             }
             matchRequestRepository.save(request);
             count++;

@@ -9,6 +9,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import com.studybuddy.engine.MatchingConfig;
+import com.studybuddy.repository.ConnectionRepository;
 import com.studybuddy.repository.CourseRepository;
 import com.studybuddy.repository.JoinRequestRepository;
 import com.studybuddy.repository.MatchRequestRepository;
@@ -39,6 +40,7 @@ public class SeedDataLoader implements CommandLineRunner {
             StudyGroupRepository groupRepository,
             JoinRequestRepository joinRequestRepository,
             MatchRequestRepository matchRequestRepository,
+            ConnectionRepository connectionRepository,
             MatchingConfigRepository matchingConfigRepository) {
         this.matchingConfigRepository = matchingConfigRepository;
         seeders.add(new CourseSeeder(courseRepository));
@@ -46,7 +48,7 @@ public class SeedDataLoader implements CommandLineRunner {
         seeders.add(new StudentSeeder(studentRepository, courseRepository));
         seeders.add(new GroupSeeder(groupRepository, courseRepository, studentRepository));
         seeders.add(new JoinRequestSeeder(joinRequestRepository, studentRepository, groupRepository));
-        seeders.add(new MatchRequestSeeder(matchRequestRepository, studentRepository));
+        seeders.add(new MatchRequestSeeder(matchRequestRepository, studentRepository, connectionRepository));
         seeders.add(new MatchingConfigSeeder(matchingConfigRepository));
     }
 
