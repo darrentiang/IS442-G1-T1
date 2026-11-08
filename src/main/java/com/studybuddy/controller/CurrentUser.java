@@ -28,6 +28,11 @@ public final class CurrentUser {
         session.setAttribute(ROLE, user.getRole());
     }
 
+    /** Updates the name shown in the nav after the signed-in user renames themselves. */
+    public static void updateName(HttpSession session, String name) {
+        session.setAttribute(NAME, name);
+    }
+
     /** Returns the signed-in user's id, or null if nobody is signed in. */
     public static String getId(HttpSession session) {
         return (String) session.getAttribute(ID);

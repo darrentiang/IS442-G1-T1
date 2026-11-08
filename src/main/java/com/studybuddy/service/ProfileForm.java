@@ -11,6 +11,7 @@ import com.studybuddy.model.StudyPreferences;
 /** Raw values from the edit-profile form, all as text; ProfileEditService validates and applies them. */
 public class ProfileForm {
 
+    private String name;
     private String school;
     private String programme;
     private String year;
@@ -74,6 +75,16 @@ public class ProfileForm {
             codes.add(course.getCode());
         }
         return codes;
+    }
+
+    /** Returns the name as typed. */
+    public String getName() {
+        return name;
+    }
+
+    /** Sets the name as typed. */
+    public void setName(String name) {
+        this.name = name;
     }
 
     /** Returns the school as typed. */

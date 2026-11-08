@@ -79,7 +79,9 @@ public class ProfileController {
             Toasts.error(redirectAttributes, NOT_A_STUDENT);
             return "redirect:/home";
         }
-        model.addAttribute("form", ProfileForm.from(student.getProfile()));
+        ProfileForm form = ProfileForm.from(student.getProfile());
+        form.setName(student.getName());
+        model.addAttribute("form", form);
         model.addAttribute("fieldErrors", new HashMap<String, String>());
         addFormOptions(model);
         return "student/profile-edit";
@@ -87,7 +89,8 @@ public class ProfileController {
 
     /** Saves the details form; re-shows it with field errors, or returns to the profile with a toast. */
     @PostMapping("/profile/edit")
-    public String updateProfile(@RequestParam(required = false) String school,
+    public String updateProfile(@RequestParam(required = false) String name,
+            @RequestParam(required = false) String school,
             @RequestParam(required = false) String programme,
             @RequestParam(required = false) String year,
             @RequestParam(required = false) String newContactNumber,
@@ -106,6 +109,7 @@ public class ProfileController {
             return "redirect:/home";
         }
         ProfileForm form = new ProfileForm();
+        form.setName(name);
         form.setSchool(school);
         form.setProgramme(programme);
         form.setYear(year);
@@ -133,6 +137,7 @@ public class ProfileController {
             return "student/profile-edit";
         }
         editService.update(student, form);
+        CurrentUser.updateName(session, student.getName());
         Toasts.success(redirectAttributes, "Profile updated");
         return "redirect:/profile";
     }
