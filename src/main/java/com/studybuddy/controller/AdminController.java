@@ -18,6 +18,7 @@ import com.studybuddy.service.AccountCleanupService;
 import com.studybuddy.service.AdminService;
 import com.studybuddy.service.MatchingConfigForm;
 import com.studybuddy.service.MatchingConfigService;
+import com.studybuddy.service.SimulationService;
 import com.studybuddy.service.UsageService;
 import com.studybuddy.service.UserService;
 
@@ -32,16 +33,18 @@ public class AdminController {
     private final MatchingConfigService matchingConfigService;
     private final UsageService usageService;
     private final AccountCleanupService cleanupService;
+    private final SimulationService simulationService;
 
     /** Creates the controller with the services it delegates to (constructor injection). */
     public AdminController(UserService userService, AdminService adminService,
             MatchingConfigService matchingConfigService, UsageService usageService,
-            AccountCleanupService cleanupService) {
+            AccountCleanupService cleanupService, SimulationService simulationService) {
         this.userService = userService;
         this.adminService = adminService;
         this.matchingConfigService = matchingConfigService;
         this.usageService = usageService;
         this.cleanupService = cleanupService;
+        this.simulationService = simulationService;
     }
 
     /** Sends /admin to the account list, the admin area's landing page. */
@@ -163,18 +166,7 @@ public class AdminController {
     public String saveConfig(@RequestParam Map<String, String> params,
             @RequestParam(required = false) List<String> enabledCriteria,
             Model model, RedirectAttributes redirectAttributes) {
-        MatchingConfigForm form = new MatchingConfigForm();
-        form.setActiveStrategyName(params.get("activeStrategyName"));
-        form.setEnabledCriteria(enabledCriteria == null ? new ArrayList<>() : enabledCriteria);
-        for (String name : matchingConfigService.getCriterionNames()) {
-            form.getWeights().put(name, params.get("weight_" + name));
-        }
-        form.setMaxResults(params.get("maxResults"));
-        form.setMinimumScore(params.get("minimumScore"));
-        form.setTargetUsableHours(params.get("targetUsableHours"));
-        form.setMinSessionHours(params.get("minSessionHours"));
-        form.setCongestionStrength(params.get("congestionStrength"));
-
+        MatchingConfigForm form = readConfigForm(params, enabledCriteria);
         Map<String, String> fieldErrors = matchingConfigService.validate(form);
         if (!fieldErrors.isEmpty()) {
             model.addAttribute("fieldErrors", fieldErrors);
@@ -186,11 +178,64 @@ public class AdminController {
         return "redirect:/admin/config";
     }
 
+    /** Projects the settings in the form against the saved ones, without saving; re-shows the form with field errors if invalid. */
+    @PostMapping("/admin/config/simulate")
+    public String simulateConfig(@RequestParam Map<String, String> params,
+            @RequestParam(required = false) List<String> enabledCriteria, Model model) {
+        MatchingConfigForm form = readConfigForm(params, enabledCriteria);
+        Map<String, String> fieldErrors = matchingConfigService.validate(form);
+        if (!fieldErrors.isEmpty()) {
+            model.addAttribute("fieldErrors", fieldErrors);
+        } else {
+            model.addAttribute("report", simulationService.simulate(form));
+        }
+        fillConfigModel(model, form);
+        return "admin/config";
+    }
+
+    /** Searches for settings that clearly beat the saved ones and shows the recommendation beside the saved settings. */
+    @PostMapping("/admin/config/recommend")
+    public String recommendConfig(Model model) {
+        model.addAttribute("recommendation", simulationService.recommend());
+        fillConfigModel(model, matchingConfigService.toForm(matchingConfigService.getConfig()));
+        return "admin/config";
+    }
+
+    /** Fills the form with the saved settings plus the recommended changes; nothing is saved until the admin presses Save. */
+    @PostMapping("/admin/config/apply-recommendation")
+    public String applyRecommendation(@RequestParam String activeStrategyName,
+            @RequestParam String congestionStrength, @RequestParam String minimumScore, Model model) {
+        MatchingConfigForm form = matchingConfigService.toForm(matchingConfigService.getConfig());
+        form.setActiveStrategyName(activeStrategyName);
+        form.setCongestionStrength(congestionStrength);
+        form.setMinimumScore(minimumScore);
+        model.addAttribute("recommendationApplied", true);
+        fillConfigModel(model, form);
+        return "admin/config";
+    }
+
+    /** Reads the config page's fields into a form; weights arrive as weight_criterionName. */
+    private MatchingConfigForm readConfigForm(Map<String, String> params, List<String> enabledCriteria) {
+        MatchingConfigForm form = new MatchingConfigForm();
+        form.setActiveStrategyName(params.get("activeStrategyName"));
+        form.setEnabledCriteria(enabledCriteria == null ? new ArrayList<>() : enabledCriteria);
+        for (String name : matchingConfigService.getCriterionNames()) {
+            form.getWeights().put(name, params.get("weight_" + name));
+        }
+        form.setMaxResults(params.get("maxResults"));
+        form.setMinimumScore(params.get("minimumScore"));
+        form.setTargetUsableHours(params.get("targetUsableHours"));
+        form.setMinSessionHours(params.get("minSessionHours"));
+        form.setCongestionStrength(params.get("congestionStrength"));
+        return form;
+    }
+
     /** Puts the form values, the engine's strategies (name to label and to description) and criteria (name to label) into the model for the config page. */
     private void fillConfigModel(Model model, MatchingConfigForm form) {
         model.addAttribute("form", form);
         model.addAttribute("strategies", matchingConfigService.getStrategyLabels());
         model.addAttribute("strategyDescriptions", matchingConfigService.getStrategyDescriptions());
         model.addAttribute("criteria", matchingConfigService.getCriterionLabels());
+        model.addAttribute("savedConfig", matchingConfigService.getConfig());
     }
 }
