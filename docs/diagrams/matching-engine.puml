@@ -1,0 +1,97 @@
+@startuml matching-engine
+' The matching engine: Strategy for ranking, Template Method inside each strategy,
+' and one class per criterion and per filter (open for extension, closed for modification).
+!theme plain
+skinparam defaultFontName "Segoe UI"
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #FAFAFA
+  BorderColor #6E6E73
+}
+hide empty members
+left to right direction
+
+class MatchingEngine {
+  + findMatches(seeker, pool, context, config) : List<MatchResult>
+  + evaluate(seeker, candidate, config) : MatchResult
+}
+class MatchingConfig {
+  - activeStrategyName : String
+  - enabledCriteria : Set<String>
+  - weights : Map<String, Double>
+  - maxResults : int
+  - minimumScore : double
+}
+class ReciprocalScorer {
+  + weightedFit(scores, config) : double
+  + mutualScore(fitA, fitB) : double  <<harmonic mean>>
+}
+class CongestionPenalty
+
+interface CandidateFilter {
+  + accepts(seeker, candidate, context, config) : boolean
+}
+interface MatchCriterion {
+  + score(seekerProfile, candidateProfile, config) : CriterionScore
+}
+interface MatchingStrategy {
+  + rank(results) : List<MatchResult>
+  + getLabel() : String
+}
+abstract class AbstractMatchingStrategy {
+  + rank(results) : List<MatchResult>  <<template method>>
+  # {abstract} createComparator() : Comparator
+}
+
+package "6 filters" {
+  class SelfFilter
+  class ActiveAccountFilter
+  class SearchFilter
+  class ExcludedFilter
+  class ModeFilter
+  class AvailabilityFilter
+}
+package "8 criteria" {
+  class CourseCriterion
+  class AvailabilityCriterion
+  class StudyModeCriterion
+  class StudyGoalCriterion
+  class GroupSizeCriterion
+  class YearCriterion
+  class IntensityCriterion
+  class SharedCoursesCriterion
+}
+package "3 strategies" {
+  class BalancedStrategy
+  class AvailabilityFirstStrategy
+  class CourseFirstStrategy
+}
+
+MatchingEngine --> "*" CandidateFilter
+MatchingEngine --> "*" MatchCriterion
+MatchingEngine --> "*" MatchingStrategy
+MatchingEngine --> ReciprocalScorer
+MatchingEngine --> CongestionPenalty
+MatchingEngine ..> MatchingConfig : reads
+
+CandidateFilter <|.. SelfFilter
+CandidateFilter <|.. ActiveAccountFilter
+CandidateFilter <|.. SearchFilter
+CandidateFilter <|.. ExcludedFilter
+CandidateFilter <|.. ModeFilter
+CandidateFilter <|.. AvailabilityFilter
+
+MatchCriterion <|.. CourseCriterion
+MatchCriterion <|.. AvailabilityCriterion
+MatchCriterion <|.. StudyModeCriterion
+MatchCriterion <|.. StudyGoalCriterion
+MatchCriterion <|.. GroupSizeCriterion
+MatchCriterion <|.. YearCriterion
+MatchCriterion <|.. IntensityCriterion
+MatchCriterion <|.. SharedCoursesCriterion
+
+MatchingStrategy <|.. AbstractMatchingStrategy
+AbstractMatchingStrategy <|-- BalancedStrategy
+AbstractMatchingStrategy <|-- AvailabilityFirstStrategy
+AbstractMatchingStrategy <|-- CourseFirstStrategy
+@enduml

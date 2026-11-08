@@ -1,0 +1,46 @@
+@startuml architecture
+' Layered architecture: every dependency points down.
+!theme plain
+skinparam defaultFontName "Segoe UI"
+skinparam componentStyle rectangle
+skinparam rectangle {
+  BackgroundColor #FAFAFA
+  BorderColor #6E6E73
+}
+
+actor "Browser" as browser
+
+rectangle "Spring Boot application" {
+  rectangle "Presentation\n<size:11>controller · Thymeleaf templates · app.css</size>" as web {
+    component "AuthInterceptor\n<size:10>sign-in, suspended, admin-only</size>" as auth
+    component "10 controllers\n<size:10>Buddy, Connection, Group, Admin, ...</size>" as ctrl
+  }
+  rectangle "Business logic\n<size:11>service</size>" as svc {
+    component "Services\n<size:10>MatchRequestService, ConnectionService,</size>\n<size:10>StudyGroupService, AdminService, ...</size>" as services
+  }
+  rectangle "Domain\n<size:11>plain Java, no Spring</size>" as domain {
+    component "Matching engine\n<size:10>engine: criteria, filters, strategies</size>" as engine
+    component "Timetable importer\n<size:10>importer: .ics parsing</size>" as importer
+    component "Model\n<size:10>Student, StudyGroup, MatchRequest, ...</size>" as model
+  }
+  rectangle "Data access\n<size:11>repository</size>" as repo {
+    component "XRepository interfaces" as irepo
+    component "InMemoryXRepository\n<size:10>LinkedHashMap stores</size>" as memrepo
+  }
+  component "SeedDataLoader\n<size:10>one Seeder per CSV</size>" as seed
+}
+
+file "seed/*.csv\n<size:10>10 courses, 50 students,</size>\n<size:10>12 groups, requests, config</size>" as csv
+
+browser --> auth : HTTP
+auth --> ctrl
+ctrl --> services
+services --> engine
+services --> importer
+services --> irepo
+irepo <|.. memrepo : implements
+engine --> model
+memrepo --> model
+seed --> irepo
+csv --> seed : startup
+@enduml
