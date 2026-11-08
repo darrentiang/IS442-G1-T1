@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import com.studybuddy.model.AccountStatus;
@@ -25,18 +26,20 @@ import com.studybuddy.repository.StudentRepository;
 @Service
 public class MatchRequestService {
 
-    private static final int MAX_MESSAGE_LENGTH = 300;
-
     private final MatchRequestRepository requestRepository;
     private final ConnectionRepository connectionRepository;
     private final StudentRepository studentRepository;
+    private final int maxMessageLength;
 
-    /** Creates the service with the repositories it reads and writes (constructor injection). */
+    /** Creates the service with the repositories it reads and writes and its limit from application.properties (constructor injection). */
     public MatchRequestService(MatchRequestRepository requestRepository,
-            ConnectionRepository connectionRepository, StudentRepository studentRepository) {
+            ConnectionRepository connectionRepository, StudentRepository studentRepository,
+            Environment environment) {
         this.requestRepository = requestRepository;
         this.connectionRepository = connectionRepository;
         this.studentRepository = studentRepository;
+        this.maxMessageLength = environment.getRequiredProperty("studybuddy.request.max-message-length",
+                Integer.class);
     }
 
     /**
@@ -44,7 +47,7 @@ public class MatchRequestService {
      *
      * @param from the student sending the request
      * @param toId the id of the student to send it to
-     * @param message an optional note of at most 300 characters; blank is stored as null
+     * @param message an optional note, at most studybuddy.request.max-message-length characters; blank is stored as null
      * @return the new PENDING request
      * @throws RequestNotAllowedException with a message to show, if a rule refuses the request
      */
@@ -68,8 +71,8 @@ public class MatchRequestService {
         if (hasDeclinedRequest(from.getId(), to.getId())) {
             throw new RequestNotAllowedException(to.getName() + " declined your earlier request");
         }
-        if (message != null && message.trim().length() > MAX_MESSAGE_LENGTH) {
-            throw new RequestNotAllowedException("Keep the message to " + MAX_MESSAGE_LENGTH + " characters");
+        if (message != null && message.trim().length() > maxMessageLength) {
+            throw new RequestNotAllowedException("Keep the message to " + maxMessageLength + " characters");
         }
         MatchRequest request = new MatchRequest(requestRepository.nextId(), from, to);
         if (message != null && !message.isBlank()) {

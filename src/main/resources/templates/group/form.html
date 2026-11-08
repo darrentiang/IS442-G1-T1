@@ -61,8 +61,11 @@
              th:value="${form.availabilityText}">
       <p th:replace="~{fragments/field-error :: field-error('availabilityText')}"></p>
 
-      <label for="maxSize">Max size (2 to 10, including you)</label>
-      <input id="maxSize" name="maxSize" type="number" min="2" max="10" th:value="${form.maxSize}">
+      <label for="maxSize" th:with="lo=${@environment.getProperty('studybuddy.group.min-size')},hi=${@environment.getProperty('studybuddy.group.max-size')}"
+             th:text="|Max size (${lo} to ${hi}, including you)|">Max size (2 to 10, including you)</label>
+      <input id="maxSize" name="maxSize" type="number" th:value="${form.maxSize}"
+             th:min="${@environment.getProperty('studybuddy.group.min-size')}"
+             th:max="${@environment.getProperty('studybuddy.group.max-size')}">
       <p th:replace="~{fragments/field-error :: field-error('maxSize')}"></p>
 
       <label for="visibility">Who can find this group</label>

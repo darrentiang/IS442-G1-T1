@@ -57,7 +57,9 @@
 
       <h2>Results</h2>
       <label for="maxResults">Max results shown</label>
-      <input id="maxResults" name="maxResults" type="number" min="1" max="50" th:value="${form.maxResults}">
+      <input id="maxResults" name="maxResults" type="number" th:value="${form.maxResults}"
+             th:min="${@environment.getProperty('studybuddy.matching.min-results')}"
+             th:max="${@environment.getProperty('studybuddy.matching.max-results')}">
       <p th:replace="~{fragments/field-error :: field-error('maxResults')}"></p>
 
       <label for="minimumScore">Minimum score (0 to 1)</label>
@@ -71,8 +73,10 @@
       <p class="hint" id="target-hours-hint">Hours together per week that count as a perfect availability score</p>
       <p th:replace="~{fragments/field-error :: field-error('targetUsableHours')}"></p>
 
-      <label for="minSessionHours">Minimum session hours (1 to 4)</label>
-      <input id="minSessionHours" name="minSessionHours" type="number" min="1" max="4" step="1"
+      <label for="minSessionHours" th:text="|Minimum session hours (${@environment.getProperty('studybuddy.matching.min-session-hours')} to ${@environment.getProperty('studybuddy.matching.max-session-hours')})|">Minimum session hours (1 to 4)</label>
+      <input id="minSessionHours" name="minSessionHours" type="number" step="1"
+             th:min="${@environment.getProperty('studybuddy.matching.min-session-hours')}"
+             th:max="${@environment.getProperty('studybuddy.matching.max-session-hours')}"
              aria-describedby="session-hours-hint" th:value="${form.minSessionHours}">
       <p class="hint" id="session-hours-hint">Shortest block that counts as a study session</p>
       <p th:replace="~{fragments/field-error :: field-error('minSessionHours')}"></p>

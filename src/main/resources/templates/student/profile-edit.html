@@ -29,8 +29,10 @@
       <input id="programme" name="programme" th:value="${form.programme}">
       <p th:replace="~{fragments/field-error :: field-error('programme')}"></p>
 
-      <label for="year">Year of study (1 to 5)</label>
-      <input id="year" name="year" type="number" min="1" max="5" th:value="${form.year}">
+      <label for="year" th:text="|Year of study (${@environment.getProperty('studybuddy.profile.min-year')} to ${@environment.getProperty('studybuddy.profile.max-year')})|">Year of study (1 to 5)</label>
+      <input id="year" name="year" type="number" th:value="${form.year}"
+             th:min="${@environment.getProperty('studybuddy.profile.min-year')}"
+             th:max="${@environment.getProperty('studybuddy.profile.max-year')}">
       <p th:replace="~{fragments/field-error :: field-error('year')}"></p>
 
       <label for="newContactNumber">New contact number</label>
@@ -105,8 +107,9 @@
       </select>
       <p th:replace="~{fragments/field-error :: field-error('intensity')}"></p>
 
-      <label for="lookingFor">What you're looking for in a buddy (up to 200 characters)</label>
-      <textarea id="lookingFor" name="lookingFor" rows="3" maxlength="200" th:text="${form.lookingFor}"></textarea>
+      <label for="lookingFor" th:text="|What you're looking for in a buddy (up to ${@environment.getProperty('studybuddy.profile.max-looking-for-length')} characters)|">What you're looking for in a buddy (up to 200 characters)</label>
+      <textarea id="lookingFor" name="lookingFor" rows="3" th:text="${form.lookingFor}"
+                th:maxlength="${@environment.getProperty('studybuddy.profile.max-looking-for-length')}"></textarea>
       <p th:replace="~{fragments/field-error :: field-error('lookingFor')}"></p>
 
       <button type="submit" class="btn btn-primary btn-block">Save details</button>
