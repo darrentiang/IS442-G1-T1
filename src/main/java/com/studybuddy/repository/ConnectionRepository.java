@@ -16,6 +16,9 @@ public interface ConnectionRepository {
     /** Returns all connections. */
     List<Connection> findAll();
 
+    /** Returns an unused connection id such as "C001" or "C002". */
+    String nextId();
+
     /** Returns the active connections where this student is either side. */
     List<Connection> findActiveFor(String studentId);
 }
