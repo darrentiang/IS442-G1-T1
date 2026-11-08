@@ -23,13 +23,15 @@ public class AdminService {
     private final StudentRepository studentRepository;
     private final SystemAdministratorRepository adminRepository;
     private final UserService userService;
+    private final AccountCleanupService cleanupService;
 
-    /** Creates the service with the repositories it writes to and the lookup service (constructor injection). */
+    /** Creates the service with the repositories it writes to and the services it uses (constructor injection). */
     public AdminService(StudentRepository studentRepository, SystemAdministratorRepository adminRepository,
-            UserService userService) {
+            UserService userService, AccountCleanupService cleanupService) {
         this.studentRepository = studentRepository;
         this.adminRepository = adminRepository;
         this.userService = userService;
+        this.cleanupService = cleanupService;
     }
 
     /**
@@ -107,9 +109,10 @@ public class AdminService {
     }
 
     /**
-     * Deletes the account with this id, unless it is the caller's own account
-     * or the last remaining administrator. Returns an error message when nothing
-     * was deleted, or null when the account was deleted.
+     * Deletes the account with this id, unless it is the caller's own account or the last
+     * remaining administrator. A deleted student is first detached from their connections,
+     * requests and groups; groups they led pass to the earliest-joined remaining member.
+     * Returns an error message when nothing was deleted, or null when the account was deleted.
      */
     public String deleteAccount(String id, String currentUserId) {
         if (id.equals(currentUserId)) {
@@ -123,6 +126,7 @@ public class AdminService {
             return "The last administrator cannot be deleted";
         }
         if (user.getRole() == Role.STUDENT) {
+            cleanupService.detach((Student) user);
             studentRepository.deleteById(id);
         } else {
             adminRepository.deleteById(id);

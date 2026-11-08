@@ -14,6 +14,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.studybuddy.model.Role;
 import com.studybuddy.model.User;
+import com.studybuddy.service.AccountCleanupService;
 import com.studybuddy.service.AdminService;
 import com.studybuddy.service.MatchingConfigForm;
 import com.studybuddy.service.MatchingConfigService;
@@ -30,14 +31,17 @@ public class AdminController {
     private final AdminService adminService;
     private final MatchingConfigService matchingConfigService;
     private final UsageService usageService;
+    private final AccountCleanupService cleanupService;
 
     /** Creates the controller with the services it delegates to (constructor injection). */
     public AdminController(UserService userService, AdminService adminService,
-            MatchingConfigService matchingConfigService, UsageService usageService) {
+            MatchingConfigService matchingConfigService, UsageService usageService,
+            AccountCleanupService cleanupService) {
         this.userService = userService;
         this.adminService = adminService;
         this.matchingConfigService = matchingConfigService;
         this.usageService = usageService;
+        this.cleanupService = cleanupService;
     }
 
     /** Sends /admin to the account list, the admin area's landing page. */
@@ -63,6 +67,7 @@ public class AdminController {
         model.addAttribute("user", user);
         if (user.getRole() == Role.STUDENT) {
             model.addAttribute("usage", usageService.getUsage(id));
+            model.addAttribute("ledGroups", cleanupService.findLedGroups(id));
         }
         return "admin/user-detail";
     }
