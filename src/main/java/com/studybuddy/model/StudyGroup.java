@@ -76,6 +76,16 @@ public class StudyGroup {
         this.leader = leader;
     }
 
+    /** Returns the earliest-joined member other than the leader, or null if the leader is alone. */
+    public Student nextLeader() {
+        for (Student member : members) {
+            if (!member.equals(leader)) {
+                return member;
+            }
+        }
+        return null;
+    }
+
     /** Returns the group members as a read-only view; use addMember and removeMember to change them. */
     public List<Student> getMembers() {
         return Collections.unmodifiableList(members);

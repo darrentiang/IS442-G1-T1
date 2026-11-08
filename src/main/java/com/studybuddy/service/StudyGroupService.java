@@ -165,6 +165,53 @@ public class StudyGroupService {
         groupRepository.save(group);
     }
 
+    /**
+     * Takes a student out of a group. When the leader leaves, the earliest-joined remaining
+     * member becomes leader. A leader who is the only member cannot hand over, so the group
+     * is closed instead and they stay on record as its leader.
+     *
+     * @param groupId the group to leave
+     * @param studentId the student leaving
+     * @return the new leader if leadership changed hands, otherwise null
+     * @throws BusinessRuleException if the group does not exist or the student is not a member
+     */
+    public Student leaveGroup(String groupId, String studentId) {
+        StudyGroup group = findById(groupId);
+        if (group == null) {
+            throw new BusinessRuleException("This group could not be found");
+        }
+        Student student = findMember(group, studentId);
+        if (student == null) {
+            throw new BusinessRuleException("You are not a member of this group");
+        }
+        if (!isLeader(group, studentId)) {
+            group.removeMember(student);
+            groupRepository.save(group);
+            return null;
+        }
+        Student newLeader = group.nextLeader();
+        if (newLeader == null) {
+            if (group.isOpen()) {
+                closeGroup(groupId, studentId);
+            }
+            return null;
+        }
+        group.setLeader(newLeader);
+        group.removeMember(student);
+        groupRepository.save(group);
+        return newLeader;
+    }
+
+    /** Returns the member of the group with this id, or null if they are not in it. */
+    private Student findMember(StudyGroup group, String studentId) {
+        for (Student member : group.getMembers()) {
+            if (member.getId().equals(studentId)) {
+                return member;
+            }
+        }
+        return null;
+    }
+
     /** Returns true when members.size() >= maxSize; the leader is in members, so the leader counts toward maxSize. */
     public boolean isFull(StudyGroup group) {
         return group.isFull();
