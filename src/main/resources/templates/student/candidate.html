@@ -11,8 +11,11 @@
 
 <main th:with="prefs=${profile.preferences}">
   <div>
-    <a class="back-link" th:if="${param.from != null && param.from[0] == 'requests'}" th:href="@{/requests}">← Buddy requests</a>
-    <a class="back-link" th:unless="${param.from != null && param.from[0] == 'requests'}" th:href="@{/buddies}">← Find buddies</a>
+    <th:block th:with="from=${param.from != null ? param.from[0] : ''}">
+      <a class="back-link" th:if="${from == 'requests'}" th:href="@{/requests}">← Buddy requests</a>
+      <a class="back-link" th:if="${from == 'connections'}" th:href="@{/connections}">← My buddies</a>
+      <a class="back-link" th:if="${from != 'requests' && from != 'connections'}" th:href="@{/buddies}">← Find buddies</a>
+    </th:block>
     <div class="page-header">
       <div>
         <h1 th:text="${candidate.name}">Irfan Zainal</h1>

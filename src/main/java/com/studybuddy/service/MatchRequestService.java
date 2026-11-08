@@ -19,7 +19,8 @@ import com.studybuddy.repository.StudentRepository;
 
 /**
  * Business rules for buddy requests between two students. Shared: Group 1 owns sending
- * (Find Buddies); Group 3 adds the receiving side (accept, decline, connections) here.
+ * (Find Buddies); Group 3 owns the receiving side (accept, decline). Listing and ending
+ * connections lives in ConnectionService.
  */
 @Service
 public class MatchRequestService {

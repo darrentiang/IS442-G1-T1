@@ -10,24 +10,40 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.studybuddy.model.BusinessRuleException;
 import com.studybuddy.model.MatchRequest;
 import com.studybuddy.model.Student;
+import com.studybuddy.service.ConnectionService;
 import com.studybuddy.service.MatchRequestService;
 import com.studybuddy.service.UserService;
 
 import jakarta.servlet.http.HttpSession;
 
-/** Buddy requests a student has received: the inbox, accept and decline. */
+/** Buddy requests a student has received (inbox, accept, decline) and their active connections. */
 @Controller
 public class ConnectionController {
 
     private static final String NOT_A_STUDENT = "Buddy requests are for students";
 
     private final MatchRequestService requestService;
+    private final ConnectionService connectionService;
     private final UserService userService;
 
     /** Creates the controller with the services it delegates to (constructor injection). */
-    public ConnectionController(MatchRequestService requestService, UserService userService) {
+    public ConnectionController(MatchRequestService requestService, ConnectionService connectionService,
+            UserService userService) {
         this.requestService = requestService;
+        this.connectionService = connectionService;
         this.userService = userService;
+    }
+
+    /** Shows the signed-in student's active connections, with each buddy's contact number. */
+    @GetMapping("/connections")
+    public String showConnections(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+        Student student = CurrentUser.studentOrNull(session, userService);
+        if (student == null) {
+            Toasts.error(redirectAttributes, NOT_A_STUDENT);
+            return "redirect:/home";
+        }
+        model.addAttribute("connections", connectionService.findConnectionsFor(student.getId()));
+        return "student/connections";
     }
 
     /** Shows the pending buddy requests sent to the signed-in student. */
