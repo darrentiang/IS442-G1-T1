@@ -1,0 +1,93 @@
+@startuml domain-model
+' Core entities in com.studybuddy.model. Fields trimmed to the ones that shape the design.
+!theme plain
+skinparam defaultFontName "Segoe UI"
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #FAFAFA
+  BorderColor #6E6E73
+}
+hide empty members
+
+abstract class User {
+  - id : String
+  - name : String
+  - email : String
+  - status : AccountStatus
+  - lastSignedIn : LocalDateTime
+  + {abstract} getRole() : Role
+}
+class Student
+class SystemAdministrator
+
+class StudentProfile {
+  - school, programme : String
+  - yearOfStudy : int
+  - contactNumber : String  <<no getter>>
+  + toPublicView() : ProfileView
+  + toConnectedView() : ProfileView
+}
+class StudyPreferences {
+  - mode : StudyMode
+  - format : GroupFormat
+  - goals : Set<StudyGoal>
+}
+class AvailabilityGrid {
+  - cells : boolean[7][15]
+}
+class Course {
+  - code, title, school : String
+}
+
+class MatchRequest {
+  - message : String
+  - status : RequestStatus
+  + accept()
+  + decline()
+}
+class Connection {
+  - since : LocalDate
+  - active : boolean
+}
+class StudyGroup {
+  - maxSize : int
+  - open : boolean
+  + addMember(Student)
+  + removeMember(Student)
+  + nextLeader() : Student
+}
+class JoinRequest {
+  - status : RequestStatus
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+}
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+User <|-- Student
+User <|-- SystemAdministrator
+User ..> Role
+Student "1" *-- "0..1" StudentProfile
+StudentProfile *-- StudyPreferences
+StudentProfile *-- AvailabilityGrid
+StudentProfile --> "*" Course : courses taken
+StudyPreferences --> "0..1" Course : target course
+
+MatchRequest --> "1" Student : from
+MatchRequest --> "1" Student : to
+MatchRequest ..> RequestStatus
+Connection --> "2" Student : a, b
+
+StudyGroup --> "1" Student : leader
+StudyGroup o-- "*" Student : members
+StudyGroup --> "1" Course
+StudyGroup *-- AvailabilityGrid
+JoinRequest --> "1" Student
+JoinRequest --> "1" StudyGroup
+@enduml

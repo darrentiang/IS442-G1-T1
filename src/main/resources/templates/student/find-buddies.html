@@ -119,7 +119,8 @@
           <form method="post"
                 th:action="@{/buddies/{id}/request(id=${c.id}, course=${search.courseCode}, goal=${search.goal}, mode=${search.mode}, minHours=${search.minHours})}">
             <label th:for="${'message-' + c.id}">Message (optional)</label>
-            <textarea th:id="${'message-' + c.id}" name="message" rows="3" maxlength="300"
+            <textarea th:id="${'message-' + c.id}" name="message" rows="3"
+                      th:maxlength="${@environment.getProperty('studybuddy.request.max-message-length')}"
                       placeholder="Say what you'd like to work on together"></textarea>
             <button type="submit" class="btn btn-primary" th:text="${'Send request to ' + c.name}">Send request</button>
           </form>

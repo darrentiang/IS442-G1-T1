@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import com.studybuddy.model.AvailabilityGrid;
@@ -27,22 +28,26 @@ import com.studybuddy.repository.StudyGroupRepository;
 @Service
 public class StudyGroupService {
 
-    private static final int MAX_NAME_LENGTH = 60;
-    private static final int MAX_DESCRIPTION_LENGTH = 300;
-    private static final int MIN_GROUP_SIZE = 2;
-    private static final int MAX_GROUP_SIZE = 10;
-
     private final StudyGroupRepository groupRepository;
     private final JoinRequestRepository requestRepository;
     private final CourseRepository courseRepository;
+    private final int maxNameLength;
+    private final int maxDescriptionLength;
+    private final int minGroupSize;
+    private final int maxGroupSize;
 
-    /** Creates the service with the repositories it uses (constructor injection). */
+    /** Creates the service with the repositories it uses and its limits from application.properties (constructor injection). */
     public StudyGroupService(StudyGroupRepository groupRepository,
                              JoinRequestRepository requestRepository,
-                             CourseRepository courseRepository) {
+                             CourseRepository courseRepository,
+                             Environment environment) {
         this.groupRepository = groupRepository;
         this.requestRepository = requestRepository;
         this.courseRepository = courseRepository;
+        this.maxNameLength = environment.getRequiredProperty("studybuddy.group.max-name-length", Integer.class);
+        this.maxDescriptionLength = environment.getRequiredProperty("studybuddy.group.max-description-length", Integer.class);
+        this.minGroupSize = environment.getRequiredProperty("studybuddy.group.min-size", Integer.class);
+        this.maxGroupSize = environment.getRequiredProperty("studybuddy.group.max-size", Integer.class);
     }
 
     /** Returns field name to message for every invalid field; empty when valid. existing is null on create. */
@@ -52,13 +57,13 @@ public class StudyGroupService {
         String name = trimOrEmpty(form.getName());
         if (name.isEmpty()) {
             fieldErrors.put("name", "Group name is required");
-        } else if (name.length() > MAX_NAME_LENGTH) {
-            fieldErrors.put("name", "Group name must be at most " + MAX_NAME_LENGTH + " characters");
+        } else if (name.length() > maxNameLength) {
+            fieldErrors.put("name", "Group name must be at most " + maxNameLength + " characters");
         }
 
         String description = trimOrEmpty(form.getDescription());
-        if (description.length() > MAX_DESCRIPTION_LENGTH) {
-            fieldErrors.put("description", "Description must be at most " + MAX_DESCRIPTION_LENGTH + " characters");
+        if (description.length() > maxDescriptionLength) {
+            fieldErrors.put("description", "Description must be at most " + maxDescriptionLength + " characters");
         }
 
         // The course is fixed after creation, so it is only checked on create.
@@ -92,8 +97,8 @@ public class StudyGroupService {
         Integer maxSize = parseWholeNumber(form.getMaxSize());
         if (maxSize == null) {
             fieldErrors.put("maxSize", "Max size must be a whole number");
-        } else if (maxSize < MIN_GROUP_SIZE || maxSize > MAX_GROUP_SIZE) {
-            fieldErrors.put("maxSize", "Max size must be between " + MIN_GROUP_SIZE + " and " + MAX_GROUP_SIZE);
+        } else if (maxSize < minGroupSize || maxSize > maxGroupSize) {
+            fieldErrors.put("maxSize", "Max size must be between " + minGroupSize + " and " + maxGroupSize);
         } else if (existing != null && maxSize < existing.getMembers().size()) {
             fieldErrors.put("maxSize", "Max size can't be below the current "
                     + existing.getMembers().size() + " members");

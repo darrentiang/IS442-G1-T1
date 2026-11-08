@@ -1,0 +1,40 @@
+@startuml buddy-request-sequence
+' One feature end to end: accepting a buddy request reveals the contact number.
+!theme plain
+skinparam defaultFontName "Segoe UI"
+skinparam sequenceMessageAlign left
+autonumber
+
+actor "Receiver\n(signed-in student)" as user
+participant "ConnectionController" as ctrl
+participant "MatchRequestService" as svc
+participant "MatchRequest" as req
+participant "MatchRequestRepository" as reqRepo
+participant "ConnectionRepository" as connRepo
+participant "BuddyController" as buddyCtrl
+
+user -> ctrl : POST /requests/{id}/accept
+ctrl -> svc : accept(requestId, studentId)
+svc -> reqRepo : findById(requestId)
+reqRepo --> svc : request
+alt request missing or not sent to this student
+  svc --> ctrl : throw RequestNotAllowedException
+else request found
+  svc -> req : accept()
+  note right of req : throws RequestAlreadyHandledException\nunless status is PENDING
+  svc -> reqRepo : save(request)
+  opt not already connected
+    svc -> connRepo : save(new Connection(nextId(), from, to, today))
+  end
+  svc --> ctrl : accepted request
+end
+ctrl --> user : redirect /requests + toast\n"You're now connected with ..."
+
+== Later: viewing the buddy's profile ==
+user -> buddyCtrl : GET /buddies/{id}
+note over svc, buddyCtrl
+  ProfileService checks isConnected(viewer, target):
+  active connection -> toConnectedView() (contact shown)
+  otherwise         -> toPublicView()    (contact hidden)
+end note
+@enduml

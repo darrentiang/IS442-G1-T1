@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import com.studybuddy.engine.MatchingConfig;
@@ -21,22 +22,33 @@ import com.studybuddy.repository.MatchingConfigRepository;
 @Service
 public class MatchingConfigService {
 
-    private static final int MIN_RESULTS = 1;
-    private static final int MAX_RESULTS = 50;
+    // Bounds of the engine's 0-to-1 scoring scale; not settings, so they stay in code.
     private static final double MAX_WEIGHT = 1.0;
+    private static final double MAX_CONGESTION_STRENGTH = 1.0;
     private static final int MIN_TARGET_USABLE_HOURS = 1;
     private static final int MAX_TARGET_USABLE_HOURS = 15;
-    private static final int MIN_SESSION_HOURS = 1;
-    private static final int MAX_SESSION_HOURS = 4;
-    private static final double MAX_CONGESTION_STRENGTH = 1.0;
 
     private final MatchingConfigRepository configRepository;
     private final MatchingService matchingService;
+    private final int minResultsLimit;
+    private final int maxResultsLimit;
+    private final int minSessionHoursLimit;
+    private final int maxSessionHoursLimit;
 
-    /** Creates the service with the repository it saves to and the service that knows the engine (constructor injection). */
-    public MatchingConfigService(MatchingConfigRepository configRepository, MatchingService matchingService) {
+    /**
+     * Creates the service with the repository it saves to, the service that knows the engine, and the
+     * ranges the admin may choose from application.properties (constructor injection).
+     */
+    public MatchingConfigService(MatchingConfigRepository configRepository, MatchingService matchingService,
+            Environment environment) {
         this.configRepository = configRepository;
         this.matchingService = matchingService;
+        this.minResultsLimit = environment.getRequiredProperty("studybuddy.matching.min-results", Integer.class);
+        this.maxResultsLimit = environment.getRequiredProperty("studybuddy.matching.max-results", Integer.class);
+        this.minSessionHoursLimit = environment.getRequiredProperty("studybuddy.matching.min-session-hours",
+                Integer.class);
+        this.maxSessionHoursLimit = environment.getRequiredProperty("studybuddy.matching.max-session-hours",
+                Integer.class);
     }
 
     /** Returns the names of the strategies an administrator can choose from, in engine order. */
@@ -139,8 +151,8 @@ public class MatchingConfigService {
         }
 
         Integer maxResults = parseWholeNumber(form.getMaxResults());
-        if (maxResults == null || maxResults < MIN_RESULTS || maxResults > MAX_RESULTS) {
-            fieldErrors.put("maxResults", "Max results must be a whole number from " + MIN_RESULTS + " to " + MAX_RESULTS);
+        if (maxResults == null || maxResults < minResultsLimit || maxResults > maxResultsLimit) {
+            fieldErrors.put("maxResults", "Max results must be a whole number from " + minResultsLimit + " to " + maxResultsLimit);
         }
 
         Double minimumScore = parseNumber(form.getMinimumScore());
@@ -156,9 +168,9 @@ public class MatchingConfigService {
         }
 
         Integer minSessionHours = parseWholeNumber(form.getMinSessionHours());
-        if (minSessionHours == null || minSessionHours < MIN_SESSION_HOURS || minSessionHours > MAX_SESSION_HOURS) {
+        if (minSessionHours == null || minSessionHours < minSessionHoursLimit || minSessionHours > maxSessionHoursLimit) {
             fieldErrors.put("minSessionHours", "Minimum session hours must be a whole number from "
-                    + MIN_SESSION_HOURS + " to " + MAX_SESSION_HOURS);
+                    + minSessionHoursLimit + " to " + maxSessionHoursLimit);
         }
 
         Double congestionStrength = parseNumber(form.getCongestionStrength());

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import com.studybuddy.model.AvailabilityGrid;
@@ -28,19 +29,24 @@ import com.studybuddy.repository.StudentRepository;
 @Service
 public class ProfileEditService {
 
-    private static final int MIN_YEAR = 1;
-    private static final int MAX_YEAR = 5;
-    private static final int MAX_LOOKING_FOR_LENGTH = 200;
     private static final String CONTACT_PATTERN = "[89][0-9]{7}";
     private static final String CELL_SEPARATOR = "-";
 
     private final StudentRepository studentRepository;
     private final CourseRepository courseRepository;
+    private final int minYear;
+    private final int maxYear;
+    private final int maxLookingForLength;
 
-    /** Creates the service with the repositories it uses (constructor injection). */
-    public ProfileEditService(StudentRepository studentRepository, CourseRepository courseRepository) {
+    /** Creates the service with the repositories it uses and its limits from application.properties (constructor injection). */
+    public ProfileEditService(StudentRepository studentRepository, CourseRepository courseRepository,
+            Environment environment) {
         this.studentRepository = studentRepository;
         this.courseRepository = courseRepository;
+        this.minYear = environment.getRequiredProperty("studybuddy.profile.min-year", Integer.class);
+        this.maxYear = environment.getRequiredProperty("studybuddy.profile.max-year", Integer.class);
+        this.maxLookingForLength = environment.getRequiredProperty("studybuddy.profile.max-looking-for-length",
+                Integer.class);
     }
 
     /** Returns field name to message for every invalid field; empty when the form is valid. */
@@ -59,9 +65,9 @@ public class ProfileEditService {
 
         Integer year = parseWholeNumber(form.getYear());
         if (year == null) {
-            fieldErrors.put("year", "Year must be a whole number from " + MIN_YEAR + " to " + MAX_YEAR);
-        } else if (year < MIN_YEAR || year > MAX_YEAR) {
-            fieldErrors.put("year", "Year must be from " + MIN_YEAR + " to " + MAX_YEAR);
+            fieldErrors.put("year", "Year must be a whole number from " + minYear + " to " + maxYear);
+        } else if (year < minYear || year > maxYear) {
+            fieldErrors.put("year", "Year must be from " + minYear + " to " + maxYear);
         }
 
         String contact = trimOrEmpty(form.getNewContactNumber());
@@ -114,8 +120,8 @@ public class ProfileEditService {
             }
         }
 
-        if (trimOrEmpty(form.getLookingFor()).length() > MAX_LOOKING_FOR_LENGTH) {
-            fieldErrors.put("lookingFor", "Keep this to " + MAX_LOOKING_FOR_LENGTH + " characters or fewer");
+        if (trimOrEmpty(form.getLookingFor()).length() > maxLookingForLength) {
+            fieldErrors.put("lookingFor", "Keep this to " + maxLookingForLength + " characters or fewer");
         }
 
         return fieldErrors;

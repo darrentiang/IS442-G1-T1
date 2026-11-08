@@ -1,0 +1,64 @@
+@startuml use-cases
+' What each of the three roles in the brief can do.
+!theme plain
+skinparam defaultFontName "Segoe UI"
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FAFAFA
+  BorderColor #6E6E73
+}
+
+left to right direction
+
+actor "Student" as student
+actor "Study Group\nLeader" as leader
+actor "System\nAdministrator" as admin
+student <|-- leader
+
+rectangle "Study Buddy Matcher" {
+  package "Profile & preferences" {
+    usecase "Create / update profile" as UC1
+    usecase "Set preferences and\nweekly availability" as UC2
+    usecase "Import timetable (.ics)" as UC3
+  }
+  package "Matching" {
+    usecase "Search by course or goal" as UC4
+    usecase "View ranked, filtered matches" as UC5
+    usecase "View public profile\n(contact hidden)" as UC6
+  }
+  package "Requests & connections" {
+    usecase "Send buddy request" as UC7
+    usecase "Accept / decline request" as UC8
+    usecase "View / end connections" as UC9
+  }
+  package "Study groups" {
+    usecase "Browse and join groups" as UC10
+    usecase "Leave a group" as UC11
+    usecase "Create / edit / close group" as UC12
+    usecase "Accept / reject join requests,\nremove members" as UC13
+  }
+  package "Administration" {
+    usecase "Create / update / delete accounts" as UC14
+    usecase "View status and usage,\nsuspend / reactivate" as UC15
+    usecase "Configure criteria,\nstrategy and weights" as UC16
+  }
+}
+
+student --> UC1
+student --> UC2
+student --> UC3
+student --> UC4
+student --> UC5
+student --> UC6
+student --> UC7
+student --> UC8
+student --> UC9
+student --> UC10
+student --> UC11
+leader --> UC12
+leader --> UC13
+admin --> UC14
+admin --> UC15
+admin --> UC16
+UC3 .> UC2 : <<extend>>
+@enduml
