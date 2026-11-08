@@ -11,6 +11,99 @@
     <p class="text-secondary">Choose the strategy, which criteria count, and how much each one matters.</p>
   </div>
 
+  <div class="banner banner-info" th:if="${recommendationApplied != null}">
+    Recommended settings filled in below. Review them, then press Save configuration. Nothing changes until you save.
+  </div>
+
+  <section class="card" th:if="${report != null}" th:with="h=${report.headline}, rates=${report.rates}" aria-labelledby="projection-heading">
+    <h2 id="projection-heading">Projection: these settings vs the saved ones</h2>
+    <div class="banner banner-info" th:if="${report.proposedBetter}">
+      These settings get more students a usable buddy under every behaviour tested, without lowering match quality or crowding inboxes.
+    </div>
+    <div class="banner banner-danger" th:if="${report.proposedWorse}">
+      These settings leave more students without a usable buddy than the saved ones.
+    </div>
+    <div class="banner banner-warning" th:if="${!report.proposedBetter and !report.proposedWorse}">
+      No clear improvement: the difference is small enough to be luck, or a quality or inbox check failed.
+    </div>
+
+    <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th>Measure</th><th>Saved settings</th><th>These settings</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Students with a usable buddy</td>
+          <td th:text="|${#numbers.formatDecimal(h.current.coverage.mean * 100, 1, 1)}% ± ${#numbers.formatDecimal(h.current.coverage.margin * 100, 1, 1)}|">85.0% ± 0.5</td>
+          <td th:text="|${#numbers.formatDecimal(h.proposed.coverage.mean * 100, 1, 1)}% ± ${#numbers.formatDecimal(h.proposed.coverage.margin * 100, 1, 1)}|">88.5% ± 0.4</td>
+        </tr>
+        <tr>
+          <td>Match score of new buddies</td>
+          <td th:text="${#numbers.formatDecimal(h.current.averageScore.mean * 100, 1, 0) + '%'}">69%</td>
+          <td th:text="${#numbers.formatDecimal(h.proposed.averageScore.mean * 100, 1, 0) + '%'}">67%</td>
+        </tr>
+        <tr>
+          <td>Shared free time of new buddies</td>
+          <td th:text="${#numbers.formatDecimal(h.current.averageHours.mean, 1, 1) + 'h a week'}">2.5h a week</td>
+          <td th:text="${#numbers.formatDecimal(h.proposed.averageHours.mean, 1, 1) + 'h a week'}">3.4h a week</td>
+        </tr>
+        <tr>
+          <td>Most requests waiting for one student</td>
+          <td th:text="${#numbers.formatDecimal(h.current.peakInbox.mean, 1, 1)}">4.0</td>
+          <td th:text="${#numbers.formatDecimal(h.proposed.peakInbox.mean, 1, 1)}">5.0</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h2>Does it hold if students behave differently?</h2>
+    <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th>Behaviour</th><th>Saved settings</th><th>These settings</th><th>Result</th></tr>
+      </thead>
+      <tbody>
+        <tr th:each="c : ${report.comparisons}">
+          <td th:text="${c.behaviour.label}">Learned from current data</td>
+          <td th:text="${#numbers.formatDecimal(c.current.coverage.mean * 100, 1, 1) + '%'}">85.0%</td>
+          <td th:text="${#numbers.formatDecimal(c.proposed.coverage.mean * 100, 1, 1) + '%'}">88.5%</td>
+          <td th:text="${c.proposedBetter ? 'Better' : (c.coverageClearlyLower ? 'Worse' : 'No clear difference')}">Better</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h2>What students do, learned from current data</h2>
+    <dl class="facts">
+      <div th:with="e=${rates.requestsPerRound}">
+        <dt>Requests sent per round</dt>
+        <dd th:text="|${#numbers.formatDecimal(e.value, 1, 1)} (${e.learned ? 'from ' + e.observations + ' requests' : 'default, only ' + e.observations + ' requests'})|">2.0 (from 69 requests)</dd>
+      </div>
+      <div th:with="e=${rates.ignoreRate}">
+        <dt>Requests left unanswered</dt>
+        <dd th:text="|${#numbers.formatDecimal(e.value * 100, 1, 0)}% (${e.learned ? 'from ' + e.observations + ' requests' : 'default, only ' + e.observations + ' requests'})|">29% (from 69 requests)</dd>
+      </div>
+      <div th:with="e=${rates.getAcceptRateForBand(2)}">
+        <dt>Accepted when the match score is 65% or more</dt>
+        <dd th:text="|${#numbers.formatDecimal(e.value * 100, 1, 0)}% (${e.learned ? 'from ' + e.observations + ' answers' : 'default, only ' + e.observations + ' answers'})|">46% (from 28 answers)</dd>
+      </div>
+      <div th:with="e=${rates.getAcceptRateForBand(1)}">
+        <dt>Accepted when the match score is 50% to 65%</dt>
+        <dd th:text="|${#numbers.formatDecimal(e.value * 100, 1, 0)}% (${e.learned ? 'from ' + e.observations + ' answers' : 'default, only ' + e.observations + ' answers'})|">39% (from 18 answers)</dd>
+      </div>
+      <div th:with="e=${rates.getAcceptRateForBand(0)}">
+        <dt>Accepted when the match score is below 50%</dt>
+        <dd th:text="|${#numbers.formatDecimal(e.value * 100, 1, 0)}% (${e.learned ? 'from ' + e.observations + ' answers' : 'default, only ' + e.observations + ' answers'})|">20% (default, only 3 answers)</dd>
+      </div>
+      <div th:with="e=${rates.busyFactor}">
+        <dt>Effect of 3 or more requests waiting</dt>
+        <dd th:text="|Accepts ${#numbers.formatDecimal(e.value * 100, 1, 0)}% as often (${e.learned ? 'from ' + e.observations + ' answers' : 'default, only ' + e.observations + ' answers'})|">Accepts 79% as often (from 49 answers)</dd>
+      </div>
+    </dl>
+    <p class="hint" th:text="|Projected ${report.rounds} rounds of requests ahead, ${report.terms} simulated runs per setting, from the current data. A buddy only counts if the pair shares a free block and scores at least the saved minimum score. This compares settings with each other; it is not an exact forecast. Nothing has been saved.|">Projected 3 rounds ahead.</p>
+  </section>
+
   <form th:action="@{/admin/config}" method="post" novalidate>
     <div class="card">
       <h2>Strategy</h2>
@@ -87,9 +180,61 @@
       <p class="hint" id="congestion-hint">How strongly students with many pending requests are moved down; 0 turns it off</p>
       <p th:replace="~{fragments/field-error :: field-error('congestionStrength')}"></p>
 
-      <button type="submit" class="btn btn-primary">Save configuration</button>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save configuration</button>
+        <button type="submit" class="btn btn-secondary" th:formaction="@{/admin/config/simulate}">Simulate these settings</button>
+      </div>
+      <p class="text-secondary">Simulate projects how these settings would do against the saved ones, without saving. It takes about 10 seconds.</p>
     </div>
   </form>
+
+  <section class="card" aria-labelledby="best-heading">
+    <h2 id="best-heading">Find better settings</h2>
+    <p class="text-secondary">Tries combinations of strategy, congestion strength and minimum score around the saved settings, and recommends one only if it clearly gets more students a usable buddy.</p>
+
+    <th:block th:if="${recommendation != null and recommendation.found}"
+              th:with="rc=${recommendation.config}, h=${recommendation.report.headline}">
+      <div class="banner banner-info"
+           th:text="|Tried ${recommendation.combinationsTried} combinations. Recommended settings: ${#numbers.formatDecimal(h.proposed.coverage.mean * 100, 1, 1)}% of students with a usable buddy, against ${#numbers.formatDecimal(h.current.coverage.mean * 100, 1, 1)}% with the saved settings. It holds under all three behaviours.|">
+        Tried 26 combinations.
+      </div>
+      <dl class="facts">
+        <div>
+          <dt>Strategy</dt>
+          <dd th:text="|${strategies[savedConfig.activeStrategyName]} → ${strategies[rc.activeStrategyName]}|">Balanced → Availability first</dd>
+        </div>
+        <div>
+          <dt>Congestion strength</dt>
+          <dd th:text="|${savedConfig.congestionStrength} → ${rc.congestionStrength}|">0.05 → 0.5</dd>
+        </div>
+        <div>
+          <dt>Minimum score</dt>
+          <dd th:text="|${savedConfig.minimumScore} → ${#numbers.formatDecimal(rc.minimumScore, 1, 2)}|">0.2 → 0.30</dd>
+        </div>
+      </dl>
+      <form th:action="@{/admin/config/apply-recommendation}" method="post">
+        <input type="hidden" name="activeStrategyName" th:value="${rc.activeStrategyName}">
+        <input type="hidden" name="congestionStrength" th:value="${rc.congestionStrength}">
+        <input type="hidden" name="minimumScore" th:value="${#numbers.formatDecimal(rc.minimumScore, 1, 2)}">
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Apply recommended settings</button>
+        </div>
+      </form>
+      <p class="text-secondary">Fills the form above with these values. Nothing is saved until you press Save configuration.</p>
+    </th:block>
+
+    <div class="banner banner-info" th:if="${recommendation != null and !recommendation.found}"
+         th:text="|Your saved settings are already the best of the ${recommendation.combinationsTried} combinations tried.|">
+      Your saved settings are already the best.
+    </div>
+
+    <form th:action="@{/admin/config/recommend}" method="post">
+      <div class="form-actions">
+        <button type="submit" class="btn btn-secondary">Find best settings</button>
+      </div>
+    </form>
+    <p class="text-secondary">Takes about 15 seconds.</p>
+  </section>
 </main>
 <script th:src="@{/js/admin-config.js}"></script>
 </body>
