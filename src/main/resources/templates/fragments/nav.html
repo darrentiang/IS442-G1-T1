@@ -21,6 +21,14 @@
            th:if="${session.currentUserRole != null && session.currentUserRole.name() == 'STUDENT'}"
            th:classappend="${active == 'buddies'} ? 'active'"
            th:attr="aria-current=${active == 'buddies'} ? 'page'">Find buddies</a>
+        <a th:href="@{/requests}"
+           th:if="${session.currentUserRole != null && session.currentUserRole.name() == 'STUDENT'}"
+           th:classappend="${active == 'requests'} ? 'active'"
+           th:attr="aria-current=${active == 'requests'} ? 'page'">Requests</a>
+        <a th:href="@{/connections}"
+           th:if="${session.currentUserRole != null && session.currentUserRole.name() == 'STUDENT'}"
+           th:classappend="${active == 'connections'} ? 'active'"
+           th:attr="aria-current=${active == 'connections'} ? 'page'">My buddies</a>
         <a th:href="@{/profile}"
            th:if="${session.currentUserRole != null && session.currentUserRole.name() == 'STUDENT'}"
            th:classappend="${active == 'profile'} ? 'active'"

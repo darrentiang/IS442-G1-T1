@@ -1,7 +1,7 @@
 package com.studybuddy.repository;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -9,11 +9,12 @@ import org.springframework.stereotype.Repository;
 
 import com.studybuddy.model.Connection;
 
-/** HashMap-backed implementation. */
+/** LinkedHashMap-backed implementation; keeps insertion order, so lists come back oldest first. */
 @Repository
 public class InMemoryConnectionRepository implements ConnectionRepository {
 
-    private final Map<String, Connection> store = new HashMap<>();
+    private final Map<String, Connection> store = new LinkedHashMap<>();
+    private int nextNumber = 0;
 
     /** Saves a connection, replacing any existing connection with the same id. */
     @Override
@@ -31,6 +32,17 @@ public class InMemoryConnectionRepository implements ConnectionRepository {
     @Override
     public List<Connection> findAll() {
         return new ArrayList<>(store.values());
+    }
+
+    /** Returns an unused connection id such as "C001" or "C002". */
+    @Override
+    public String nextId() {
+        String id;
+        do {
+            nextNumber++;
+            id = String.format("C%03d", nextNumber);
+        } while (store.containsKey(id));
+        return id;
     }
 
     /** Returns the active connections where this student is either side. */

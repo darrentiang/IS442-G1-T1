@@ -1,10 +1,15 @@
 package com.studybuddy.service;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.studybuddy.model.AccountStatus;
 import com.studybuddy.model.Connection;
 import com.studybuddy.model.MatchRequest;
+import com.studybuddy.model.RequestAlreadyHandledException;
 import com.studybuddy.model.RequestNotAllowedException;
 import com.studybuddy.model.RequestStatus;
 import com.studybuddy.model.Student;
@@ -14,7 +19,8 @@ import com.studybuddy.repository.StudentRepository;
 
 /**
  * Business rules for buddy requests between two students. Shared: Group 1 owns sending
- * (Find Buddies); Group 3 adds the receiving side (accept, decline, connections) here.
+ * (Find Buddies); Group 3 owns the receiving side (accept, decline). Listing and ending
+ * connections lives in ConnectionService.
  */
 @Service
 public class MatchRequestService {
@@ -82,6 +88,64 @@ public class MatchRequestService {
             }
         }
         return count;
+    }
+
+    /** Returns the PENDING requests this student has received, oldest first. */
+    public List<MatchRequest> findPendingTo(String studentId) {
+        List<MatchRequest> pending = new ArrayList<>();
+        for (MatchRequest request : requestRepository.findTo(studentId)) {
+            if (request.getStatus() == RequestStatus.PENDING) {
+                pending.add(request);
+            }
+        }
+        return pending;
+    }
+
+    /**
+     * Accepts a request sent to this student and connects the two students.
+     * No second connection is made if they are already connected.
+     *
+     * @param requestId the request to accept
+     * @param studentId the signed-in student, who must be the receiver
+     * @return the accepted request
+     * @throws RequestNotAllowedException if the request does not exist or was not sent to this student
+     * @throws RequestAlreadyHandledException if the request was already accepted or declined
+     */
+    public MatchRequest accept(String requestId, String studentId) {
+        MatchRequest request = findRequestSentTo(requestId, studentId);
+        request.accept();
+        requestRepository.save(request);
+        Student from = request.getFrom();
+        Student to = request.getTo();
+        if (!isConnected(from.getId(), to.getId())) {
+            connectionRepository.save(new Connection(connectionRepository.nextId(), from, to, LocalDate.now()));
+        }
+        return request;
+    }
+
+    /**
+     * Declines a request sent to this student. No connection is made.
+     *
+     * @param requestId the request to decline
+     * @param studentId the signed-in student, who must be the receiver
+     * @return the declined request
+     * @throws RequestNotAllowedException if the request does not exist or was not sent to this student
+     * @throws RequestAlreadyHandledException if the request was already accepted or declined
+     */
+    public MatchRequest decline(String requestId, String studentId) {
+        MatchRequest request = findRequestSentTo(requestId, studentId);
+        request.decline();
+        requestRepository.save(request);
+        return request;
+    }
+
+    /** Returns the request if it exists and was sent to this student; throws otherwise. */
+    private MatchRequest findRequestSentTo(String requestId, String studentId) {
+        MatchRequest request = requestRepository.findById(requestId);
+        if (request == null || !request.getTo().getId().equals(studentId)) {
+            throw new RequestNotAllowedException("This request isn't available");
+        }
+        return request;
     }
 
     /** Returns true if a PENDING request from the first student to the second exists. */
