@@ -46,6 +46,24 @@ public class ConnectionController {
         return "student/connections";
     }
 
+    /** Ends a connection; returns to the buddy list with a toast. */
+    @PostMapping("/connections/{id}/end")
+    public String endConnection(@PathVariable String id, HttpSession session,
+            RedirectAttributes redirectAttributes) {
+        Student student = CurrentUser.studentOrNull(session, userService);
+        if (student == null) {
+            Toasts.error(redirectAttributes, NOT_A_STUDENT);
+            return "redirect:/home";
+        }
+        try {
+            Student buddy = connectionService.endConnection(id, student.getId());
+            Toasts.success(redirectAttributes, "You're no longer connected with " + buddy.getName());
+        } catch (BusinessRuleException e) {
+            Toasts.error(redirectAttributes, e.getMessage());
+        }
+        return "redirect:/connections";
+    }
+
     /** Shows the pending buddy requests sent to the signed-in student. */
     @GetMapping("/requests")
     public String showRequests(HttpSession session, Model model, RedirectAttributes redirectAttributes) {

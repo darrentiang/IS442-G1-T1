@@ -17,13 +17,18 @@
 
   <div class="card">
     <table class="table" th:unless="${#lists.isEmpty(connections)}">
-      <thead><tr><th>Buddy</th><th>Programme</th><th>Contact</th><th>Connected since</th></tr></thead>
+      <thead><tr><th>Buddy</th><th>Programme</th><th>Contact</th><th>Connected since</th><th></th></tr></thead>
       <tbody>
         <tr th:each="row : ${connections}">
           <td><a th:href="@{/buddies/{id}(id=${row.buddy.id},from='connections')}" th:text="${row.buddy.name}">Tan Wei Jie</a></td>
           <td th:text="${row.view.programme + ' · Year ' + row.view.yearOfStudy}">Information Systems · Year 3</td>
           <td th:text="${row.view.contactNumber}">91234567</td>
           <td th:text="${#temporals.format(row.since, 'd MMM yyyy')}">8 Nov 2026</td>
+          <td>
+            <form th:action="@{/connections/{id}/end(id=${row.connectionId})}" method="post">
+              <button type="submit" class="btn btn-danger">End connection</button>
+            </form>
+          </td>
         </tr>
       </tbody>
     </table>
