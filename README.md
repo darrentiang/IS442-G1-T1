@@ -1,10 +1,12 @@
-# Study Buddy Matcher
+<h1 align="center">Study Buddy Matcher</h1>
 
-[![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/21/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.6-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
-[![Thymeleaf](https://img.shields.io/badge/Thymeleaf-server--rendered-005F0F?logo=thymeleaf&logoColor=white)](https://www.thymeleaf.org/)
-[![Storage](https://img.shields.io/badge/storage-in--memory-lightgrey)](#configuration-and-seed-data)
-[![Course](https://img.shields.io/badge/SMU-IS442%20OOP-1F3A68)](#team-and-work-division)
+<p align="center">
+  <a href="https://openjdk.org/projects/jdk/21/"><img alt="Java 21" src="https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white"></a>
+  <a href="https://spring.io/projects/spring-boot"><img alt="Spring Boot 3.5.6" src="https://img.shields.io/badge/Spring%20Boot-3.5.6-6DB33F?logo=springboot&logoColor=white"></a>
+  <a href="https://www.thymeleaf.org/"><img alt="Thymeleaf" src="https://img.shields.io/badge/Thymeleaf-server--rendered-005F0F?logo=thymeleaf&logoColor=white"></a>
+  <a href="#configuration-and-seed-data"><img alt="In-memory storage" src="https://img.shields.io/badge/storage-in--memory-lightgrey"></a>
+  <a href="#team-and-work-division"><img alt="SMU IS442 OOP" src="https://img.shields.io/badge/SMU-IS442%20OOP-1F3A68"></a>
+</p>
 
 A web app that helps SMU students find compatible study partners and run study groups. A deterministic scoring engine ranks potential buddies by course, availability, study mode, goals and more; students connect through buddy requests, and contact numbers are only revealed once both sides agree.
 
