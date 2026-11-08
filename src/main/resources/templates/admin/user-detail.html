@@ -23,6 +23,24 @@
     </div>
   </div>
 
+  <div>
+    <h2>Usage</h2>
+    <div class="card">
+      <table class="table">
+        <tbody>
+          <tr>
+            <td>Last signed in</td>
+            <td th:text="${user.lastSignedIn != null ? #temporals.format(user.lastSignedIn, 'd MMM yyyy, HH:mm') : 'Never'}">12 Nov 2026, 14:02</td>
+          </tr>
+          <tr th:each="entry : ${usage}">
+            <td th:text="${entry.key}">Buddy requests sent</td>
+            <td th:text="${entry.value}">3</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <div class="card">
     <h2>Manage account</h2>
     <p class="text-secondary">Change the name or email, or delete the account permanently. Deleting cannot be undone.</p>

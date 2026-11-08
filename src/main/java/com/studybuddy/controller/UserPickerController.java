@@ -45,6 +45,7 @@ public class UserPickerController {
             Toasts.error(redirectAttributes, "This account is suspended");
             return "redirect:/";
         }
+        userService.recordSignIn(user);
         CurrentUser.signIn(session, user);
         Toasts.success(redirectAttributes, "Signed in as " + user.getName());
         return "redirect:/home";

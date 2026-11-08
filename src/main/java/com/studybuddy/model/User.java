@@ -1,5 +1,6 @@
 package com.studybuddy.model;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 /** Anyone with an account. Abstract: you are either a Student or an Administrator. */
@@ -9,6 +10,7 @@ public abstract class User {
     private String name;
     private String email;
     private AccountStatus status;
+    private LocalDateTime lastSignedIn;
 
     /** Creates a user with the given identity; new accounts start ACTIVE. */
     protected User(String id, String name, String email) {
@@ -51,6 +53,16 @@ public abstract class User {
     /** Changes the account status (used by admin suspend/reactivate). */
     public void setStatus(AccountStatus status) {
         this.status = status;
+    }
+
+    /** Returns when the user last signed in, or null if they have not signed in yet. */
+    public LocalDateTime getLastSignedIn() {
+        return lastSignedIn;
+    }
+
+    /** Records when the user last signed in. */
+    public void setLastSignedIn(LocalDateTime lastSignedIn) {
+        this.lastSignedIn = lastSignedIn;
     }
 
     /** Returns this account's role; used instead of instanceof checks. */
