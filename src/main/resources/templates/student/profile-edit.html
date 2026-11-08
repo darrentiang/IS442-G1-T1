@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <!--
-  Edit my details. On a field error the controller returns this view with the submitted values.
+  Edit my details, including my name. On a field error the controller returns this view with the submitted values.
   Expects: form (ProfileForm), fieldErrors, courses, modeOptions, formatOptions, intensityOptions, goalOptions.
 -->
 <head th:replace="~{fragments/head :: head('Edit details')}"></head>
@@ -17,6 +17,10 @@
 
   <div class="card card-narrow">
     <form th:action="@{/profile/edit}" method="post">
+      <label for="name">Name</label>
+      <input id="name" name="name" th:value="${form.name}">
+      <p th:replace="~{fragments/field-error :: field-error('name')}"></p>
+
       <label for="school">School</label>
       <input id="school" name="school" th:value="${form.school}">
       <p th:replace="~{fragments/field-error :: field-error('school')}"></p>

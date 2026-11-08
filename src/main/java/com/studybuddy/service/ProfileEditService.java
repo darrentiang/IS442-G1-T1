@@ -47,6 +47,9 @@ public class ProfileEditService {
     public Map<String, String> validate(ProfileForm form) {
         Map<String, String> fieldErrors = new HashMap<>();
 
+        if (trimOrEmpty(form.getName()).isEmpty()) {
+            fieldErrors.put("name", "Name is required");
+        }
         if (trimOrEmpty(form.getSchool()).isEmpty()) {
             fieldErrors.put("school", "School is required");
         }
@@ -119,13 +122,14 @@ public class ProfileEditService {
     }
 
     /**
-     * Copies a validated form onto the student's profile. Courses are looked up by code; the
+     * Copies a validated form onto the student and their profile. Courses are looked up by code; the
      * contact number changes only when a new one was typed.
      *
      * @param student the signed-in student
      * @param form a form that has already passed validate
      */
     public void update(Student student, ProfileForm form) {
+        student.setName(trimOrEmpty(form.getName()));
         StudentProfile profile = student.getProfile();
         profile.setSchool(trimOrEmpty(form.getSchool()));
         profile.setProgramme(trimOrEmpty(form.getProgramme()));
