@@ -6,8 +6,11 @@
 <div th:replace="~{fragments/toast :: toast}"></div>
 
 <main>
-  <h1>Study groups</h1>
-  <div>
+  <div class="page-header">
+    <div>
+      <h1>Study groups</h1>
+      <p class="text-secondary">Open groups you can ask to join. Filter by course or study goal.</p>
+    </div>
     <a th:if="${student != null}" th:href="@{/groups/new}" class="btn btn-primary">Create a group</a>
   </div>
 
@@ -61,7 +64,6 @@
     </table>
     <th:block th:if="${#lists.isEmpty(groups)}">
       <div th:replace="~{fragments/empty-state :: empty-state('No open groups match these filters. Try another course or study goal.')}"></div>
-      <p th:if="${student != null}"><a th:href="@{/groups/new}">Create one</a></p>
     </th:block>
   </div>
 </main>

@@ -25,7 +25,7 @@
           <td>
             <form th:action="@{/requests/{id}/accept(id=${request.id})}" method="post">
               <button type="submit" class="btn btn-secondary">Accept</button>
-              <button type="submit" class="btn btn-danger"
+              <button type="submit" class="btn btn-quiet-danger"
                       th:formaction="@{/requests/{id}/decline(id=${request.id})}">Decline</button>
             </form>
           </td>
@@ -33,7 +33,7 @@
       </tbody>
     </table>
     <th:block th:if="${#lists.isEmpty(requests)}">
-      <div th:replace="~{fragments/empty-state :: empty-state('No pending buddy requests. Requests other students send you will appear here.')}"></div>
+      <div th:replace="~{fragments/empty-state :: empty-state-action('No buddy requests waiting. Requests other students send you will appear here.', 'Find buddies', @{/buddies})}"></div>
     </th:block>
   </div>
 </main>

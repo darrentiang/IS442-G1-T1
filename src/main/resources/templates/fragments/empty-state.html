@@ -11,5 +11,14 @@
 <div th:fragment="empty-state(message)" class="empty-state">
   <p th:text="${message}">No pending requests</p>
 </div>
+
+<!--
+  The same, with a button for the next step, so an empty list is never a dead end.
+  Usage: <div th:replace="~{fragments/empty-state :: empty-state-action('No buddies yet.', 'Find buddies', @{/buddies})}"></div>
+-->
+<div th:fragment="empty-state-action(message, label, url)" class="empty-state">
+  <p th:text="${message}">No buddies yet.</p>
+  <a class="btn btn-secondary" th:href="${url}" th:text="${label}">Find buddies</a>
+</div>
 </body>
 </html>

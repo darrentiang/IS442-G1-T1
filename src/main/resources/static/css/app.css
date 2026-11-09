@@ -448,6 +448,12 @@ textarea:focus {
     font-size: 12px;
     font-weight: 600;
     line-height: 1.5;
+    /* Enum values arrive in capitals (ACTIVE); show them in sentence case (Active). */
+    text-transform: lowercase;
+}
+
+.badge::first-letter {
+    text-transform: uppercase;
 }
 
 /* Info (blue) */
@@ -1712,4 +1718,68 @@ h2 > .icon {
 .avatar .icon {
     width: 18px;
     height: 18px;
+}
+
+
+/* --------------------------------------------------------------------------
+   Page pattern: quiet refusals, the Danger zone, header actions
+   -------------------------------------------------------------------------- */
+
+/* A refusal or removal in a row (Decline, Remove, End): red text, no fill, so the accepting
+   action next to it reads as the main one. */
+.btn-quiet-danger {
+    background: transparent;
+    border-color: transparent;
+    color: var(--color-danger);
+}
+
+.btn-quiet-danger:hover {
+    background: color-mix(in srgb, var(--color-danger) 8%, transparent);
+}
+
+/* Actions that remove or end something live at the bottom of the page, one per row, each with
+   a sentence saying what happens. */
+.danger-zone {
+    border-color: color-mix(in srgb, var(--color-danger) 30%, var(--color-border));
+}
+
+.danger-zone h2 {
+    color: var(--color-danger);
+}
+
+.danger-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 16px 0;
+}
+
+.danger-row + .danger-row {
+    border-top: 1px solid var(--color-divider);
+}
+
+.danger-row p {
+    margin: 0;
+}
+
+.danger-row .text-secondary {
+    margin-top: 2px;
+    font-size: 14px;
+}
+
+.danger-title {
+    font-weight: 500;
+}
+
+@media (max-width: 640px) {
+    .danger-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* A page action at the far right of a detail header (Edit account). */
+.detail-header-action {
+    margin-left: auto;
 }
