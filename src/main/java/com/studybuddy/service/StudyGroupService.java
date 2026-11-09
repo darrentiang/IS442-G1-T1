@@ -24,7 +24,10 @@ import com.studybuddy.repository.CourseRepository;
 import com.studybuddy.repository.JoinRequestRepository;
 import com.studybuddy.repository.StudyGroupRepository;
 
-/** Business rules for creating, editing, closing and looking up study groups. */
+/**
+ * Business rules for creating, editing, closing and looking up study groups. After a change to who
+ * is in a group it tells every GroupEventListener, so other features can react.
+ */
 @Service
 public class StudyGroupService {
 
@@ -35,13 +38,16 @@ public class StudyGroupService {
     private final int maxDescriptionLength;
     private final int minGroupSize;
     private final int maxGroupSize;
+    private final List<GroupEventListener> listeners;
 
-    /** Creates the service with the repositories it uses and its limits from application.properties (constructor injection). */
+    /** Creates the service with the repositories it uses, its limits from application.properties and the group listeners (constructor injection). */
     public StudyGroupService(StudyGroupRepository groupRepository,
                              JoinRequestRepository requestRepository,
                              CourseRepository courseRepository,
-                             Environment environment) {
+                             Environment environment,
+                             List<GroupEventListener> listeners) {
         this.groupRepository = groupRepository;
+        this.listeners = new ArrayList<>(listeners);
         this.requestRepository = requestRepository;
         this.courseRepository = courseRepository;
         this.maxNameLength = environment.getRequiredProperty("studybuddy.group.max-name-length", Integer.class);
@@ -122,6 +128,9 @@ public class StudyGroupService {
         group.addMember(leader);
         group.setOpen(true);
         groupRepository.save(group);
+        for (GroupEventListener listener : listeners) {
+            listener.onGroupCreated(group);
+        }
         return group;
     }
 
@@ -145,6 +154,9 @@ public class StudyGroupService {
         }
         group.setOpen(false);
         groupRepository.save(group);
+        for (GroupEventListener listener : listeners) {
+            listener.onGroupClosed(group);
+        }
 
         for (JoinRequest request : requestRepository.findByGroup(groupId)) {
             if (request.getStatus() == RequestStatus.PENDING) {
@@ -192,6 +204,7 @@ public class StudyGroupService {
         if (!isLeader(group, studentId)) {
             group.removeMember(student);
             groupRepository.save(group);
+            notifyMemberLeft(group, student);
             return null;
         }
         Student newLeader = group.nextLeader();
@@ -204,7 +217,15 @@ public class StudyGroupService {
         group.setLeader(newLeader);
         group.removeMember(student);
         groupRepository.save(group);
+        notifyMemberLeft(group, student);
         return newLeader;
+    }
+
+    /** Tells every listener that the student is no longer in the group. */
+    private void notifyMemberLeft(StudyGroup group, Student student) {
+        for (GroupEventListener listener : listeners) {
+            listener.onMemberLeft(group, student);
+        }
     }
 
     /** Returns the member of the group with this id, or null if they are not in it. */

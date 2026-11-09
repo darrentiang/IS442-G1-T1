@@ -36,3 +36,6 @@ SCAFFOLD_PLAN.md
 
 # Local prompt files
 *.local.md
+
+# Local secrets (Discord tokens)
+.env

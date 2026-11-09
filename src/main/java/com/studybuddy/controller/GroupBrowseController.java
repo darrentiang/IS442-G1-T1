@@ -18,6 +18,7 @@ import com.studybuddy.model.Student;
 import com.studybuddy.model.StudyGoal;
 import com.studybuddy.model.StudyGroup;
 import com.studybuddy.service.CourseService;
+import com.studybuddy.service.DiscordService;
 import com.studybuddy.service.JoinRequestService;
 import com.studybuddy.service.StudyGroupService;
 import com.studybuddy.service.UserService;
@@ -32,14 +33,16 @@ public class GroupBrowseController {
     private final StudyGroupService groupService;
     private final UserService userService;
     private final CourseService courseService;
+    private final DiscordService discordService;
 
     /** Creates the controller with the services to which it delegates. */
     public GroupBrowseController(JoinRequestService requestService, StudyGroupService groupService,
-            UserService userService, CourseService courseService) {
+            UserService userService, CourseService courseService, DiscordService discordService) {
         this.requestService = requestService;
         this.groupService = groupService;
         this.userService = userService;
         this.courseService = courseService;
+        this.discordService = discordService;
     }
 
     /** Shows public open groups with optional course and study goal filters. */
@@ -86,6 +89,8 @@ public class GroupBrowseController {
         model.addAttribute("full", groupService.isFull(group));
         model.addAttribute("pending", requestService.hasPendingRequest(userId, id));
         model.addAttribute("pendingStatus", RequestStatus.PENDING);
+        model.addAttribute("discordStatus", discordService.statusFor(group, userId).name());
+        model.addAttribute("discordChatUrl", discordService.chatUrl(group));
         model.addAttribute("days", new String[] {"Monday", "Tuesday", "Wednesday", "Thursday",
                 "Friday", "Saturday", "Sunday"});
         return "group/detail";
