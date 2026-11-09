@@ -630,15 +630,6 @@ textarea:focus {
     background: color-mix(in srgb, var(--color-accent) 18%, transparent);
 }
 
-/* Group details label each hourly cell so availability does not rely on colour. */
-.group-availability-cell {
-    height: auto;
-    min-height: 24px;
-    padding: 4px;
-    font-size: 12px;
-    overflow-wrap: anywhere;
-}
-
 .cell-busy {
     background: var(--color-surface-muted);
 }
@@ -861,17 +852,6 @@ textarea:focus {
     margin: 0;
 }
 
-.group-join-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 16px;
-    margin-top: 24px;
-    padding-top: 24px;
-    border-top: 1px solid var(--color-divider);
-}
-
 .group-member-count {
     color: var(--color-text-secondary);
     font-size: 13px;
@@ -910,47 +890,6 @@ textarea:focus {
     color: var(--color-text-secondary);
     font-size: 13px;
     font-weight: 600;
-}
-
-.group-timetable-scroll {
-    overflow-x: auto;
-    margin-top: 24px;
-}
-
-.group-timetable-scroll:focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 4px;
-}
-
-.group-timetable {
-    min-width: 720px;
-    table-layout: fixed;
-}
-
-.group-timetable th,
-.group-timetable td {
-    padding: 8px;
-    text-align: center;
-}
-
-.group-timetable th:first-child {
-    width: 120px;
-    position: sticky;
-    left: 0;
-    z-index: 1;
-}
-
-.group-timetable .group-availability-cell {
-    display: block;
-}
-
-.group-visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
 }
 
 @media (max-width: 900px) {
@@ -1370,6 +1309,7 @@ h2 + .hint {
 
 /* The availability editor: a table of 7 day rows x 15 hour columns, one checkbox per cell. */
 .avail-editor-scroll {
+    position: relative;   /* keeps the hidden checkboxes inside the scroll box on a phone */
     overflow-x: auto;
 }
 
@@ -1865,4 +1805,16 @@ h2 > .icon {
 /* The group's main action (Request to join) under its description, in the header card. */
 .group-header > .group-actions {
     margin-top: 16px;
+}
+
+/* On a phone the detail header wraps, so the action (Edit account) drops under the name. */
+@media (max-width: 640px) {
+    .detail-header {
+        flex-wrap: wrap;
+    }
+
+    .detail-header-action {
+        margin-left: 0;
+        flex-basis: 100%;
+    }
 }
