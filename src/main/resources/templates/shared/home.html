@@ -19,9 +19,24 @@
                  : profile.programme + ' · Year ' + profile.yearOfStudy
                    + (target == null ? '' : ' · looking for a buddy in ' + target.code)}">Information Systems · Year 3 · looking for a buddy in IS442</p>
     </div>
-    <a class="btn btn-primary" th:if="${target != null}" th:href="@{/buddies(course=${target.code})}"
-       th:text="'Find buddies for ' + ${target.code}">Find buddies for IS442</a>
+    <a class="btn btn-primary" th:if="${target != null}" th:href="@{/buddies(course=${target.code})}"><svg th:replace="~{fragments/icon :: icon('search')}"></svg><span th:text="'Find buddies for ' + ${target.code}">Find buddies for IS442</span></a>
     <a class="btn btn-primary" th:if="${target == null}" th:href="@{/profile/edit}">Complete your profile</a>
+  </div>
+
+  <div class="stat-row stat-row-cards"
+       th:with="waiting=${buddyRequests.size() + joinRequests.size()}, groupCount=${ledGroups.size() + joinedGroups.size()}">
+    <a class="stat card" th:href="@{/requests}">
+      <span class="stat-icon" th:classappend="${waiting > 0} ? 'stat-icon-warning'"><svg th:replace="~{fragments/icon :: icon('inbox')}"></svg></span>
+      <div><p class="stat-label">Waiting for your reply</p><p class="stat-value" th:text="${waiting}">3</p></div>
+    </a>
+    <a class="stat card" th:href="@{/groups/mine}">
+      <span class="stat-icon"><svg th:replace="~{fragments/icon :: icon('book-open')}"></svg></span>
+      <div><p class="stat-label">Study groups</p><p class="stat-value" th:text="${groupCount}">1</p></div>
+    </a>
+    <a class="stat card" th:href="@{/connections}">
+      <span class="stat-icon stat-icon-success"><svg th:replace="~{fragments/icon :: icon('link')}"></svg></span>
+      <div><p class="stat-label">Buddies</p><p class="stat-value" th:text="${buddies.size()}">0</p></div>
+    </a>
   </div>
 
   <div class="banner banner-warning banner-action" th:if="${needsAvailability}">
@@ -30,7 +45,7 @@
   </div>
 
   <section class="card" th:if="${!buddyRequests.isEmpty() or !joinRequests.isEmpty()}" aria-labelledby="waiting-heading">
-    <h2 id="waiting-heading">Needs your reply</h2>
+    <h2 id="waiting-heading"><svg th:replace="~{fragments/icon :: icon('inbox')}"></svg>Needs your reply</h2>
     <ul class="list-rows">
       <li th:each="request : ${buddyRequests}">
         <div class="person">
@@ -44,7 +59,7 @@
       </li>
       <li th:each="entry : ${joinRequests}">
         <div class="person">
-          <span class="avatar" aria-hidden="true">G</span>
+          <span class="avatar"><svg th:replace="~{fragments/icon :: icon('users')}"></svg></span>
           <div>
             <div class="person-name" th:text="${entry.value + (entry.value == 1 ? ' student wants' : ' students want') + ' to join ' + entry.key.name}">1 student wants to join IS442 Finals Crammers</div>
             <div class="person-email">You lead this group</div>
@@ -58,8 +73,8 @@
   <div class="home-grid">
     <section class="card" aria-labelledby="groups-heading">
       <div class="card-heading">
-        <h2 id="groups-heading">Your groups</h2>
-        <a th:href="@{/groups/mine}" th:unless="${ledGroups.isEmpty() and joinedGroups.isEmpty()}">See all</a>
+        <h2 id="groups-heading"><svg th:replace="~{fragments/icon :: icon('book-open')}"></svg>Your groups</h2>
+        <a th:href="@{/groups/mine}" th:unless="${ledGroups.isEmpty() and joinedGroups.isEmpty()}">See all<svg th:replace="~{fragments/icon :: icon('arrow-right')}"></svg></a>
       </div>
       <ul class="list-rows" th:unless="${ledGroups.isEmpty() and joinedGroups.isEmpty()}">
         <li th:each="group : ${ledGroups}">
@@ -84,8 +99,8 @@
 
     <section class="card" aria-labelledby="buddies-heading">
       <div class="card-heading">
-        <h2 id="buddies-heading">Your buddies</h2>
-        <a th:href="@{/connections}" th:unless="${buddies.isEmpty()}">See all</a>
+        <h2 id="buddies-heading"><svg th:replace="~{fragments/icon :: icon('link')}"></svg>Your buddies</h2>
+        <a th:href="@{/connections}" th:unless="${buddies.isEmpty()}">See all<svg th:replace="~{fragments/icon :: icon('arrow-right')}"></svg></a>
       </div>
       <ul class="list-rows" th:unless="${buddies.isEmpty()}">
         <li th:each="connection : ${buddies}">

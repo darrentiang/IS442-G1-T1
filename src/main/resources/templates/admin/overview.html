@@ -15,81 +15,84 @@
       <h1>Overview</h1>
       <p class="text-secondary" th:text="'Signed in as ' + ${user.name}">Signed in as Study Buddy Admin</p>
     </div>
-    <a class="btn btn-primary" th:href="@{/admin/users/new}">New account</a>
+    <a class="btn btn-primary" th:href="@{/admin/users/new}"><svg th:replace="~{fragments/icon :: icon('user-plus')}"></svg>New account</a>
   </div>
 
   <section class="card" aria-labelledby="students-heading">
     <div class="card-heading">
-      <h2 id="students-heading">Students</h2>
-      <a th:href="@{/admin/users}">Manage accounts</a>
+      <h2 id="students-heading"><svg th:replace="~{fragments/icon :: icon('users')}"></svg>Students</h2>
+      <a th:href="@{/admin/users}">Manage accounts<svg th:replace="~{fragments/icon :: icon('arrow-right')}"></svg></a>
     </div>
-    <dl class="stat-row">
-      <div>
-        <dt>Student accounts</dt>
-        <dd th:text="${o.students}">50</dd>
+    <div class="stat-row">
+      <div class="stat">
+        <span class="stat-icon"><svg th:replace="~{fragments/icon :: icon('users')}"></svg></span>
+        <div><p class="stat-label">Student accounts</p><p class="stat-value" th:text="${o.students}">50</p></div>
       </div>
-      <div>
-        <dt>Without a buddy yet</dt>
-        <dd th:text="${o.studentsWithoutBuddy}">29</dd>
+      <div class="stat">
+        <span class="stat-icon stat-icon-warning"><svg th:replace="~{fragments/icon :: icon('search')}"></svg></span>
+        <div><p class="stat-label">Without a buddy yet</p><p class="stat-value" th:text="${o.studentsWithoutBuddy}">22</p></div>
       </div>
-      <div>
-        <dt>Buddy connections</dt>
-        <dd th:text="${o.activeConnections}">21</dd>
+      <div class="stat">
+        <span class="stat-icon stat-icon-success"><svg th:replace="~{fragments/icon :: icon('link')}"></svg></span>
+        <div><p class="stat-label">Buddy connections</p><p class="stat-value" th:text="${o.activeConnections}">20</p></div>
       </div>
-      <div>
-        <dt>Suspended</dt>
-        <dd th:text="${o.suspendedStudents}">2</dd>
+      <div class="stat">
+        <span class="stat-icon stat-icon-neutral"><svg th:replace="~{fragments/icon :: icon('user-x')}"></svg></span>
+        <div><p class="stat-label">Suspended</p><p class="stat-value" th:text="${o.suspendedStudents}">2</p></div>
       </div>
-    </dl>
+    </div>
   </section>
 
   <section class="card" aria-labelledby="groups-heading">
     <div class="card-heading">
-      <h2 id="groups-heading">Study groups</h2>
-      <a th:href="@{/groups}">Browse groups</a>
+      <h2 id="groups-heading"><svg th:replace="~{fragments/icon :: icon('book-open')}"></svg>Study groups</h2>
+      <a th:href="@{/groups}">Browse groups<svg th:replace="~{fragments/icon :: icon('arrow-right')}"></svg></a>
     </div>
-    <dl class="stat-row">
-      <div>
-        <dt>Open with places</dt>
-        <dd th:text="${o.openGroups}">10</dd>
+    <div class="stat-row">
+      <div class="stat">
+        <span class="stat-icon stat-icon-success"><svg th:replace="~{fragments/icon :: icon('book-open')}"></svg></span>
+        <div><p class="stat-label">Open with places</p><p class="stat-value" th:text="${o.openGroups}">9</p></div>
       </div>
-      <div>
-        <dt>Full</dt>
-        <dd th:text="${o.fullGroups}">1</dd>
+      <div class="stat">
+        <span class="stat-icon"><svg th:replace="~{fragments/icon :: icon('circle-check')}"></svg></span>
+        <div><p class="stat-label">Full</p><p class="stat-value" th:text="${o.fullGroups}">1</p></div>
       </div>
-      <div>
-        <dt>Closed</dt>
-        <dd th:text="${o.closedGroups}">1</dd>
+      <div class="stat">
+        <span class="stat-icon stat-icon-neutral"><svg th:replace="~{fragments/icon :: icon('lock')}"></svg></span>
+        <div><p class="stat-label">Closed</p><p class="stat-value" th:text="${o.closedGroups}">2</p></div>
       </div>
-      <div>
-        <dt>Join requests waiting</dt>
-        <dd th:text="${o.pendingJoinRequests}">6</dd>
+      <div class="stat">
+        <span class="stat-icon stat-icon-warning"><svg th:replace="~{fragments/icon :: icon('inbox')}"></svg></span>
+        <div><p class="stat-label">Join requests waiting</p><p class="stat-value" th:text="${o.pendingJoinRequests}">7</p></div>
       </div>
-    </dl>
+    </div>
   </section>
 
   <div class="home-grid">
     <section class="card" aria-labelledby="requests-heading">
-      <h2 id="requests-heading">Buddy requests</h2>
-      <dl class="stat-row">
-        <div>
-          <dt>Waiting for an answer</dt>
-          <dd th:text="${o.pendingBuddyRequests}">25</dd>
+      <div class="card-heading">
+        <h2 id="requests-heading"><svg th:replace="~{fragments/icon :: icon('message')}"></svg>Buddy requests</h2>
+      </div>
+      <div class="stat-row">
+        <div class="stat">
+          <span class="stat-icon stat-icon-warning"><svg th:replace="~{fragments/icon :: icon('inbox')}"></svg></span>
+          <div><p class="stat-label">Waiting for an answer</p><p class="stat-value" th:text="${o.pendingBuddyRequests}">20</p></div>
         </div>
-      </dl>
+      </div>
+      <p class="text-secondary">Requests students have sent that the other student has not accepted or declined yet.</p>
     </section>
 
     <section class="card" aria-labelledby="matching-heading">
       <div class="card-heading">
-        <h2 id="matching-heading">Matching</h2>
-        <a th:href="@{/admin/config}">Change settings</a>
+        <h2 id="matching-heading"><svg th:replace="~{fragments/icon :: icon('sliders')}"></svg>Matching</h2>
+        <a th:href="@{/admin/config}">Change settings<svg th:replace="~{fragments/icon :: icon('arrow-right')}"></svg></a>
       </div>
-      <dl class="stat-row">
-        <div>
-          <dt>Strategy in use</dt>
-          <dd th:text="${strategyLabel}">Balanced</dd>
+      <div class="stat-row">
+        <div class="stat">
+          <span class="stat-icon"><svg th:replace="~{fragments/icon :: icon('sliders')}"></svg></span>
+          <div><p class="stat-label">Strategy in use</p><p class="stat-value stat-value-text" th:text="${strategyLabel}">Balanced</p></div>
         </div>
-      </dl>
+      </div>
       <p class="text-secondary">Before saving a change, use Simulate on the settings page to preview who it would help or leave out.</p>
     </section>
   </div>

@@ -1601,23 +1601,115 @@ h2 + .hint {
     color: var(--color-accent);
 }
 
-/* Numbers as large type over a small label. */
+/* A number with an icon: a soft tinted square, then a small label over large type. */
 .stat-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
     gap: 16px 24px;
-    margin: 16px 0 0;
+    margin-top: 16px;
 }
 
-.stat-row dt {
+.stat {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.stat p {
+    margin: 0;
+}
+
+.stat-label {
     color: var(--color-text-secondary);
     font-size: 13px;
     font-weight: 500;
 }
 
-.stat-row dd {
-    margin: 4px 0 0;
-    font-size: 28px;
+.stat-value {
+    margin-top: 2px;
+    font-size: 26px;
     font-weight: 600;
     letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+/* Words rather than a number (the matching strategy): smaller, so it does not shout. */
+.stat-value-text {
+    font-size: 19px;
+}
+
+/* Tint follows meaning: accent by default, green for good, amber for waiting, grey for closed. */
+.stat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+    color: var(--color-accent);
+}
+
+.stat-icon .icon {
+    width: 22px;
+    height: 22px;
+}
+
+.stat-icon-success {
+    background: color-mix(in srgb, var(--color-success) 12%, transparent);
+    color: var(--color-success);
+}
+
+.stat-icon-warning {
+    background: color-mix(in srgb, var(--color-warning) 13%, transparent);
+    color: var(--color-warning);
+}
+
+.stat-icon-neutral {
+    background: var(--color-surface-muted);
+    color: var(--color-text-secondary);
+}
+
+/* The student's at-a-glance numbers: each one is a small card that opens its page. */
+.stat-row-cards .stat {
+    padding: 18px 20px;
+    color: var(--color-text);
+    transition: border-color 150ms, box-shadow 150ms;
+}
+
+.stat-row-cards .stat:hover {
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-md);
+}
+
+/* Icons sitting in headings and quiet links. */
+.card-heading h2,
+h2:has(> .icon) {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.card-heading h2 .icon,
+h2 > .icon {
+    width: 20px;
+    height: 20px;
+    color: var(--color-text-secondary);
+}
+
+.card-heading a {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.card-heading a .icon {
+    width: 16px;
+    height: 16px;
+}
+
+.avatar .icon {
+    width: 18px;
+    height: 18px;
 }
