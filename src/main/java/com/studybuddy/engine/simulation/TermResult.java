@@ -1,57 +1,33 @@
 package com.studybuddy.engine.simulation;
 
-/**
- * The numbers from one simulated term: coverage at the end, the quality of the new
- * connections it produced, and the largest inbox any student had.
- */
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+/** The numbers from one simulated term: which students ended with a buddy they can meet, and how many that is. */
 public class TermResult {
 
-    private final double coverage;
-    private final int newConnections;
-    private final double averageNewScore;
-    private final double averageNewHours;
-    private final int peakInbox;
+    private final double buddyCoverage;
+    private final Set<String> studentsWithBuddy;
 
     /**
      * Creates the result of one term.
      *
-     * @param coverage share of students with at least one usable connection at the end, 0 to 1
-     * @param newConnections connections made during the term
-     * @param averageNewScore average mutual score of those connections, 0 if there were none
-     * @param averageNewHours average usable hours a week of those connections, 0 if there were none
-     * @param peakInbox the most requests any one student had waiting at once
+     * @param buddyCoverage share of students with a buddy they can meet at the end, 0 to 1
+     * @param studentsWithBuddy ids of the students who ended with a buddy they can meet
      */
-    public TermResult(double coverage, int newConnections, double averageNewScore, double averageNewHours,
-            int peakInbox) {
-        this.coverage = coverage;
-        this.newConnections = newConnections;
-        this.averageNewScore = averageNewScore;
-        this.averageNewHours = averageNewHours;
-        this.peakInbox = peakInbox;
+    public TermResult(double buddyCoverage, Set<String> studentsWithBuddy) {
+        this.buddyCoverage = buddyCoverage;
+        this.studentsWithBuddy = new HashSet<>(studentsWithBuddy);
     }
 
-    /** Returns the share of students with at least one usable connection at the end, 0 to 1. */
-    public double getCoverage() {
-        return coverage;
+    /** Returns the share of students with a buddy they can meet at the end, 0 to 1. */
+    public double getBuddyCoverage() {
+        return buddyCoverage;
     }
 
-    /** Returns how many connections were made during the term. */
-    public int getNewConnections() {
-        return newConnections;
-    }
-
-    /** Returns the average mutual score of the connections made during the term. */
-    public double getAverageNewScore() {
-        return averageNewScore;
-    }
-
-    /** Returns the average usable hours a week of the connections made during the term. */
-    public double getAverageNewHours() {
-        return averageNewHours;
-    }
-
-    /** Returns the most requests any one student had waiting at once. */
-    public int getPeakInbox() {
-        return peakInbox;
+    /** Returns the ids of the students who ended with a buddy they can meet, as a read-only view. */
+    public Set<String> getStudentsWithBuddy() {
+        return Collections.unmodifiableSet(studentsWithBuddy);
     }
 }

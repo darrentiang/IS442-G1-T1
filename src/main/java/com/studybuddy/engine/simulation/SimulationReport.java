@@ -5,8 +5,9 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * The result of testing a proposed config against the current one: the behaviour numbers used,
- * one comparison per behaviour (learned, picky, eager), and the overall verdict.
+ * The result of simulating a proposed config next to the saved one: the behaviour numbers used and
+ * one comparison per behaviour (learned, picky, eager). It reports what changes for students and
+ * leaves judging it to the admin.
  */
 public class SimulationReport {
 
@@ -53,20 +54,5 @@ public class SimulationReport {
     /** Returns how many terms were simulated per config and behaviour. */
     public int getTerms() {
         return terms;
-    }
-
-    /** Returns true only if the proposed config passes every check under every behaviour. */
-    public boolean isProposedBetter() {
-        for (BehaviourComparison comparison : comparisons) {
-            if (!comparison.isProposedBetter()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /** Returns true if the proposed config's coverage is clearly lower under learned behaviour. */
-    public boolean isProposedWorse() {
-        return getHeadline().isCoverageClearlyLower();
     }
 }

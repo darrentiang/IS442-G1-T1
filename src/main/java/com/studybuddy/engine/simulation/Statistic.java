@@ -20,11 +20,6 @@ public class Statistic {
         sumOfSquares += value * value;
     }
 
-    /** Returns how many values were added. */
-    public int getCount() {
-        return count;
-    }
-
     /** Returns the average, or 0 if nothing was added. */
     public double getMean() {
         if (count == 0) {
@@ -47,12 +42,12 @@ public class Statistic {
     }
 
     /** Returns the bottom of the 95% confidence interval. */
-    public double getLower() {
+    private double getLower() {
         return getMean() - getMargin();
     }
 
     /** Returns the top of the 95% confidence interval. */
-    public double getUpper() {
+    private double getUpper() {
         return getMean() + getMargin();
     }
 

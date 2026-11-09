@@ -3,16 +3,17 @@ package com.studybuddy.engine.simulation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import com.studybuddy.engine.MatchContext;
 import com.studybuddy.engine.MatchResult;
 import com.studybuddy.engine.MatchingConfig;
 import com.studybuddy.engine.MatchingEngine;
-import com.studybuddy.engine.criteria.CourseCriterion;
 import com.studybuddy.model.Connection;
 import com.studybuddy.model.MatchRequest;
 import com.studybuddy.model.RequestStatus;
@@ -25,15 +26,12 @@ import com.studybuddy.model.Student;
  * answers their inbox. Works only on copies; the real students and requests are never changed.
  *
  * The config being tested only decides who appears on each student's list. How good a pair
- * really is (the score students react to, and whether a connection counts as coverage) is
- * always judged with one fixed yardstick config, so a config cannot look better by lowering its own bar.
+ * really is (the score students react to, and whether they can meet) is always judged with one fixed yardstick config, so a config cannot look better by lowering its own bar.
  */
 public class TermSimulator {
 
     /** A request left unanswered for this many rounds is dropped, as if the sender gave up. */
     public static final int EXPIRY_ROUNDS = 2;
-    /** The lowest course score that counts as relevant: the buddy shares or is taking the student's target course. */
-    public static final double RELEVANT_COURSE_SCORE = 0.6;
 
     private static final double NO_SCORE = 0.0;
     private static final int NO_HOURS = 0;
@@ -44,7 +42,6 @@ public class TermSimulator {
     private final BehaviourModel behaviour;
     private final int rounds;
     private final Map<String, MatchResult> pairCache = new HashMap<>();
-    private final CourseCriterion courseCriterion = new CourseCriterion();
 
     /**
      * Creates a simulator for one config and one behaviour. Pair scores are remembered between
@@ -84,14 +81,11 @@ public class TermSimulator {
         loadConnections(byId, connections);
         loadPendingRequests(byId, requests);
 
-        List<SimConnection> formed = new ArrayList<>();
-        int peakInbox = largestInbox(byId);
         for (int round = 0; round < rounds; round++) {
             sendRequests(byId, students, random);
-            peakInbox = Math.max(peakInbox, largestInbox(byId));
-            answerRequests(byId, formed, random);
+            answerRequests(byId, random);
         }
-        return buildResult(byId, formed, peakInbox);
+        return buildResult(byId);
     }
 
     /** Carries the app's active connections into the simulation. */
@@ -100,7 +94,7 @@ public class TermSimulator {
             SimStudent first = byId.get(connection.getA().getId());
             SimStudent second = byId.get(connection.getB().getId());
             if (connection.isActive() && first != null && second != null) {
-                connect(first, second, false);
+                connect(first, second);
             }
         }
     }
@@ -146,7 +140,7 @@ public class TermSimulator {
     }
 
     /** Answer step: each student answers every request in their inbox; unanswered ones expire after EXPIRY_ROUNDS. */
-    private void answerRequests(Map<String, SimStudent> byId, List<SimConnection> formed, Random random) {
+    private void answerRequests(Map<String, SimStudent> byId, Random random) {
         List<SimStudent> order = new ArrayList<>(byId.values());
         Collections.shuffle(order, random);
         for (SimStudent receiver : order) {
@@ -155,7 +149,7 @@ public class TermSimulator {
                 Reply reply = behaviour.reply(request.getMutualScore(), receiver.getInboxSize(), random);
                 if (reply == Reply.ACCEPT) {
                     receiver.removeFromInbox(request);
-                    formed.add(connect(byId.get(request.getFromId()), receiver, true));
+                    connect(byId.get(request.getFromId()), receiver);
                 } else if (reply == Reply.DECLINE) {
                     receiver.removeFromInbox(request);
                 } else {
@@ -168,98 +162,55 @@ public class TermSimulator {
         }
     }
 
-    /** Connects two simulated students and returns the connection. */
-    private SimConnection connect(SimStudent first, SimStudent second, boolean formedInSimulation) {
-        MatchResult result = pairResult(first, second);
-        double score = NO_SCORE;
+    /** Connects two simulated students; whether they can meet is judged with the yardstick. */
+    private void connect(SimStudent first, SimStudent second) {
+        MatchResult result = sideResult(first, second);
         int hours = NO_HOURS;
         if (result != null) {
-            score = result.getMutualScore();
             hours = result.getUsableHours();
         }
-        SimConnection connection = new SimConnection(first.getId(), second.getId(), score, hours,
-                isCourseRelevant(first, second), isCourseRelevant(second, first), formedInSimulation);
+        SimConnection connection = new SimConnection(hours);
         first.addConnection(connection, second.getId());
         second.addConnection(connection, first.getId());
-        return connection;
     }
 
-    /** Returns true if the buddy shares or is taking the course the student needs help with, using the engine's course rule. */
-    private boolean isCourseRelevant(SimStudent student, SimStudent buddy) {
-        if (student.getStudent().getProfile() == null || buddy.getStudent().getProfile() == null) {
-            return false;
-        }
-        double courseScore = courseCriterion.score(student.getStudent().getProfile(),
-                buddy.getStudent().getProfile(), yardstick).getValue();
-        return courseScore >= RELEVANT_COURSE_SCORE;
-    }
-
-    /** Returns the pair's yardstick mutual score, or 0 if either has no profile. */
+    /** Returns the pair's yardstick mutual score, or 0 if either has no profile. Mutual scores are the same both ways. */
     private double pairScore(SimStudent first, SimStudent second) {
-        MatchResult result = pairResult(first, second);
+        MatchResult result = sideResult(first, second);
         if (result == null) {
             return NO_SCORE;
         }
         return result.getMutualScore();
     }
 
-    /** Returns the yardstick result for a pair, worked out once and then remembered. Mutual scores are the same both ways. */
-    private MatchResult pairResult(SimStudent first, SimStudent second) {
-        String key = pairKey(first.getId(), second.getId());
+    /** Returns the yardstick result from the seeker's side, worked out once and then remembered. */
+    private MatchResult sideResult(SimStudent seeker, SimStudent candidate) {
+        String key = seeker.getId() + ">" + candidate.getId();
         if (pairCache.containsKey(key)) {
             return pairCache.get(key);
         }
-        MatchResult result = engine.evaluate(first.getStudent(), second.getStudent(), yardstick);
+        MatchResult result = engine.evaluate(seeker.getStudent(), candidate.getStudent(), yardstick);
         pairCache.put(key, result);
         return result;
     }
 
-    /** Returns the same key for a pair whichever order the ids come in. */
-    private String pairKey(String firstId, String secondId) {
-        if (firstId.compareTo(secondId) < 0) {
-            return firstId + "|" + secondId;
-        }
-        return secondId + "|" + firstId;
-    }
-
-    /** Returns the most requests any student has waiting right now. */
-    private int largestInbox(Map<String, SimStudent> byId) {
-        int largest = 0;
-        for (SimStudent student : byId.values()) {
-            largest = Math.max(largest, student.getInboxSize());
-        }
-        return largest;
-    }
-
-    /** Works out coverage over students with a profile, and the quality of the connections formed. */
-    private TermResult buildResult(Map<String, SimStudent> byId, List<SimConnection> formed, int peakInbox) {
+    /** Works out which students ended with a buddy they can meet, and what share of students that is. */
+    private TermResult buildResult(Map<String, SimStudent> byId) {
         int withProfile = 0;
-        int covered = 0;
+        Set<String> withBuddy = new HashSet<>();
         for (SimStudent student : byId.values()) {
             if (student.getStudent().getProfile() == null) {
                 continue;
             }
             withProfile++;
-            if (student.isCovered(yardstick.getMinimumScore())) {
-                covered++;
+            if (student.hasBuddyToMeet()) {
+                withBuddy.add(student.getId());
             }
         }
-        double scoreTotal = 0;
-        double hoursTotal = 0;
-        for (SimConnection connection : formed) {
-            scoreTotal += connection.getMutualScore();
-            hoursTotal += connection.getUsableHours();
-        }
-        double coverage = 0;
+        double buddyCoverage = 0;
         if (withProfile > 0) {
-            coverage = (double) covered / withProfile;
+            buddyCoverage = (double) withBuddy.size() / withProfile;
         }
-        double averageScore = 0;
-        double averageHours = 0;
-        if (!formed.isEmpty()) {
-            averageScore = scoreTotal / formed.size();
-            averageHours = hoursTotal / formed.size();
-        }
-        return new TermResult(coverage, formed.size(), averageScore, averageHours, peakInbox);
+        return new TermResult(buddyCoverage, withBuddy);
     }
 }

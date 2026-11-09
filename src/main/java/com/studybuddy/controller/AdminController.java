@@ -193,27 +193,6 @@ public class AdminController {
         return "admin/config";
     }
 
-    /** Searches for settings that clearly beat the saved ones and shows the recommendation beside the saved settings. */
-    @PostMapping("/admin/config/recommend")
-    public String recommendConfig(Model model) {
-        model.addAttribute("recommendation", simulationService.recommend());
-        fillConfigModel(model, matchingConfigService.toForm(matchingConfigService.getConfig()));
-        return "admin/config";
-    }
-
-    /** Fills the form with the saved settings plus the recommended changes; nothing is saved until the admin presses Save. */
-    @PostMapping("/admin/config/apply-recommendation")
-    public String applyRecommendation(@RequestParam String activeStrategyName,
-            @RequestParam String congestionStrength, @RequestParam String minimumScore, Model model) {
-        MatchingConfigForm form = matchingConfigService.toForm(matchingConfigService.getConfig());
-        form.setActiveStrategyName(activeStrategyName);
-        form.setCongestionStrength(congestionStrength);
-        form.setMinimumScore(minimumScore);
-        model.addAttribute("recommendationApplied", true);
-        fillConfigModel(model, form);
-        return "admin/config";
-    }
-
     /** Reads the config page's fields into a form; weights arrive as weight_criterionName. */
     private MatchingConfigForm readConfigForm(Map<String, String> params, List<String> enabledCriteria) {
         MatchingConfigForm form = new MatchingConfigForm();
@@ -236,6 +215,5 @@ public class AdminController {
         model.addAttribute("strategies", matchingConfigService.getStrategyLabels());
         model.addAttribute("strategyDescriptions", matchingConfigService.getStrategyDescriptions());
         model.addAttribute("criteria", matchingConfigService.getCriterionLabels());
-        model.addAttribute("savedConfig", matchingConfigService.getConfig());
     }
 }

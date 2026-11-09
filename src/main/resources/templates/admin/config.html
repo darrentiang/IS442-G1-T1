@@ -11,99 +11,6 @@
     <p class="text-secondary">Choose the strategy, which criteria count, and how much each one matters.</p>
   </div>
 
-  <div class="banner banner-info" th:if="${recommendationApplied != null}">
-    Recommended settings filled in below. Review them, then press Save configuration. Nothing changes until you save.
-  </div>
-
-  <section class="card" th:if="${report != null}" th:with="h=${report.headline}, rates=${report.rates}" aria-labelledby="projection-heading">
-    <h2 id="projection-heading">Projection: these settings vs the saved ones</h2>
-    <div class="banner banner-info" th:if="${report.proposedBetter}">
-      These settings get more students a usable buddy under every behaviour tested, without lowering match quality or crowding inboxes.
-    </div>
-    <div class="banner banner-danger" th:if="${report.proposedWorse}">
-      These settings leave more students without a usable buddy than the saved ones.
-    </div>
-    <div class="banner banner-warning" th:if="${!report.proposedBetter and !report.proposedWorse}">
-      No clear improvement: the difference is small enough to be luck, or a quality or inbox check failed.
-    </div>
-
-    <div class="table-wrap">
-    <table class="table">
-      <thead>
-        <tr><th>Measure</th><th>Saved settings</th><th>These settings</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Students with a usable buddy</td>
-          <td th:text="|${#numbers.formatDecimal(h.current.coverage.mean * 100, 1, 1)}% ± ${#numbers.formatDecimal(h.current.coverage.margin * 100, 1, 1)}|">85.0% ± 0.5</td>
-          <td th:text="|${#numbers.formatDecimal(h.proposed.coverage.mean * 100, 1, 1)}% ± ${#numbers.formatDecimal(h.proposed.coverage.margin * 100, 1, 1)}|">88.5% ± 0.4</td>
-        </tr>
-        <tr>
-          <td>Match score of new buddies</td>
-          <td th:text="${#numbers.formatDecimal(h.current.averageScore.mean * 100, 1, 0) + '%'}">69%</td>
-          <td th:text="${#numbers.formatDecimal(h.proposed.averageScore.mean * 100, 1, 0) + '%'}">67%</td>
-        </tr>
-        <tr>
-          <td>Shared free time of new buddies</td>
-          <td th:text="${#numbers.formatDecimal(h.current.averageHours.mean, 1, 1) + 'h a week'}">2.5h a week</td>
-          <td th:text="${#numbers.formatDecimal(h.proposed.averageHours.mean, 1, 1) + 'h a week'}">3.4h a week</td>
-        </tr>
-        <tr>
-          <td>Most requests waiting for one student</td>
-          <td th:text="${#numbers.formatDecimal(h.current.peakInbox.mean, 1, 1)}">4.0</td>
-          <td th:text="${#numbers.formatDecimal(h.proposed.peakInbox.mean, 1, 1)}">5.0</td>
-        </tr>
-      </tbody>
-    </table>
-    </div>
-
-    <h2>Does it hold if students behave differently?</h2>
-    <div class="table-wrap">
-    <table class="table">
-      <thead>
-        <tr><th>Behaviour</th><th>Saved settings</th><th>These settings</th><th>Result</th></tr>
-      </thead>
-      <tbody>
-        <tr th:each="c : ${report.comparisons}">
-          <td th:text="${c.behaviour.label}">Learned from current data</td>
-          <td th:text="${#numbers.formatDecimal(c.current.coverage.mean * 100, 1, 1) + '%'}">85.0%</td>
-          <td th:text="${#numbers.formatDecimal(c.proposed.coverage.mean * 100, 1, 1) + '%'}">88.5%</td>
-          <td th:text="${c.proposedBetter ? 'Better' : (c.coverageClearlyLower ? 'Worse' : 'No clear difference')}">Better</td>
-        </tr>
-      </tbody>
-    </table>
-    </div>
-
-    <h2>What students do, learned from current data</h2>
-    <dl class="facts">
-      <div th:with="e=${rates.requestsPerRound}">
-        <dt>Requests sent per round</dt>
-        <dd th:text="|${#numbers.formatDecimal(e.value, 1, 1)} (${e.learned ? 'from ' + e.observations + ' requests' : 'default, only ' + e.observations + ' requests'})|">2.0 (from 69 requests)</dd>
-      </div>
-      <div th:with="e=${rates.ignoreRate}">
-        <dt>Requests left unanswered</dt>
-        <dd th:text="|${#numbers.formatDecimal(e.value * 100, 1, 0)}% (${e.learned ? 'from ' + e.observations + ' requests' : 'default, only ' + e.observations + ' requests'})|">29% (from 69 requests)</dd>
-      </div>
-      <div th:with="e=${rates.getAcceptRateForBand(2)}">
-        <dt>Accepted when the match score is 65% or more</dt>
-        <dd th:text="|${#numbers.formatDecimal(e.value * 100, 1, 0)}% (${e.learned ? 'from ' + e.observations + ' answers' : 'default, only ' + e.observations + ' answers'})|">46% (from 28 answers)</dd>
-      </div>
-      <div th:with="e=${rates.getAcceptRateForBand(1)}">
-        <dt>Accepted when the match score is 50% to 65%</dt>
-        <dd th:text="|${#numbers.formatDecimal(e.value * 100, 1, 0)}% (${e.learned ? 'from ' + e.observations + ' answers' : 'default, only ' + e.observations + ' answers'})|">39% (from 18 answers)</dd>
-      </div>
-      <div th:with="e=${rates.getAcceptRateForBand(0)}">
-        <dt>Accepted when the match score is below 50%</dt>
-        <dd th:text="|${#numbers.formatDecimal(e.value * 100, 1, 0)}% (${e.learned ? 'from ' + e.observations + ' answers' : 'default, only ' + e.observations + ' answers'})|">20% (default, only 3 answers)</dd>
-      </div>
-      <div th:with="e=${rates.busyFactor}">
-        <dt>Effect of 3 or more requests waiting</dt>
-        <dd th:text="|Accepts ${#numbers.formatDecimal(e.value * 100, 1, 0)}% as often (${e.learned ? 'from ' + e.observations + ' answers' : 'default, only ' + e.observations + ' answers'})|">Accepts 79% as often (from 49 answers)</dd>
-      </div>
-    </dl>
-    <p class="hint" th:text="|Projected ${report.rounds} rounds of requests ahead, ${report.terms} simulated runs per setting, from the current data. A buddy only counts if the pair shares a free block and scores at least the saved minimum score. This compares settings with each other; it is not an exact forecast. Nothing has been saved.|">Projected 3 rounds ahead.</p>
-  </section>
-
   <form th:action="@{/admin/config}" method="post" novalidate>
     <div class="card">
       <h2>Strategy</h2>
@@ -182,59 +89,111 @@
 
       <div class="form-actions">
         <button type="submit" class="btn btn-primary">Save configuration</button>
-        <button type="submit" class="btn btn-secondary" th:formaction="@{/admin/config/simulate}"
+        <button type="submit" class="btn btn-secondary" th:formaction="@{/admin/config/simulate} + '#projection'"
                 data-loading-text="Simulating, about 10 seconds">Simulate these settings</button>
       </div>
-      <p class="text-secondary">Simulate projects how these settings would do against the saved ones, without saving. It takes about 10 seconds.</p>
+      <p class="text-secondary">Simulate shows what these settings would change for students, compared with the saved ones, without saving. It takes about 10 seconds; the result appears below.</p>
     </div>
   </form>
 
-  <section class="card" aria-labelledby="best-heading">
-    <h2 id="best-heading">Find better settings</h2>
-    <p class="text-secondary">Tries combinations of strategy, congestion strength and minimum score around the saved settings, and recommends one only if it clearly gets more students a usable buddy.</p>
+  <section class="card" id="projection" th:if="${report != null}" th:with="h=${report.headline}, rates=${report.rates}" aria-labelledby="projection-heading">
+    <h2 id="projection-heading">Who would be left out if you saved these settings</h2>
+    <p class="text-secondary" th:text="|We replayed ${report.rounds == 1 ? 'the next round' : 'the next ' + report.rounds + ' rounds'} of buddy requests ${report.terms} times with the saved settings and ${report.terms} times with these, with students behaving the way they do now. A student is at risk of being left out if they end with a buddy they can meet in fewer than 1 in 5 runs. Nothing has been saved.|">We replayed the next round of buddy requests 200 times.</p>
 
-    <th:block th:if="${recommendation != null and recommendation.found}"
-              th:with="rc=${recommendation.config}, h=${recommendation.report.headline}">
-      <div class="banner banner-info"
-           th:text="|Tried ${recommendation.combinationsTried} combinations. Recommended settings: ${#numbers.formatDecimal(h.proposed.coverage.mean * 100, 1, 1)}% of students with a usable buddy, against ${#numbers.formatDecimal(h.current.coverage.mean * 100, 1, 1)}% with the saved settings. It holds under all three behaviours.|">
-        Tried 26 combinations.
+    <dl class="facts">
+      <div>
+        <dt>Students at risk of being left out</dt>
+        <dd th:text="|${h.atRiskSaved} (${#numbers.formatDecimal(h.atRiskSaved * 100.0 / h.studentCount, 1, 0)}%) → ${h.atRiskProposed} (${#numbers.formatDecimal(h.atRiskProposed * 100.0 / h.studentCount, 1, 0)}%) of ${h.studentCount}|">12 (24%) → 8 (16%) of 50</dd>
       </div>
-      <dl class="facts">
-        <div>
-          <dt>Strategy</dt>
-          <dd th:text="|${strategies[savedConfig.activeStrategyName]} → ${strategies[rc.activeStrategyName]}|">Balanced → Availability first</dd>
-        </div>
-        <div>
-          <dt>Congestion strength</dt>
-          <dd th:text="|${savedConfig.congestionStrength} → ${rc.congestionStrength}|">0.05 → 0.5</dd>
-        </div>
-        <div>
-          <dt>Minimum score</dt>
-          <dd th:text="|${savedConfig.minimumScore} → ${#numbers.formatDecimal(rc.minimumScore, 1, 2)}|">0.2 → 0.30</dd>
-        </div>
-      </dl>
-      <form th:action="@{/admin/config/apply-recommendation}" method="post">
-        <input type="hidden" name="activeStrategyName" th:value="${rc.activeStrategyName}">
-        <input type="hidden" name="congestionStrength" th:value="${rc.congestionStrength}">
-        <input type="hidden" name="minimumScore" th:value="${#numbers.formatDecimal(rc.minimumScore, 1, 2)}">
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary">Apply recommended settings</button>
-        </div>
-      </form>
-      <p class="text-secondary">Fills the form above with these values. Nothing is saved until you press Save configuration.</p>
-    </th:block>
+      <div>
+        <dt>Moved out of risk</dt>
+        <dd th:text="|${h.movedOutOfRisk.size()} students (${#numbers.formatDecimal(h.movedOutOfRisk.size() * 100.0 / h.studentCount, 1, 0)}%)|">5 students (10%)</dd>
+      </div>
+      <div>
+        <dt>Newly at risk</dt>
+        <dd th:text="|${h.newlyAtRisk.size()} students (${#numbers.formatDecimal(h.newlyAtRisk.size() * 100.0 / h.studentCount, 1, 0)}%)|">1 student (2%)</dd>
+      </div>
+      <div th:with="ch=${h.buddyCoverageChange}">
+        <dt>Average chance of a buddy they can meet</dt>
+        <dd><span th:text="|${#numbers.formatDecimal(h.current.buddyCoverage.mean * 100, 1, 0)}% → ${#numbers.formatDecimal(h.proposed.buddyCoverage.mean * 100, 1, 0)}%|">75% → 77%</span>
+          <span class="badge" th:classappend="${ch.name() == 'HIGHER'} ? 'badge-accepted' : (${ch.name() == 'LOWER'} ? 'badge-declined' : 'badge-past')" th:text="${ch.label}">Higher</span></dd>
+      </div>
+    </dl>
 
-    <div class="banner banner-info" th:if="${recommendation != null and !recommendation.found}"
-         th:text="|Your saved settings are already the best of the ${recommendation.combinationsTried} combinations tried.|">
-      Your saved settings are already the best.
+    <th:block th:each="group : ${ {
+        {'Moved out of risk', h.movedOutOfRisk, 'Helped by these settings.'},
+        {'Newly at risk', h.newlyAtRisk, 'Left out more often with these settings.'},
+        {'Still at risk', h.stillAtRisk, 'At risk with both; these settings do not help them.'}
+      } }">
+      <th:block th:if="${!group[1].isEmpty()}">
+        <h2 th:text="|${group[0]} (${group[1].size()})|">Moved out of risk (5)</h2>
+        <p class="text-secondary" th:text="${group[2]}">Helped by these settings.</p>
+        <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr><th>Student</th><th>Needs a buddy for</th><th>Chance, saved</th><th>Chance, these</th></tr>
+          </thead>
+          <tbody>
+            <tr th:each="c : ${group[1]}" th:with="target=${c.student.profile.preferences.targetCourse}">
+              <td th:text="${c.student.name}">Ben Tan</td>
+              <td th:text="${target != null ? target.code : '-'}">IS442</td>
+              <td th:text="${#numbers.formatDecimal(c.savedChance * 100, 1, 0) + '%'}">15%</td>
+              <td th:text="${#numbers.formatDecimal(c.proposedChance * 100, 1, 0) + '%'}">45%</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+      </th:block>
+    </th:block>
+    <p class="text-secondary" th:if="${h.movedOutOfRisk.isEmpty() and h.newlyAtRisk.isEmpty()}">No student clearly moves in or out of risk with these settings.</p>
+
+    <h2>Does it still hold if we have misjudged students?</h2>
+    <p class="text-secondary">How students behave is learned from a limited number of past requests, so we rerun with students a bit less and a bit more willing than measured.</p>
+    <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th>If students behave</th><th>At risk, saved</th><th>At risk, these</th><th>Moved out</th><th>Newly at risk</th></tr>
+      </thead>
+      <tbody>
+        <tr th:each="cmp : ${report.comparisons}">
+          <td th:text="${cmp.behaviour.label}">As students behave now</td>
+          <td th:text="${cmp.atRiskSaved}">12</td>
+          <td th:text="${cmp.atRiskProposed}">8</td>
+          <td th:text="${cmp.movedOutOfRisk.size()}">5</td>
+          <td th:text="${cmp.newlyAtRisk.size()}">1</td>
+        </tr>
+      </tbody>
+    </table>
     </div>
 
-    <form th:action="@{/admin/config/recommend}" method="post">
-      <div class="form-actions">
-        <button type="submit" class="btn btn-secondary" data-loading-text="Searching, about 15 seconds">Find best settings</button>
+    <h2>How students behave now, learned from past requests</h2>
+    <dl class="facts">
+      <div th:with="e=${rates.requestsPerRound}">
+        <dt>Requests each student sends</dt>
+        <dd th:text="|${#numbers.formatDecimal(e.value, 1, 1)} per round (${e.learned ? 'from ' + e.observations + ' past requests' : 'not enough data, a default'})|">2.0 per round (from 69 past requests)</dd>
       </div>
-    </form>
-    <p class="text-secondary">Takes about 15 seconds.</p>
+      <div th:with="e=${rates.ignoreRate}">
+        <dt>Requests never answered</dt>
+        <dd th:text="|${#numbers.formatDecimal(e.value * 100, 1, 0)}% (${e.learned ? 'from ' + e.observations + ' past requests' : 'not enough data, a default'})|">29% (from 69 past requests)</dd>
+      </div>
+      <div th:with="e=${rates.getAcceptRateForBand(2)}">
+        <dt>Say yes to a strong match (65% or more)</dt>
+        <dd th:text="|${#numbers.formatDecimal(e.value * 100, 1, 0)}% (${e.learned ? 'from ' + e.observations + ' answers' : 'not enough data, a default'})|">46% (from 28 answers)</dd>
+      </div>
+      <div th:with="e=${rates.getAcceptRateForBand(1)}">
+        <dt>Say yes to a fair match (50% to 65%)</dt>
+        <dd th:text="|${#numbers.formatDecimal(e.value * 100, 1, 0)}% (${e.learned ? 'from ' + e.observations + ' answers' : 'not enough data, a default'})|">39% (from 18 answers)</dd>
+      </div>
+      <div th:with="e=${rates.getAcceptRateForBand(0)}">
+        <dt>Say yes to a weak match (below 50%)</dt>
+        <dd th:text="|${#numbers.formatDecimal(e.value * 100, 1, 0)}% (${e.learned ? 'from ' + e.observations + ' answers' : 'not enough data, a default'})|">20% (not enough data, a default)</dd>
+      </div>
+      <div th:with="e=${rates.busyFactor}">
+        <dt>With 3 or more requests waiting</dt>
+        <dd th:text="|Say yes ${#numbers.formatDecimal(e.value * 100, 1, 0)}% as often (${e.learned ? 'from ' + e.observations + ' answers' : 'not enough data, a default'})|">Say yes 79% as often (from 49 answers)</dd>
+      </div>
+    </dl>
+    <p class="text-secondary">A projection for comparing settings, not an exact forecast. Whether a pair can meet is always judged with the saved settings, so a change cannot look better just by lowering the bar. A student only counts as moved in or out of risk if their chance shifts by at least 10 points, so luck alone does not move them.</p>
   </section>
 </main>
 <script th:src="@{/js/admin-config.js}"></script>

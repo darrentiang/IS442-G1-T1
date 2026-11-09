@@ -10,15 +10,9 @@ public class EagerBehaviour extends LearnedBehaviour {
         super(rates, ACCEPT_SCALE);
     }
 
-    /** Returns "eager". */
-    @Override
-    public String getName() {
-        return "eager";
-    }
-
-    /** Returns "More eager students". */
+    /** Returns "If students accept 30% more often". */
     @Override
     public String getLabel() {
-        return "More eager students";
+        return "If students accept 30% more often";
     }
 }

@@ -71,20 +71,15 @@ public class SimStudent {
         contactedIds.add(otherId);
     }
 
-    /** Returns this student's connections, as a read-only view. */
-    public List<SimConnection> getConnections() {
-        return Collections.unmodifiableList(connections);
-    }
-
     /** Returns true while the student has no buddy at all, so is still sending requests. */
     public boolean isSearching() {
         return connections.isEmpty();
     }
 
-    /** Returns true if at least one connection is a buddy this student can really study with. */
-    public boolean isCovered(double minimumScore) {
+    /** Returns true if at least one connection is a buddy this student shares free time with. */
+    public boolean hasBuddyToMeet() {
         for (SimConnection connection : connections) {
-            if (connection.isUsableFor(getId(), minimumScore)) {
+            if (connection.canMeet()) {
                 return true;
             }
         }

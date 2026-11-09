@@ -10,15 +10,9 @@ public class PickyBehaviour extends LearnedBehaviour {
         super(rates, ACCEPT_SCALE);
     }
 
-    /** Returns "picky". */
-    @Override
-    public String getName() {
-        return "picky";
-    }
-
-    /** Returns "Pickier students". */
+    /** Returns "If students accept 30% less often". */
     @Override
     public String getLabel() {
-        return "Pickier students";
+        return "If students accept 30% less often";
     }
 }

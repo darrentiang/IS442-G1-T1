@@ -1,31 +1,44 @@
 package com.studybuddy.engine.simulation;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.studybuddy.model.Student;
+
 /**
- * The current and proposed configs side by side under one behaviour, with the three checks:
- * coverage clearly higher, match quality within the guardrail, and inboxes no more crowded.
+ * The saved and proposed configs side by side under one behaviour, seen per student: who is at
+ * risk of being left out (a low chance of ending with a buddy they can meet), who moved out of
+ * risk and who is newly at risk. It reports what changes and does not judge it.
  */
 public class BehaviourComparison {
 
-    /** The proposed config may lower the average match score of new connections by at most this much. */
-    public static final double QUALITY_MARGIN = 0.05;
-    /** The proposed config may raise the average peak inbox by at most this many requests. */
-    public static final double INBOX_MARGIN = 1.0;
+    /** A student whose chance of a buddy they can meet is below this is at risk of being left out. */
+    public static final double AT_RISK_CHANCE = 0.2;
+    /** A student only counts as moved in or out of risk if their chance shifts by at least this, so luck alone does not move them. */
+    public static final double MIN_SHIFT = 0.1;
 
     private final BehaviourModel behaviour;
     private final ConfigOutcome current;
     private final ConfigOutcome proposed;
+    private final List<StudentChance> chances = new ArrayList<>();
 
     /**
      * Creates the comparison.
      *
      * @param behaviour the behaviour both configs were simulated under
-     * @param current how the current config did
+     * @param current how the saved config did
      * @param proposed how the proposed config did
+     * @param students the students with a profile, the ones who can be matched
      */
-    public BehaviourComparison(BehaviourModel behaviour, ConfigOutcome current, ConfigOutcome proposed) {
+    public BehaviourComparison(BehaviourModel behaviour, ConfigOutcome current, ConfigOutcome proposed,
+            List<Student> students) {
         this.behaviour = behaviour;
         this.current = current;
         this.proposed = proposed;
+        for (Student student : students) {
+            chances.add(new StudentChance(student, current.getChance(student.getId()),
+                    proposed.getChance(student.getId())));
+        }
     }
 
     /** Returns the behaviour both configs were simulated under. */
@@ -33,7 +46,7 @@ public class BehaviourComparison {
         return behaviour;
     }
 
-    /** Returns how the current config did. */
+    /** Returns how the saved config did. */
     public ConfigOutcome getCurrent() {
         return current;
     }
@@ -43,28 +56,70 @@ public class BehaviourComparison {
         return proposed;
     }
 
-    /** Returns true if the proposed config's coverage interval sits entirely above the current one's. */
-    public boolean isCoverageClearlyHigher() {
-        return proposed.getCoverage().isClearlyAbove(current.getCoverage());
+    /** Returns how many students could be matched. */
+    public int getStudentCount() {
+        return chances.size();
     }
 
-    /** Returns true if the proposed config's coverage interval sits entirely below the current one's. */
-    public boolean isCoverageClearlyLower() {
-        return current.getCoverage().isClearlyAbove(proposed.getCoverage());
+    /** Returns the change in the average chance of a buddy they can meet. */
+    public Change getBuddyCoverageChange() {
+        return Change.between(current.getBuddyCoverage(), proposed.getBuddyCoverage());
     }
 
-    /** Returns true if new connections score no more than QUALITY_MARGIN below the current config's. */
-    public boolean isQualityKept() {
-        return proposed.getAverageScore().getMean() >= current.getAverageScore().getMean() - QUALITY_MARGIN;
+    /** Returns how many students are at risk with the saved config. */
+    public int getAtRiskSaved() {
+        int count = 0;
+        for (StudentChance chance : chances) {
+            if (chance.getSavedChance() < AT_RISK_CHANCE) {
+                count++;
+            }
+        }
+        return count;
     }
 
-    /** Returns true if the peak inbox grows by no more than INBOX_MARGIN. */
-    public boolean isInboxKept() {
-        return proposed.getPeakInbox().getMean() <= current.getPeakInbox().getMean() + INBOX_MARGIN;
+    /** Returns how many students are at risk with the proposed config. */
+    public int getAtRiskProposed() {
+        int count = 0;
+        for (StudentChance chance : chances) {
+            if (chance.getProposedChance() < AT_RISK_CHANCE) {
+                count++;
+            }
+        }
+        return count;
     }
 
-    /** Returns true if all three checks pass. */
-    public boolean isProposedBetter() {
-        return isCoverageClearlyHigher() && isQualityKept() && isInboxKept();
+    /** Returns the students at risk with the saved config who are clearly out of risk with the proposed one. */
+    public List<StudentChance> getMovedOutOfRisk() {
+        List<StudentChance> moved = new ArrayList<>();
+        for (StudentChance chance : chances) {
+            if (chance.getSavedChance() < AT_RISK_CHANCE && chance.getProposedChance() >= AT_RISK_CHANCE
+                    && chance.getProposedChance() - chance.getSavedChance() >= MIN_SHIFT) {
+                moved.add(chance);
+            }
+        }
+        return moved;
+    }
+
+    /** Returns the students not at risk with the saved config who are clearly at risk with the proposed one. */
+    public List<StudentChance> getNewlyAtRisk() {
+        List<StudentChance> moved = new ArrayList<>();
+        for (StudentChance chance : chances) {
+            if (chance.getSavedChance() >= AT_RISK_CHANCE && chance.getProposedChance() < AT_RISK_CHANCE
+                    && chance.getSavedChance() - chance.getProposedChance() >= MIN_SHIFT) {
+                moved.add(chance);
+            }
+        }
+        return moved;
+    }
+
+    /** Returns the students at risk with both configs. */
+    public List<StudentChance> getStillAtRisk() {
+        List<StudentChance> still = new ArrayList<>();
+        for (StudentChance chance : chances) {
+            if (chance.getSavedChance() < AT_RISK_CHANCE && chance.getProposedChance() < AT_RISK_CHANCE) {
+                still.add(chance);
+            }
+        }
+        return still;
     }
 }

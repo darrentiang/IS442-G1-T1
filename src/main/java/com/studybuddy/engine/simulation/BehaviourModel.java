@@ -9,10 +9,7 @@ import java.util.Random;
  */
 public interface BehaviourModel {
 
-    /** Returns the short name used in code, e.g. "learned". */
-    String getName();
-
-    /** Returns the name shown to admins, e.g. "Learned from current data". */
+    /** Returns the name shown to admins, e.g. "As students behave now". */
     String getLabel();
 
     /**

@@ -31,16 +31,10 @@ public class LearnedBehaviour implements BehaviourModel {
         this.acceptScale = acceptScale;
     }
 
-    /** Returns "learned". */
-    @Override
-    public String getName() {
-        return "learned";
-    }
-
-    /** Returns "Learned from current data". */
+    /** Returns "As students behave now". */
     @Override
     public String getLabel() {
-        return "Learned from current data";
+        return "As students behave now";
     }
 
     /** Sends the whole part of the average, plus one more with a chance equal to the fraction. */

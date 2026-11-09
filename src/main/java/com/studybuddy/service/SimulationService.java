@@ -4,19 +4,17 @@ import org.springframework.stereotype.Service;
 
 import com.studybuddy.engine.MatchingConfig;
 import com.studybuddy.engine.MatchingEngine;
-import com.studybuddy.engine.simulation.ConfigSearch;
 import com.studybuddy.engine.simulation.ConfigSimulator;
 import com.studybuddy.engine.simulation.CurrentState;
-import com.studybuddy.engine.simulation.Recommendation;
 import com.studybuddy.engine.simulation.SimulationReport;
 import com.studybuddy.repository.ConnectionRepository;
 import com.studybuddy.repository.MatchRequestRepository;
 import com.studybuddy.repository.StudentRepository;
 
 /**
- * Projects how matching settings would perform, for the admin config page: compares unsaved
- * settings with the saved ones, or searches for better settings. Works on a copy of the app's
- * data, so nothing it simulates is ever saved.
+ * Projects what matching settings would change for students, for the admin config page: simulates
+ * unsaved settings next to the saved ones. Works on a copy of the app's data, so nothing it
+ * simulates is ever saved.
  */
 @Service
 public class SimulationService {
@@ -45,11 +43,6 @@ public class SimulationService {
     public SimulationReport simulate(MatchingConfigForm form) {
         MatchingConfig proposed = matchingConfigService.fromForm(form);
         return new ConfigSimulator(engine).compare(currentState(), matchingConfigService.getConfig(), proposed);
-    }
-
-    /** Searches for settings that clearly beat the saved ones. */
-    public Recommendation recommend() {
-        return new ConfigSearch(engine).recommend(currentState(), matchingConfigService.getConfig());
     }
 
     /** Returns a copy of the app's students, buddy requests and connections. */
