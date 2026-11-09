@@ -21,6 +21,36 @@
       </svg>New account</a>
   </div>
 
+  <form class="card filter-bar" th:action="@{/admin/users}" method="get" role="search">
+    <div class="filter-field">
+      <label for="q">Search</label>
+      <input id="q" name="q" type="search" th:value="${q}" placeholder="Name, email or ID">
+    </div>
+    <div class="filter-field">
+      <label for="role">Role</label>
+      <select id="role" name="role">
+        <option value="">All roles</option>
+        <option value="STUDENT" th:selected="${role == 'STUDENT'}">Students</option>
+        <option value="ADMIN" th:selected="${role == 'ADMIN'}">Administrators</option>
+      </select>
+    </div>
+    <div class="filter-field">
+      <label for="status">Status</label>
+      <select id="status" name="status">
+        <option value="">Any status</option>
+        <option value="ACTIVE" th:selected="${status == 'ACTIVE'}">Active</option>
+        <option value="SUSPENDED" th:selected="${status == 'SUSPENDED'}">Suspended</option>
+      </select>
+    </div>
+    <div class="filter-actions">
+      <button type="submit" class="btn btn-secondary">Filter</button>
+      <a class="btn btn-quiet" th:href="@{/admin/users}"
+         th:if="${!#strings.isEmpty(q) or !#strings.isEmpty(role) or !#strings.isEmpty(status)}">Clear</a>
+    </div>
+  </form>
+
+  <p class="results-summary" th:text="${users.size() == totalUsers ? totalUsers + ' accounts' : 'Showing ' + users.size() + ' of ' + totalUsers + ' accounts'}">51 accounts</p>
+
   <div class="card">
     <table class="table" th:if="${!#lists.isEmpty(users)}">
       <thead>
@@ -44,7 +74,7 @@
       </tbody>
     </table>
     <th:block th:if="${#lists.isEmpty(users)}">
-      <div th:replace="~{fragments/empty-state :: empty-state('No accounts yet.')}"></div>
+      <div th:replace="~{fragments/empty-state :: empty-state-action('No accounts match these filters.', 'Clear filters', @{/admin/users})}"></div>
     </th:block>
   </div>
 </main>

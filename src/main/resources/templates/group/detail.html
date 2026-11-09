@@ -22,6 +22,15 @@
     </p>
     <p class="group-description"
        th:text="${#strings.isEmpty(group.description) ? 'No description provided.' : group.description}">Description</p>
+    <div class="group-actions" th:if="${student != null and !member and !leader and group.open and !full}">
+      <th:block th:if="${pending}">
+        <button type="button" class="btn btn-secondary" disabled>Request sent</button>
+        <span th:replace="~{fragments/badge :: badge(${pendingStatus})}"></span>
+      </th:block>
+      <form th:unless="${pending}" th:action="@{/groups/{id}/join(id=${group.id})}" method="post">
+        <button type="submit" class="btn btn-primary">Request to join</button>
+      </form>
+    </div>
   </header>
 
   <div th:if="${!group.open}" class="banner banner-warning" role="status">This group is closed</div>
@@ -40,7 +49,7 @@
       </div>
       <div>
         <dt>Study mode</dt>
-        <dd th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(group.mode.name(), '_', ' ')))}">Online</dd>
+        <dd th:text="${group.mode.label}">Online</dd>
       </div>
       <div>
         <dt>Group leader</dt>
@@ -48,24 +57,12 @@
       </div>
       <div>
         <dt>Members</dt>
-        <dd>
+        <dd th:with="spots=${full ? 0 : group.maxSize - #lists.size(group.members)}">
           <strong th:text="${#lists.size(group.members)}">4</strong>
-          <span th:text="${'of ' + group.maxSize + ' places filled'}">of 5 places filled</span>
+          <span th:text="${'of ' + group.maxSize + ' · ' + spots + (spots == 1 ? ' place left' : ' places left')}">of 5 · 1 place left</span>
         </dd>
       </div>
     </dl>
-    <div class="group-join-footer" th:with="spots=${full ? 0 : group.maxSize - #lists.size(group.members)}">
-      <span th:text="${spots + (spots == 1 ? ' spot remaining' : ' spots remaining')}">1 spot remaining</span>
-      <div class="group-actions" th:if="${student != null and !member and !leader and group.open and !full}">
-        <th:block th:if="${pending}">
-          <button type="button" class="btn btn-secondary" disabled>Request sent</button>
-          <span th:replace="~{fragments/badge :: badge(${pendingStatus})}"></span>
-        </th:block>
-        <form th:unless="${pending}" th:action="@{/groups/{id}/join(id=${group.id})}" method="post">
-          <button type="submit" class="btn btn-primary">Request to join</button>
-        </form>
-      </div>
-    </div>
   </section>
 
   <section th:if="${leader}" class="card" aria-labelledby="management-heading">
@@ -125,30 +122,22 @@
   </section>
 
   <section class="card" aria-labelledby="availability-heading">
-    <h2 id="availability-heading">Weekly availability</h2>
-    <p class="text-secondary" id="availability-hint">Each row represents one hour. Blue slots labelled Free are available; grey slots are unavailable.</p>
-    <div class="group-timetable-scroll" tabindex="0" role="region" aria-labelledby="availability-heading">
-      <table class="table group-timetable" aria-describedby="availability-hint">
-        <caption class="group-visually-hidden">Group weekly availability, from 08:00 to 23:00</caption>
-        <thead>
-          <tr>
-            <th scope="col">Time</th>
-            <th scope="col" th:each="day : ${days}" th:text="${day}">Monday</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr th:each="hour : ${#numbers.sequence(0, 14)}">
-            <th scope="row" th:text="${(hour + 8) + ':00–' + (hour + 9) + ':00'}">8:00–9:00</th>
-            <td th:each="day, dayIndex : ${days}">
-              <span class="cell group-availability-cell"
-                    th:classappend="${group.availability.isAvailable(dayIndex.index, hour)} ? 'cell-free' : 'cell-busy'"
-                    th:text="${group.availability.isAvailable(dayIndex.index, hour) ? 'Free' : '—'}"
-                    th:attr="aria-label=${day + ' ' + (hour + 8) + ':00–' + (hour + 9) + ':00: ' + (group.availability.isAvailable(dayIndex.index, hour) ? 'available' : 'unavailable')}">Free</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <h2 id="availability-heading">When the group meets</h2>
+    <p class="text-secondary">The hours the group is free to study together each week.</p>
+    <div class="avail-week">
+      <span></span>
+      <span class="avail-label" th:each="hour : ${grid.hourLabels}" th:text="${hour}">08</span>
+      <th:block th:each="day, d : ${grid.dayNames}">
+        <span class="avail-label" th:text="${day}">MON</span>
+        <span class="cell" th:each="hour, h : ${grid.hourLabels}"
+              th:classappend="${grid.cellClass(d.index, h.index)}"
+              th:title="|${day} ${hour}:00 · ${grid.isFree(d.index, h.index) ? 'free' : 'busy'}|"></span>
+      </th:block>
     </div>
+    <ul class="avail-legend">
+      <li><span class="cell cell-free"></span>Free</li>
+      <li><span class="cell cell-busy"></span>Busy</li>
+    </ul>
   </section>
 
   <section class="card danger-zone" th:if="${member and (!leader or group.open or group.nextLeader() != null)}"

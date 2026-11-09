@@ -91,8 +91,7 @@ public class GroupBrowseController {
         model.addAttribute("pendingStatus", RequestStatus.PENDING);
         model.addAttribute("discordStatus", discordService.statusFor(group, userId).name());
         model.addAttribute("discordChatUrl", discordService.chatUrl(group));
-        model.addAttribute("days", new String[] {"Monday", "Tuesday", "Wednesday", "Thursday",
-                "Friday", "Saturday", "Sunday"});
+        model.addAttribute("grid", new AvailabilityGridView(group.getAvailability(), null));
         return "group/detail";
     }
 

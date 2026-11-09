@@ -53,10 +53,16 @@ public class AdminController {
         return "redirect:/admin/users";
     }
 
-    /** Shows every account. */
+    /** Shows the accounts, narrowed by an optional search text, role and status. */
     @GetMapping("/admin/users")
-    public String showUsers(Model model) {
-        model.addAttribute("users", userService.findAllUsers());
+    public String showUsers(@RequestParam(required = false) String q,
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) String status, Model model) {
+        model.addAttribute("users", userService.searchUsers(q, role, status));
+        model.addAttribute("totalUsers", userService.findAllUsers().size());
+        model.addAttribute("q", q);
+        model.addAttribute("role", role);
+        model.addAttribute("status", status);
         return "admin/users";
     }
 

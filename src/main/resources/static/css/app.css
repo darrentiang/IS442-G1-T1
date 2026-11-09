@@ -1783,3 +1783,86 @@ h2 > .icon {
 .detail-header-action {
     margin-left: auto;
 }
+
+/* --------------------------------------------------------------------------
+   Phase 4 page fixes
+   -------------------------------------------------------------------------- */
+
+/* A low-key action that is neither the main one nor destructive (Pass). */
+.btn-quiet {
+    background: transparent;
+    border-color: transparent;
+    color: var(--color-text-secondary);
+}
+
+.btn-quiet:hover {
+    background: var(--color-surface-muted);
+    color: var(--color-text);
+}
+
+/* Find buddies card: reasons on the left, actions on the right, in one row. */
+.match-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+    margin-top: 14px;
+}
+
+.match-footer .tag-list,
+.match-footer .match-actions {
+    margin-top: 0;
+}
+
+.match-footer .match-actions {
+    align-items: center;
+    margin-left: auto;
+}
+
+/* The message form opens across the full card width. */
+.match-footer .match-actions:has(.request-details[open]) {
+    flex-basis: 100%;
+}
+
+.match-list .match-details {
+    margin-top: 14px;
+    padding-top: 12px;
+}
+
+/* A filter form in one row: fields side by side, buttons at the end; stacks on a phone. */
+.filter-bar {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.filter-field {
+    flex: 1 1 240px;
+}
+
+.filter-field select,
+.filter-field input {
+    width: 100%;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* A row's name as the link to open it, in the text colour so the table stays calm. */
+.row-link {
+    color: var(--color-text);
+    font-weight: 500;
+}
+
+.row-link:hover {
+    color: var(--color-accent);
+}
+
+/* The group's main action (Request to join) under its description, in the header card. */
+.group-header > .group-actions {
+    margin-top: 16px;
+}
