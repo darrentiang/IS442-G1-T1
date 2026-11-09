@@ -182,6 +182,11 @@ public class MatchingConfigService {
 
     /** Applies a form that has already passed validate() and saves it as the active configuration. */
     public void update(MatchingConfigForm form) {
+        configRepository.save(fromForm(form));
+    }
+
+    /** Turns a form that has already passed validate() into a configuration, without saving it. */
+    public MatchingConfig fromForm(MatchingConfigForm form) {
         MatchingConfig config = new MatchingConfig();
         config.setActiveStrategyName(form.getActiveStrategyName());
 
@@ -200,7 +205,7 @@ public class MatchingConfigService {
         config.setTargetUsableHours(parseWholeNumber(form.getTargetUsableHours()));
         config.setMinSessionHours(parseWholeNumber(form.getMinSessionHours()));
         config.setCongestionStrength(parseNumber(form.getCongestionStrength()));
-        configRepository.save(config);
+        return config;
     }
 
     /** Returns whether this criterion is ticked in the form. */
