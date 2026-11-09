@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<!--
+  The administrator's home: accounts, groups and requests at a glance, each with a link to
+  the page that acts on it, plus the matching setup. Expects: user, overview, strategyLabel.
+-->
+<head th:replace="~{fragments/head :: head('Overview')}"></head>
+<body>
+<header th:replace="~{fragments/nav :: nav('home')}"></header>
+<div th:replace="~{fragments/toast :: toast}"></div>
+
+<main th:with="o=${overview}">
+  <div class="page-header">
+    <div>
+      <h1>Overview</h1>
+      <p class="text-secondary" th:text="'Signed in as ' + ${user.name}">Signed in as Study Buddy Admin</p>
+    </div>
+    <a class="btn btn-primary" th:href="@{/admin/users/new}">New account</a>
+  </div>
+
+  <section class="card" aria-labelledby="students-heading">
+    <div class="card-heading">
+      <h2 id="students-heading">Students</h2>
+      <a th:href="@{/admin/users}">Manage accounts</a>
+    </div>
+    <dl class="stat-row">
+      <div>
+        <dt>Student accounts</dt>
+        <dd th:text="${o.students}">50</dd>
+      </div>
+      <div>
+        <dt>Without a buddy yet</dt>
+        <dd th:text="${o.studentsWithoutBuddy}">29</dd>
+      </div>
+      <div>
+        <dt>Buddy connections</dt>
+        <dd th:text="${o.activeConnections}">21</dd>
+      </div>
+      <div>
+        <dt>Suspended</dt>
+        <dd th:text="${o.suspendedStudents}">2</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section class="card" aria-labelledby="groups-heading">
+    <div class="card-heading">
+      <h2 id="groups-heading">Study groups</h2>
+      <a th:href="@{/groups}">Browse groups</a>
+    </div>
+    <dl class="stat-row">
+      <div>
+        <dt>Open with places</dt>
+        <dd th:text="${o.openGroups}">10</dd>
+      </div>
+      <div>
+        <dt>Full</dt>
+        <dd th:text="${o.fullGroups}">1</dd>
+      </div>
+      <div>
+        <dt>Closed</dt>
+        <dd th:text="${o.closedGroups}">1</dd>
+      </div>
+      <div>
+        <dt>Join requests waiting</dt>
+        <dd th:text="${o.pendingJoinRequests}">6</dd>
+      </div>
+    </dl>
+  </section>
+
+  <div class="home-grid">
+    <section class="card" aria-labelledby="requests-heading">
+      <h2 id="requests-heading">Buddy requests</h2>
+      <dl class="stat-row">
+        <div>
+          <dt>Waiting for an answer</dt>
+          <dd th:text="${o.pendingBuddyRequests}">25</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="card" aria-labelledby="matching-heading">
+      <div class="card-heading">
+        <h2 id="matching-heading">Matching</h2>
+        <a th:href="@{/admin/config}">Change settings</a>
+      </div>
+      <dl class="stat-row">
+        <div>
+          <dt>Strategy in use</dt>
+          <dd th:text="${strategyLabel}">Balanced</dd>
+        </div>
+      </dl>
+      <p class="text-secondary">Before saving a change, use Simulate on the settings page to preview who it would help or leave out.</p>
+    </section>
+  </div>
+</main>
+</body>
+</html>

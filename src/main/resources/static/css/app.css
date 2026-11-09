@@ -1537,3 +1537,87 @@ h2 + .hint {
         animation-duration: 2.4s;
     }
 }
+
+
+/* --------------------------------------------------------------------------
+   Home pages (shared/home.html, admin/overview.html)
+   -------------------------------------------------------------------------- */
+
+/* Two cards side by side; one column on narrow screens. */
+.home-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    align-items: start;
+}
+
+@media (max-width: 760px) {
+    .home-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* A card's title with a quiet link on the right ("See all"). */
+.card-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.card-heading a {
+    color: var(--color-text-secondary);
+    font-size: 14px;
+}
+
+.card-heading a:hover {
+    color: var(--color-accent);
+}
+
+/* Rows of people or groups: content on the left, an action or badge on the right. */
+.list-rows {
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.list-rows li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 0;
+}
+
+.list-rows li + li {
+    border-top: 1px solid var(--color-divider);
+}
+
+.list-rows a.person-name {
+    color: var(--color-text);
+}
+
+.list-rows a.person-name:hover {
+    color: var(--color-accent);
+}
+
+/* Numbers as large type over a small label. */
+.stat-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px 24px;
+    margin: 16px 0 0;
+}
+
+.stat-row dt {
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.stat-row dd {
+    margin: 4px 0 0;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}

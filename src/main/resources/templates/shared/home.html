@@ -1,30 +1,108 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<!-- Placeholder home page; the real one comes later. -->
+<!--
+  A student's home: what waits for them first, then their groups and their buddies.
+  Expects: user, student, needsAvailability, buddyRequests, joinRequests (group -> count),
+  ledGroups, joinedGroups, buddies. Administrators get admin/overview.html instead.
+-->
 <head th:replace="~{fragments/head :: head('Home')}"></head>
 <body>
 <header th:replace="~{fragments/nav :: nav('home')}"></header>
 <div th:replace="~{fragments/toast :: toast}"></div>
 
-<main>
-  <div>
-    <h1 th:text="'Welcome, ' + ${user.name}">Welcome, Tan Wei Jie</h1>
-    <p class="text-secondary" th:text="${user.roleLabel}">Student</p>
+<main th:with="profile=${student.profile}, target=${student.profile.preferences.targetCourse}">
+  <div class="page-header">
+    <div>
+      <h1 th:text="'Welcome, ' + ${user.name}">Welcome, Tan Wei Jie</h1>
+      <p class="text-secondary"
+         th:text="${#strings.isEmpty(profile.programme) ? 'Your profile is not filled in yet'
+                 : profile.programme + ' · Year ' + profile.yearOfStudy
+                   + (target == null ? '' : ' · looking for a buddy in ' + target.code)}">Information Systems · Year 3 · looking for a buddy in IS442</p>
+    </div>
+    <a class="btn btn-primary" th:if="${target != null}" th:href="@{/buddies(course=${target.code})}"
+       th:text="'Find buddies for ' + ${target.code}">Find buddies for IS442</a>
+    <a class="btn btn-primary" th:if="${target == null}" th:href="@{/profile/edit}">Complete your profile</a>
   </div>
 
   <div class="banner banner-warning banner-action" th:if="${needsAvailability}">
-    <span>Set your availability to get matched properly</span>
+    <span>Set your availability so matches can check when you're both free</span>
     <a class="btn btn-secondary btn-small" th:href="@{/profile/availability}">Set availability</a>
   </div>
 
-  <div class="card" th:if="${student != null}">
-    <h2>Your profile</h2>
-    <p th:text="${#strings.isEmpty(student.profile.programme) ? 'Your details are not filled in yet' : student.profile.programme + ' · Year ' + student.profile.yearOfStudy}">Information Systems · Year 3</p>
-    <p th:with="target=${student.profile.preferences.targetCourse}"
-       th:text="${target == null ? 'Choose the course you need a buddy for' : 'Looking for a buddy in ' + target.code + ' ' + target.title}">Looking for a buddy in IS442 Object-Oriented Programming</p>
-    <a class="btn btn-secondary" th:with="target=${student.profile.preferences.targetCourse}"
-       th:href="${target == null} ? @{/profile/edit} : @{/buddies(course=${target.code})}"
-       th:text="${target == null ? 'Edit your profile' : 'Find buddies for ' + target.code}">Find buddies for IS442</a>
+  <section class="card" th:if="${!buddyRequests.isEmpty() or !joinRequests.isEmpty()}" aria-labelledby="waiting-heading">
+    <h2 id="waiting-heading">Needs your reply</h2>
+    <ul class="list-rows">
+      <li th:each="request : ${buddyRequests}">
+        <div class="person">
+          <span class="avatar" th:text="${#strings.toUpperCase(#strings.substring(request.from.name, 0, 1))}">I</span>
+          <div>
+            <div class="person-name" th:text="${request.from.name + ' wants to be your study buddy'}">Isaac Chua wants to be your study buddy</div>
+            <div class="person-email" th:text="${#strings.isEmpty(request.message) ? 'No message' : '“' + request.message + '”'}">“Saw we are both doing exam prep”</div>
+          </div>
+        </div>
+        <a class="btn btn-secondary btn-small" th:href="@{/requests}">Reply</a>
+      </li>
+      <li th:each="entry : ${joinRequests}">
+        <div class="person">
+          <span class="avatar" aria-hidden="true">G</span>
+          <div>
+            <div class="person-name" th:text="${entry.value + (entry.value == 1 ? ' student wants' : ' students want') + ' to join ' + entry.key.name}">1 student wants to join IS442 Finals Crammers</div>
+            <div class="person-email">You lead this group</div>
+          </div>
+        </div>
+        <a class="btn btn-secondary btn-small" th:href="@{/groups/{id}/manage(id=${entry.key.id})}">Review</a>
+      </li>
+    </ul>
+  </section>
+
+  <div class="home-grid">
+    <section class="card" aria-labelledby="groups-heading">
+      <div class="card-heading">
+        <h2 id="groups-heading">Your groups</h2>
+        <a th:href="@{/groups/mine}" th:unless="${ledGroups.isEmpty() and joinedGroups.isEmpty()}">See all</a>
+      </div>
+      <ul class="list-rows" th:unless="${ledGroups.isEmpty() and joinedGroups.isEmpty()}">
+        <li th:each="group : ${ledGroups}">
+          <div>
+            <a class="person-name" th:href="@{/groups/{id}(id=${group.id})}" th:text="${group.name}">IS442 Finals Crammers</a>
+            <div class="person-email" th:text="${group.course.code + ' · ' + group.members.size() + ' of ' + group.maxSize + ' members'}">IS442 · 4 of 5 members</div>
+          </div>
+          <span th:replace="~{fragments/badge :: badge('Leader')}"></span>
+        </li>
+        <li th:each="group : ${joinedGroups}">
+          <div>
+            <a class="person-name" th:href="@{/groups/{id}(id=${group.id})}" th:text="${group.name}">OOP Design Patterns Lab</a>
+            <div class="person-email" th:text="${group.course.code + ' · ' + group.members.size() + ' of ' + group.maxSize + ' members'}">IS442 · 3 of 6 members</div>
+          </div>
+        </li>
+      </ul>
+      <div class="empty-state" th:if="${ledGroups.isEmpty() and joinedGroups.isEmpty()}">
+        <p>You're not in any study group yet.</p>
+        <a class="btn btn-secondary" th:href="@{/groups}">Browse groups</a>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="buddies-heading">
+      <div class="card-heading">
+        <h2 id="buddies-heading">Your buddies</h2>
+        <a th:href="@{/connections}" th:unless="${buddies.isEmpty()}">See all</a>
+      </div>
+      <ul class="list-rows" th:unless="${buddies.isEmpty()}">
+        <li th:each="connection : ${buddies}">
+          <div class="person">
+            <span class="avatar" th:text="${#strings.toUpperCase(#strings.substring(connection.buddy.name, 0, 1))}">N</span>
+            <div>
+              <div class="person-name" th:text="${connection.buddy.name}">Nur Aisyah Binte Rahman</div>
+              <div class="person-email" th:text="${'Buddies since ' + #temporals.format(connection.since, 'd MMM yyyy')}">Buddies since 3 Nov 2026</div>
+            </div>
+          </div>
+        </li>
+      </ul>
+      <div class="empty-state" th:if="${buddies.isEmpty()}">
+        <p>No buddies yet. Send a request to someone who matches you.</p>
+        <a class="btn btn-secondary" th:href="@{/buddies}">Find buddies</a>
+      </div>
+    </section>
   </div>
 </main>
 </body>
