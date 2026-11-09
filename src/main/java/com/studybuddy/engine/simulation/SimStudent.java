@@ -81,10 +81,10 @@ public class SimStudent {
         return connections.isEmpty();
     }
 
-    /** Returns true if at least one connection can actually meet and scores at least the minimum. */
+    /** Returns true if at least one connection is a buddy this student can really study with. */
     public boolean isCovered(double minimumScore) {
         for (SimConnection connection : connections) {
-            if (connection.isUsable(minimumScore)) {
+            if (connection.isUsableFor(getId(), minimumScore)) {
                 return true;
             }
         }

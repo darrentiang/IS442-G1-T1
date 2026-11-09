@@ -12,6 +12,7 @@ import com.studybuddy.engine.MatchContext;
 import com.studybuddy.engine.MatchResult;
 import com.studybuddy.engine.MatchingConfig;
 import com.studybuddy.engine.MatchingEngine;
+import com.studybuddy.engine.criteria.CourseCriterion;
 import com.studybuddy.model.Connection;
 import com.studybuddy.model.MatchRequest;
 import com.studybuddy.model.RequestStatus;
@@ -31,6 +32,8 @@ public class TermSimulator {
 
     /** A request left unanswered for this many rounds is dropped, as if the sender gave up. */
     public static final int EXPIRY_ROUNDS = 2;
+    /** The lowest course score that counts as relevant: the buddy shares or is taking the student's target course. */
+    public static final double RELEVANT_COURSE_SCORE = 0.6;
 
     private static final double NO_SCORE = 0.0;
     private static final int NO_HOURS = 0;
@@ -41,6 +44,7 @@ public class TermSimulator {
     private final BehaviourModel behaviour;
     private final int rounds;
     private final Map<String, MatchResult> pairCache = new HashMap<>();
+    private final CourseCriterion courseCriterion = new CourseCriterion();
 
     /**
      * Creates a simulator for one config and one behaviour. Pair scores are remembered between
@@ -173,10 +177,21 @@ public class TermSimulator {
             score = result.getMutualScore();
             hours = result.getUsableHours();
         }
-        SimConnection connection = new SimConnection(first.getId(), second.getId(), score, hours, formedInSimulation);
+        SimConnection connection = new SimConnection(first.getId(), second.getId(), score, hours,
+                isCourseRelevant(first, second), isCourseRelevant(second, first), formedInSimulation);
         first.addConnection(connection, second.getId());
         second.addConnection(connection, first.getId());
         return connection;
+    }
+
+    /** Returns true if the buddy shares or is taking the course the student needs help with, using the engine's course rule. */
+    private boolean isCourseRelevant(SimStudent student, SimStudent buddy) {
+        if (student.getStudent().getProfile() == null || buddy.getStudent().getProfile() == null) {
+            return false;
+        }
+        double courseScore = courseCriterion.score(student.getStudent().getProfile(),
+                buddy.getStudent().getProfile(), yardstick).getValue();
+        return courseScore >= RELEVANT_COURSE_SCORE;
     }
 
     /** Returns the pair's yardstick mutual score, or 0 if either has no profile. */
