@@ -182,7 +182,8 @@
 
       <div class="form-actions">
         <button type="submit" class="btn btn-primary">Save configuration</button>
-        <button type="submit" class="btn btn-secondary" th:formaction="@{/admin/config/simulate}">Simulate these settings</button>
+        <button type="submit" class="btn btn-secondary" th:formaction="@{/admin/config/simulate}"
+                data-loading-text="Simulating, about 10 seconds">Simulate these settings</button>
       </div>
       <p class="text-secondary">Simulate projects how these settings would do against the saved ones, without saving. It takes about 10 seconds.</p>
     </div>
@@ -230,7 +231,7 @@
 
     <form th:action="@{/admin/config/recommend}" method="post">
       <div class="form-actions">
-        <button type="submit" class="btn btn-secondary">Find best settings</button>
+        <button type="submit" class="btn btn-secondary" data-loading-text="Searching, about 15 seconds">Find best settings</button>
       </div>
     </form>
     <p class="text-secondary">Takes about 15 seconds.</p>
