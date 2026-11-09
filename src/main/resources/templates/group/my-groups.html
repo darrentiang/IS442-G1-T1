@@ -6,15 +6,16 @@
 -->
 <head th:replace="~{fragments/head :: head('My groups')}"></head>
 <body>
-<header th:replace="~{fragments/nav :: nav('groups')}"></header>
+<header th:replace="~{fragments/nav :: nav('my-groups')}"></header>
 <div th:replace="~{fragments/toast :: toast}"></div>
 
 <main>
-  <h1>My groups</h1>
-  <div class="group-actions">
+  <div class="page-header">
+    <div>
+      <h1>My groups</h1>
+      <p class="text-secondary">Groups you lead and groups you have joined.</p>
+    </div>
     <a th:href="@{/groups/new}" class="btn btn-primary">Create a group</a>
-    <a th:href="@{/groups}" class="btn btn-secondary">Browse groups</a>
-    <a th:href="@{/groups/requests}" class="btn btn-secondary">My requests</a>
   </div>
 
   <section aria-labelledby="leading-heading">
@@ -41,7 +42,7 @@
         </tbody>
       </table>
       <th:block th:if="${#lists.isEmpty(ledGroups)}">
-        <div th:replace="~{fragments/empty-state :: empty-state('You don’t lead any groups yet.')}"></div>
+        <div th:replace="~{fragments/empty-state :: empty-state-action('You don’t lead any groups yet.', 'Create a group', @{/groups/new})}"></div>
       </th:block>
     </div>
   </section>
@@ -65,7 +66,7 @@
         </tbody>
       </table>
       <th:block th:if="${#lists.isEmpty(joinedGroups)}">
-        <div th:replace="~{fragments/empty-state :: empty-state('You haven’t joined any groups yet.')}"></div>
+        <div th:replace="~{fragments/empty-state :: empty-state-action('You haven’t joined any groups yet.', 'Browse groups', @{/groups})}"></div>
       </th:block>
     </div>
   </section>

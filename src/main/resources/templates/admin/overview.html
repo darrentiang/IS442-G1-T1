@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<!--
+  The administrator's home: accounts, groups and requests at a glance, each with a link to
+  the page that acts on it, plus the matching setup. Expects: user, overview, strategyLabel.
+-->
+<head th:replace="~{fragments/head :: head('Overview')}"></head>
+<body>
+<header th:replace="~{fragments/nav :: nav('home')}"></header>
+<div th:replace="~{fragments/toast :: toast}"></div>
+
+<main th:with="o=${overview}">
+  <div class="page-header">
+    <div>
+      <h1>Overview</h1>
+      <p class="text-secondary" th:text="'Signed in as ' + ${user.name}">Signed in as Study Buddy Admin</p>
+    </div>
+    <a class="btn btn-primary" th:href="@{/admin/users/new}"><svg th:replace="~{fragments/icon :: icon('user-plus')}"></svg>New account</a>
+  </div>
+
+  <section class="card" aria-labelledby="students-heading">
+    <div class="card-heading">
+      <h2 id="students-heading"><svg th:replace="~{fragments/icon :: icon('users')}"></svg>Students</h2>
+      <a th:href="@{/admin/users}">Manage accounts<svg th:replace="~{fragments/icon :: icon('arrow-right')}"></svg></a>
+    </div>
+    <div class="stat-row">
+      <div class="stat">
+        <span class="stat-icon"><svg th:replace="~{fragments/icon :: icon('users')}"></svg></span>
+        <div><p class="stat-label">Student accounts</p><p class="stat-value" th:text="${o.students}">50</p></div>
+      </div>
+      <div class="stat">
+        <span class="stat-icon stat-icon-warning"><svg th:replace="~{fragments/icon :: icon('search')}"></svg></span>
+        <div><p class="stat-label">Without a buddy yet</p><p class="stat-value" th:text="${o.studentsWithoutBuddy}">22</p></div>
+      </div>
+      <div class="stat">
+        <span class="stat-icon stat-icon-success"><svg th:replace="~{fragments/icon :: icon('link')}"></svg></span>
+        <div><p class="stat-label">Buddy connections</p><p class="stat-value" th:text="${o.activeConnections}">20</p></div>
+      </div>
+      <div class="stat">
+        <span class="stat-icon stat-icon-neutral"><svg th:replace="~{fragments/icon :: icon('user-x')}"></svg></span>
+        <div><p class="stat-label">Suspended</p><p class="stat-value" th:text="${o.suspendedStudents}">2</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="groups-heading">
+    <div class="card-heading">
+      <h2 id="groups-heading"><svg th:replace="~{fragments/icon :: icon('book-open')}"></svg>Study groups</h2>
+      <a th:href="@{/groups}">Browse groups<svg th:replace="~{fragments/icon :: icon('arrow-right')}"></svg></a>
+    </div>
+    <div class="stat-row">
+      <div class="stat">
+        <span class="stat-icon stat-icon-success"><svg th:replace="~{fragments/icon :: icon('book-open')}"></svg></span>
+        <div><p class="stat-label">Open with places</p><p class="stat-value" th:text="${o.openGroups}">9</p></div>
+      </div>
+      <div class="stat">
+        <span class="stat-icon"><svg th:replace="~{fragments/icon :: icon('circle-check')}"></svg></span>
+        <div><p class="stat-label">Full</p><p class="stat-value" th:text="${o.fullGroups}">1</p></div>
+      </div>
+      <div class="stat">
+        <span class="stat-icon stat-icon-neutral"><svg th:replace="~{fragments/icon :: icon('lock')}"></svg></span>
+        <div><p class="stat-label">Closed</p><p class="stat-value" th:text="${o.closedGroups}">2</p></div>
+      </div>
+      <div class="stat">
+        <span class="stat-icon stat-icon-warning"><svg th:replace="~{fragments/icon :: icon('inbox')}"></svg></span>
+        <div><p class="stat-label">Join requests waiting</p><p class="stat-value" th:text="${o.pendingJoinRequests}">7</p></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="home-grid">
+    <section class="card" aria-labelledby="requests-heading">
+      <div class="card-heading">
+        <h2 id="requests-heading"><svg th:replace="~{fragments/icon :: icon('message')}"></svg>Buddy requests</h2>
+      </div>
+      <div class="stat-row">
+        <div class="stat">
+          <span class="stat-icon stat-icon-warning"><svg th:replace="~{fragments/icon :: icon('inbox')}"></svg></span>
+          <div><p class="stat-label">Waiting for an answer</p><p class="stat-value" th:text="${o.pendingBuddyRequests}">20</p></div>
+        </div>
+      </div>
+      <p class="text-secondary">Requests students have sent that the other student has not accepted or declined yet.</p>
+    </section>
+
+    <section class="card" aria-labelledby="matching-heading">
+      <div class="card-heading">
+        <h2 id="matching-heading"><svg th:replace="~{fragments/icon :: icon('sliders')}"></svg>Matching</h2>
+        <a th:href="@{/admin/config}">Change settings<svg th:replace="~{fragments/icon :: icon('arrow-right')}"></svg></a>
+      </div>
+      <div class="stat-row">
+        <div class="stat">
+          <span class="stat-icon"><svg th:replace="~{fragments/icon :: icon('sliders')}"></svg></span>
+          <div><p class="stat-label">Strategy in use</p><p class="stat-value stat-value-text" th:text="${strategyLabel}">Balanced</p></div>
+        </div>
+      </div>
+      <p class="text-secondary">Before saving a change, use Simulate on the settings page to preview who it would help or leave out.</p>
+    </section>
+  </div>
+</main>
+</body>
+</html>

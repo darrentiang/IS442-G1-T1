@@ -13,7 +13,7 @@
 <main>
   <div>
     <h1>Find buddies</h1>
-    <p class="text-secondary">Search by course or by study goal. Matches are scored both ways, so they work for you and for them.</p>
+    <p class="text-secondary">Search by course or by study goal. Matches are scored both ways, so they work for you and for them. <a th:href="@{/courses}">Browse all courses</a></p>
   </div>
 
   <form class="card" th:action="@{/buddies}" method="get">
@@ -89,11 +89,30 @@
         </div>
       </div>
 
-      <ul class="tag-list" th:unless="${#lists.isEmpty(r.reasons)}">
-        <li class="tag" th:each="reason : ${r.reasons}"
-            th:classappend="${r.pendingRequests >= 3 and reason == r.pendingRequests + ' pending requests'} ? 'tag-warning'"
-            th:text="${reason}">Both free 6h a week</li>
-      </ul>
+      <div class="match-footer">
+        <ul class="tag-list" th:unless="${#lists.isEmpty(r.reasons)}">
+          <li class="tag" th:each="reason : ${r.reasons}"
+              th:classappend="${r.pendingRequests >= 3 and reason == r.pendingRequests + ' pending requests'} ? 'tag-warning'"
+              th:text="${reason}">Both free 6h a week</li>
+        </ul>
+        <div class="match-actions">
+          <form method="post"
+                th:action="@{/buddies/{id}/pass(id=${c.id}, course=${search.courseCode}, goal=${search.goal}, mode=${search.mode}, minHours=${search.minHours})}">
+            <button type="submit" class="btn btn-quiet" th:title="${'Hide ' + c.name + ' from your results'}">Pass</button>
+          </form>
+          <details class="request-details">
+            <summary class="btn btn-primary">Send request</summary>
+            <form method="post"
+                  th:action="@{/buddies/{id}/request(id=${c.id}, course=${search.courseCode}, goal=${search.goal}, mode=${search.mode}, minHours=${search.minHours})}">
+              <label th:for="${'message-' + c.id}">Message (optional)</label>
+              <textarea th:id="${'message-' + c.id}" name="message" rows="3"
+                        th:maxlength="${@environment.getProperty('studybuddy.request.max-message-length')}"
+                        placeholder="Say what you'd like to work on together"></textarea>
+              <button type="submit" class="btn btn-primary" th:text="${'Send request to ' + c.name}">Send request</button>
+            </form>
+          </details>
+        </div>
+      </div>
 
       <details class="match-details">
         <summary>Why this match</summary>
@@ -107,25 +126,6 @@
           <span class="score-value" th:text="${#numbers.formatDecimal(entry.value.value * 100, 1, 0) + '%'}">100%</span>
         </div>
       </details>
-
-      <div class="match-actions">
-        <a class="btn btn-secondary" th:href="@{/buddies/{id}(id=${c.id})}">View profile</a>
-        <form method="post"
-              th:action="@{/buddies/{id}/pass(id=${c.id}, course=${search.courseCode}, goal=${search.goal}, mode=${search.mode}, minHours=${search.minHours})}">
-          <button type="submit" class="btn btn-secondary">Pass</button>
-        </form>
-        <details class="request-details">
-          <summary class="btn btn-primary">Send request</summary>
-          <form method="post"
-                th:action="@{/buddies/{id}/request(id=${c.id}, course=${search.courseCode}, goal=${search.goal}, mode=${search.mode}, minHours=${search.minHours})}">
-            <label th:for="${'message-' + c.id}">Message (optional)</label>
-            <textarea th:id="${'message-' + c.id}" name="message" rows="3"
-                      th:maxlength="${@environment.getProperty('studybuddy.request.max-message-length')}"
-                      placeholder="Say what you'd like to work on together"></textarea>
-            <button type="submit" class="btn btn-primary" th:text="${'Send request to ' + c.name}">Send request</button>
-          </form>
-        </details>
-      </div>
     </article>
   </div>
 

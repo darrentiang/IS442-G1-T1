@@ -10,9 +10,11 @@
 <div th:replace="~{fragments/toast :: toast}"></div>
 
 <main>
-  <div>
-    <h1>Buddy requests</h1>
-    <p class="text-secondary">Accept to connect and share contact numbers, or decline.</p>
+  <div class="page-header">
+    <div>
+      <h1>Buddy requests</h1>
+      <p class="text-secondary">Accepting connects you and shares your contact numbers. Open a name to see their profile first.</p>
+    </div>
   </div>
 
   <div class="card">
@@ -20,12 +22,21 @@
       <thead><tr><th>From</th><th>Message</th><th></th></tr></thead>
       <tbody>
         <tr th:each="request : ${requests}">
-          <td><a th:href="@{/buddies/{id}(id=${request.from.id},from='requests')}" th:text="${request.from.name}">Tan Wei Jie</a></td>
-          <td th:text="${request.message != null ? request.message : 'No message'}">Keen to work through the IS442 labs together?</td>
+          <td th:with="fp=${request.from.profile}">
+            <div class="person">
+              <span class="avatar" th:text="${#strings.toUpperCase(#strings.substring(request.from.name, 0, 1))}">T</span>
+              <div>
+                <a class="person-name" th:href="@{/buddies/{id}(id=${request.from.id},from='requests')}" th:text="${request.from.name}">Tan Wei Jie</a>
+                <div class="person-email" th:if="${fp != null}"
+                     th:text="${fp.programme + ' · Year ' + fp.yearOfStudy}">Information Systems · Year 3</div>
+              </div>
+            </div>
+          </td>
+          <td th:text="${#strings.isEmpty(request.message) ? 'No message' : request.message}" th:classappend="${#strings.isEmpty(request.message)} ? 'text-secondary'">Keen to work through the IS442 labs together?</td>
           <td>
             <form th:action="@{/requests/{id}/accept(id=${request.id})}" method="post">
               <button type="submit" class="btn btn-secondary">Accept</button>
-              <button type="submit" class="btn btn-danger"
+              <button type="submit" class="btn btn-quiet-danger"
                       th:formaction="@{/requests/{id}/decline(id=${request.id})}">Decline</button>
             </form>
           </td>
@@ -33,7 +44,7 @@
       </tbody>
     </table>
     <th:block th:if="${#lists.isEmpty(requests)}">
-      <div th:replace="~{fragments/empty-state :: empty-state('No pending buddy requests. Requests other students send you will appear here.')}"></div>
+      <div th:replace="~{fragments/empty-state :: empty-state-action('No buddy requests waiting. Requests other students send you will appear here.', 'Find buddies', @{/buddies})}"></div>
     </th:block>
   </div>
 </main>

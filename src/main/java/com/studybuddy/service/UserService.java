@@ -58,6 +58,31 @@ public class UserService {
         return users;
     }
 
+    /**
+     * Returns the accounts that match every filter given; a blank filter matches everything.
+     *
+     * @param query text to find in the name, email or id, ignoring case
+     * @param role a Role name (STUDENT, ADMIN), or blank for both
+     * @param status an AccountStatus name (ACTIVE, SUSPENDED), or blank for both
+     * @return the matching accounts, students first, in the order findAllUsers returns them
+     */
+    public List<User> searchUsers(String query, String role, String status) {
+        String text = query == null ? "" : query.trim().toLowerCase();
+        List<User> result = new ArrayList<>();
+        for (User user : findAllUsers()) {
+            boolean textMatches = text.isEmpty()
+                    || user.getName().toLowerCase().contains(text)
+                    || user.getEmail().toLowerCase().contains(text)
+                    || user.getId().toLowerCase().contains(text);
+            boolean roleMatches = role == null || role.isBlank() || user.getRole().name().equals(role);
+            boolean statusMatches = status == null || status.isBlank() || user.getStatus().name().equals(status);
+            if (textMatches && roleMatches && statusMatches) {
+                result.add(user);
+            }
+        }
+        return result;
+    }
+
     /** Stamps the current time as this user's last sign-in and saves the user. */
     public void recordSignIn(User user) {
         user.setLastSignedIn(LocalDateTime.now());

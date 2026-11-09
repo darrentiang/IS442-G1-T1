@@ -2,60 +2,91 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 <!--
-  Top bar: app name on the left, area links (current page in accent), and the
-  signed-in user on the right with a "Switch user" button.
+  Top bar: app name, the area links for the signed-in role, and the user on the right with
+  "Switch user". Students also get a second row of tabs for the pages inside the current area.
   Usage (first thing in <body>), passing the current page's key:
-    <header th:replace="~{fragments/nav :: nav('courses')}"></header>
-  The picker passes 'picker', which shows only the app name.
-  To add an area, copy the Courses link and change its URL, key and label.
+    <header th:replace="~{fragments/nav :: nav('buddies')}"></header>
+  Page keys and where they sit:
+    Students  home | buddies, requests, connections | groups, my-groups, group-requests | profile, availability
+    Admins    home | admin | config | groups | courses
+  The picker passes 'picker', which shows only the app name. Pending counts (navCounts) are
+  added for students by AuthInterceptor.
 -->
-<header th:fragment="nav(active)" class="topbar">
-  <nav>
+<header th:fragment="nav(active)" class="topbar"
+        th:with="isStudent=${session.currentUserRole != null && session.currentUserRole.name() == 'STUDENT'},
+                 isAdmin=${session.currentUserRole != null && session.currentUserRole.name() == 'ADMIN'},
+                 area=${active == 'requests' || active == 'connections' ? 'buddies'
+                      : (active == 'my-groups' || active == 'group-requests' ? 'groups'
+                      : (active == 'availability' ? 'profile' : active))},
+                 buddyCount=${navCounts != null ? navCounts.buddyRequests : 0},
+                 joinCount=${navCounts != null ? navCounts.groupJoinRequests : 0}">
+  <nav class="topbar-main" aria-label="Main">
     <span class="topbar-brand">Study Buddy</span>
     <th:block th:unless="${active == 'picker'}">
       <div class="topbar-links">
-        <a th:href="@{/home}"
-           th:classappend="${active == 'home'} ? 'active'"
-           th:attr="aria-current=${active == 'home'} ? 'page'">Home</a>
-        <a th:href="@{/buddies}"
-           th:if="${session.currentUserRole != null && session.currentUserRole.name() == 'STUDENT'}"
-           th:classappend="${active == 'buddies'} ? 'active'"
-           th:attr="aria-current=${active == 'buddies'} ? 'page'">Find buddies</a>
-        <a th:href="@{/requests}"
-           th:if="${session.currentUserRole != null && session.currentUserRole.name() == 'STUDENT'}"
-           th:classappend="${active == 'requests'} ? 'active'"
-           th:attr="aria-current=${active == 'requests'} ? 'page'">Requests</a>
-        <a th:href="@{/connections}"
-           th:if="${session.currentUserRole != null && session.currentUserRole.name() == 'STUDENT'}"
-           th:classappend="${active == 'connections'} ? 'active'"
-           th:attr="aria-current=${active == 'connections'} ? 'page'">My buddies</a>
-        <a th:href="@{/profile}"
-           th:if="${session.currentUserRole != null && session.currentUserRole.name() == 'STUDENT'}"
-           th:classappend="${active == 'profile'} ? 'active'"
-           th:attr="aria-current=${active == 'profile'} ? 'page'">My profile</a>
-        <a th:href="@{/courses}"
-           th:classappend="${active == 'courses'} ? 'active'"
-           th:attr="aria-current=${active == 'courses'} ? 'page'">Courses</a>
-        <a th:href="@{/groups}"
-           th:classappend="${active == 'groups'} ? 'active'"
-           th:attr="aria-current=${active == 'groups'} ? 'page'">Groups</a>
-        <a th:href="@{/admin/users}"
-           th:if="${session.currentUserRole != null && session.currentUserRole.name() == 'ADMIN'}"
-           th:classappend="${active == 'admin'} ? 'active'"
-           th:attr="aria-current=${active == 'admin'} ? 'page'">Accounts</a>
-        <a th:href="@{/admin/config}"
-           th:if="${session.currentUserRole != null && session.currentUserRole.name() == 'ADMIN'}"
-           th:classappend="${active == 'config'} ? 'active'"
-           th:attr="aria-current=${active == 'config'} ? 'page'">Matching config</a>
+        <th:block th:if="${isStudent}">
+          <a th:href="@{/home}" th:classappend="${area == 'home'} ? 'active'"
+             th:attr="aria-current=${area == 'home'} ? 'page'">Home</a>
+          <a th:href="@{/buddies}" th:classappend="${area == 'buddies'} ? 'active'"
+             th:attr="aria-current=${area == 'buddies'} ? 'page'">Buddies<span class="nav-count" th:if="${buddyCount > 0}"
+             th:text="${buddyCount}" th:attr="aria-label=${buddyCount + ' waiting'}">2</span></a>
+          <a th:href="@{/groups}" th:classappend="${area == 'groups'} ? 'active'"
+             th:attr="aria-current=${area == 'groups'} ? 'page'">Groups<span class="nav-count" th:if="${joinCount > 0}"
+             th:text="${joinCount}" th:attr="aria-label=${joinCount + ' waiting'}">1</span></a>
+          <a th:href="@{/profile}" th:classappend="${area == 'profile'} ? 'active'"
+             th:attr="aria-current=${area == 'profile'} ? 'page'">Profile</a>
+        </th:block>
+        <th:block th:if="${isAdmin}">
+          <a th:href="@{/home}" th:classappend="${area == 'home'} ? 'active'"
+             th:attr="aria-current=${area == 'home'} ? 'page'">Overview</a>
+          <a th:href="@{/admin/users}" th:classappend="${area == 'admin'} ? 'active'"
+             th:attr="aria-current=${area == 'admin'} ? 'page'">Accounts</a>
+          <a th:href="@{/admin/config}" th:classappend="${area == 'config'} ? 'active'"
+             th:attr="aria-current=${area == 'config'} ? 'page'">Matching</a>
+          <a th:href="@{/groups}" th:classappend="${area == 'groups'} ? 'active'"
+             th:attr="aria-current=${area == 'groups'} ? 'page'">Groups</a>
+          <a th:href="@{/courses}" th:classappend="${area == 'courses'} ? 'active'"
+             th:attr="aria-current=${area == 'courses'} ? 'page'">Courses</a>
+        </th:block>
       </div>
       <div class="topbar-user" th:if="${session.currentUserName != null}">
         <span class="topbar-user-name" th:text="${session.currentUserName}">Tan Wei Jie</span>
-        <span th:text="'· ' + ${session.currentUserRole.label}">· Student</span>
+        <span class="topbar-user-role" th:text="${session.currentUserRole.label}">Student</span>
         <form th:action="@{/sign-out}" method="post">
           <button type="submit" class="btn btn-secondary">Switch user</button>
         </form>
       </div>
     </th:block>
+  </nav>
+
+  <nav class="subnav" th:if="${isStudent and (area == 'buddies' or area == 'groups' or area == 'profile')}"
+       th:attr="aria-label=${area == 'buddies' ? 'Buddies' : (area == 'groups' ? 'Groups' : 'Profile')}">
+    <div class="subnav-tabs">
+      <th:block th:if="${area == 'buddies'}">
+        <a th:href="@{/buddies}" th:classappend="${active == 'buddies'} ? 'active'"
+           th:attr="aria-current=${active == 'buddies'} ? 'page'">Find buddies</a>
+        <a th:href="@{/requests}" th:classappend="${active == 'requests'} ? 'active'"
+           th:attr="aria-current=${active == 'requests'} ? 'page'">Requests<span class="nav-count" th:if="${buddyCount > 0}"
+           th:text="${buddyCount}">2</span></a>
+        <a th:href="@{/connections}" th:classappend="${active == 'connections'} ? 'active'"
+           th:attr="aria-current=${active == 'connections'} ? 'page'">My buddies</a>
+      </th:block>
+      <th:block th:if="${area == 'groups'}">
+        <a th:href="@{/groups}" th:classappend="${active == 'groups'} ? 'active'"
+           th:attr="aria-current=${active == 'groups'} ? 'page'">Browse groups</a>
+        <a th:href="@{/groups/mine}" th:classappend="${active == 'my-groups'} ? 'active'"
+           th:attr="aria-current=${active == 'my-groups'} ? 'page'">My groups<span class="nav-count" th:if="${joinCount > 0}"
+           th:text="${joinCount}">1</span></a>
+        <a th:href="@{/groups/requests}" th:classappend="${active == 'group-requests'} ? 'active'"
+           th:attr="aria-current=${active == 'group-requests'} ? 'page'">My join requests</a>
+      </th:block>
+      <th:block th:if="${area == 'profile'}">
+        <a th:href="@{/profile}" th:classappend="${active == 'profile'} ? 'active'"
+           th:attr="aria-current=${active == 'profile'} ? 'page'">Details</a>
+        <a th:href="@{/profile/availability}" th:classappend="${active == 'availability'} ? 'active'"
+           th:attr="aria-current=${active == 'availability'} ? 'page'">Availability</a>
+      </th:block>
+    </div>
   </nav>
 </header>
 </body>

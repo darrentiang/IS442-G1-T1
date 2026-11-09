@@ -160,36 +160,47 @@ textarea:focus {
 
 
 /* --------------------------------------------------------------------------
-   3. Top bar (fragment: nav) — white, hairline bottom border, app name left,
-      grey links, current page in accent.
+   3. Top bar (fragment: nav) — white, hairline bottom border. Row one: app name,
+      area links (current area in accent), the signed-in user. Row two (students):
+      tabs for the pages inside the current area. Counts are small neutral pills.
    -------------------------------------------------------------------------- */
 .topbar {
     background: var(--color-surface);
     border-bottom: 1px solid var(--color-border);
 }
 
-.topbar nav {
+.topbar-main,
+.subnav-tabs {
     display: flex;
     align-items: center;
-    gap: 24px;
     max-width: 1100px;
-    height: 56px;
     margin: 0 auto;
     padding: 0 24px;
 }
 
+.topbar-main {
+    gap: 32px;
+    height: 56px;
+}
+
 .topbar-brand {
     font-weight: 600;
+    white-space: nowrap;
 }
 
 .topbar-links {
     display: flex;
-    gap: 20px;
+    gap: 24px;
 }
 
 .topbar-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     color: var(--color-text-secondary);
-    font-size: 14px;
+    font-size: 15px;
+    font-weight: 500;
+    white-space: nowrap;
 }
 
 .topbar-links a:hover,
@@ -201,10 +212,11 @@ textarea:focus {
 .topbar-user {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     margin-left: auto;
     color: var(--color-text-secondary);
     font-size: 14px;
+    white-space: nowrap;
 }
 
 .topbar-user-name {
@@ -213,13 +225,88 @@ textarea:focus {
 }
 
 .topbar-user form {
-    margin-left: 10px;
+    margin-left: 8px;
 }
 
 /* A smaller button so it fits the 56px bar. */
 .topbar-user .btn {
     padding: 4px 12px;
     font-size: 13px;
+}
+
+/* Row two: the area's pages as tabs; the current one is underlined in the accent. */
+.subnav {
+    border-top: 1px solid var(--color-divider);
+}
+
+.subnav-tabs {
+    gap: 28px;
+    height: 44px;
+}
+
+.subnav-tabs a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 100%;
+    border-bottom: 2px solid transparent;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.subnav-tabs a:hover {
+    color: var(--color-text);
+}
+
+.subnav-tabs a.active {
+    border-bottom-color: var(--color-accent);
+    color: var(--color-text);
+    font-weight: 500;
+}
+
+/* How many items wait in that area, e.g. buddy requests. */
+.nav-count {
+    min-width: 18px;
+    padding: 1px 6px;
+    border-radius: var(--radius-pill);
+    background: var(--color-accent);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 16px;
+    text-align: center;
+}
+
+/* Phone: the user slot moves under the links; links and tabs scroll sideways instead of wrapping. */
+@media (max-width: 720px) {
+    .topbar-main {
+        flex-wrap: wrap;
+        gap: 4px 20px;
+        height: auto;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    .topbar-links,
+    .subnav-tabs {
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .topbar-links {
+        order: 3;
+        width: 100%;
+        padding-top: 6px;
+    }
+
+    .topbar-user {
+        font-size: 13px;
+    }
+
+    .topbar-user-role {
+        display: none;
+    }
 }
 
 
@@ -361,6 +448,12 @@ textarea:focus {
     font-size: 12px;
     font-weight: 600;
     line-height: 1.5;
+    /* Enum values arrive in capitals (ACTIVE); show them in sentence case (Active). */
+    text-transform: lowercase;
+}
+
+.badge::first-letter {
+    text-transform: uppercase;
 }
 
 /* Info (blue) */
@@ -535,15 +628,6 @@ textarea:focus {
 
 .cell-free {
     background: color-mix(in srgb, var(--color-accent) 18%, transparent);
-}
-
-/* Group details label each hourly cell so availability does not rely on colour. */
-.group-availability-cell {
-    height: auto;
-    min-height: 24px;
-    padding: 4px;
-    font-size: 12px;
-    overflow-wrap: anywhere;
 }
 
 .cell-busy {
@@ -768,17 +852,6 @@ textarea:focus {
     margin: 0;
 }
 
-.group-join-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 16px;
-    margin-top: 24px;
-    padding-top: 24px;
-    border-top: 1px solid var(--color-divider);
-}
-
 .group-member-count {
     color: var(--color-text-secondary);
     font-size: 13px;
@@ -817,47 +890,6 @@ textarea:focus {
     color: var(--color-text-secondary);
     font-size: 13px;
     font-weight: 600;
-}
-
-.group-timetable-scroll {
-    overflow-x: auto;
-    margin-top: 24px;
-}
-
-.group-timetable-scroll:focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 4px;
-}
-
-.group-timetable {
-    min-width: 720px;
-    table-layout: fixed;
-}
-
-.group-timetable th,
-.group-timetable td {
-    padding: 8px;
-    text-align: center;
-}
-
-.group-timetable th:first-child {
-    width: 120px;
-    position: sticky;
-    left: 0;
-    z-index: 1;
-}
-
-.group-timetable .group-availability-cell {
-    display: block;
-}
-
-.group-visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
 }
 
 @media (max-width: 900px) {
@@ -1277,6 +1309,7 @@ h2 + .hint {
 
 /* The availability editor: a table of 7 day rows x 15 hour columns, one checkbox per cell. */
 .avail-editor-scroll {
+    position: relative;   /* keeps the hidden checkboxes inside the scroll box on a phone */
     overflow-x: auto;
 }
 
@@ -1448,5 +1481,340 @@ h2 + .hint {
 @media (prefers-reduced-motion: reduce) {
     .btn.is-loading::before {
         animation-duration: 2.4s;
+    }
+}
+
+
+/* --------------------------------------------------------------------------
+   Home pages (shared/home.html, admin/overview.html)
+   -------------------------------------------------------------------------- */
+
+/* Two cards side by side; one column on narrow screens. */
+.home-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    align-items: start;
+}
+
+@media (max-width: 760px) {
+    .home-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* A card's title with a quiet link on the right ("See all"). */
+.card-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.card-heading a {
+    color: var(--color-text-secondary);
+    font-size: 14px;
+}
+
+.card-heading a:hover {
+    color: var(--color-accent);
+}
+
+/* Rows of people or groups: content on the left, an action or badge on the right. */
+.list-rows {
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.list-rows li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 0;
+}
+
+.list-rows li + li {
+    border-top: 1px solid var(--color-divider);
+}
+
+.list-rows a.person-name {
+    color: var(--color-text);
+}
+
+.list-rows a.person-name:hover {
+    color: var(--color-accent);
+}
+
+/* A number with an icon: a soft tinted square, then a small label over large type. */
+.stat-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 16px 24px;
+    margin-top: 16px;
+}
+
+.stat {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.stat p {
+    margin: 0;
+}
+
+.stat-label {
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.stat-value {
+    margin-top: 2px;
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+/* Words rather than a number (the matching strategy): smaller, so it does not shout. */
+.stat-value-text {
+    font-size: 19px;
+}
+
+/* Tint follows meaning: accent by default, green for good, amber for waiting, grey for closed. */
+.stat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+    color: var(--color-accent);
+}
+
+.stat-icon .icon {
+    width: 22px;
+    height: 22px;
+}
+
+.stat-icon-success {
+    background: color-mix(in srgb, var(--color-success) 12%, transparent);
+    color: var(--color-success);
+}
+
+.stat-icon-warning {
+    background: color-mix(in srgb, var(--color-warning) 13%, transparent);
+    color: var(--color-warning);
+}
+
+.stat-icon-neutral {
+    background: var(--color-surface-muted);
+    color: var(--color-text-secondary);
+}
+
+/* The student's at-a-glance numbers: each one is a small card that opens its page. */
+.stat-row-cards .stat {
+    padding: 18px 20px;
+    color: var(--color-text);
+    transition: border-color 150ms, box-shadow 150ms;
+}
+
+.stat-row-cards .stat:hover {
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-md);
+}
+
+/* Icons sitting in headings and quiet links. */
+.card-heading h2,
+h2:has(> .icon) {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.card-heading h2 .icon,
+h2 > .icon {
+    width: 20px;
+    height: 20px;
+    color: var(--color-text-secondary);
+}
+
+.card-heading a {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.card-heading a .icon {
+    width: 16px;
+    height: 16px;
+}
+
+.avatar .icon {
+    width: 18px;
+    height: 18px;
+}
+
+
+/* --------------------------------------------------------------------------
+   Page pattern: quiet refusals, the Danger zone, header actions
+   -------------------------------------------------------------------------- */
+
+/* A refusal or removal in a row (Decline, Remove, End): red text, no fill, so the accepting
+   action next to it reads as the main one. */
+.btn-quiet-danger {
+    background: transparent;
+    border-color: transparent;
+    color: var(--color-danger);
+}
+
+.btn-quiet-danger:hover {
+    background: color-mix(in srgb, var(--color-danger) 8%, transparent);
+}
+
+/* Actions that remove or end something live at the bottom of the page, one per row, each with
+   a sentence saying what happens. */
+.danger-zone {
+    border-color: color-mix(in srgb, var(--color-danger) 30%, var(--color-border));
+}
+
+.danger-zone h2 {
+    color: var(--color-danger);
+}
+
+.danger-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 16px 0;
+}
+
+.danger-row + .danger-row {
+    border-top: 1px solid var(--color-divider);
+}
+
+.danger-row p {
+    margin: 0;
+}
+
+.danger-row .text-secondary {
+    margin-top: 2px;
+    font-size: 14px;
+}
+
+.danger-title {
+    font-weight: 500;
+}
+
+@media (max-width: 640px) {
+    .danger-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* A page action at the far right of a detail header (Edit account). */
+.detail-header-action {
+    margin-left: auto;
+}
+
+/* --------------------------------------------------------------------------
+   Phase 4 page fixes
+   -------------------------------------------------------------------------- */
+
+/* A low-key action that is neither the main one nor destructive (Pass). */
+.btn-quiet {
+    background: transparent;
+    border-color: transparent;
+    color: var(--color-text-secondary);
+}
+
+.btn-quiet:hover {
+    background: var(--color-surface-muted);
+    color: var(--color-text);
+}
+
+/* Find buddies card: reasons on the left, actions on the right, in one row. */
+.match-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+    margin-top: 14px;
+}
+
+.match-footer .tag-list,
+.match-footer .match-actions {
+    margin-top: 0;
+}
+
+.match-footer .match-actions {
+    align-items: center;
+    margin-left: auto;
+}
+
+/* The message form opens across the full card width. */
+.match-footer .match-actions:has(.request-details[open]) {
+    flex-basis: 100%;
+}
+
+.match-list .match-details {
+    margin-top: 14px;
+    padding-top: 12px;
+}
+
+/* A filter form in one row: fields side by side, buttons at the end; stacks on a phone. */
+.filter-bar {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.filter-field {
+    flex: 1 1 240px;
+}
+
+.filter-field select,
+.filter-field input {
+    width: 100%;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* A row's name as the link to open it, in the text colour so the table stays calm. */
+.row-link {
+    color: var(--color-text);
+    font-weight: 500;
+}
+
+.row-link:hover {
+    color: var(--color-accent);
+}
+
+/* The group's main action (Request to join) under its description, in the header card. */
+.group-header > .group-actions {
+    margin-top: 16px;
+}
+
+/* On a phone the detail header wraps, so the action (Edit account) drops under the name. */
+@media (max-width: 640px) {
+    .detail-header {
+        flex-wrap: wrap;
+    }
+
+    .detail-header-action {
+        margin-left: 0;
+        flex-basis: 100%;
     }
 }

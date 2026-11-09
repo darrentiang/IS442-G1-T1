@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head('Manage members')}"></head>
 <body>
-<header th:replace="~{fragments/nav :: nav('groups')}"></header>
+<header th:replace="~{fragments/nav :: nav('my-groups')}"></header>
 <div th:replace="~{fragments/toast :: toast}"></div>
 
 <main>
@@ -32,7 +32,7 @@
           <td>
             <form th:action="@{/groups/{id}/requests/{requestId}/accept(id=${group.id},requestId=${r.id})}" method="post">
               <button type="submit" class="btn btn-secondary">Accept</button>
-              <button type="submit" class="btn btn-danger"
+              <button type="submit" class="btn btn-quiet-danger"
                       th:formaction="@{/groups/{id}/requests/{requestId}/reject(id=${group.id},requestId=${r.id})}">Reject</button>
             </form>
           </td>
@@ -64,7 +64,7 @@
             <span class="text-secondary" th:if="${m.id == group.leader.id}">Leader</span>
             <form th:unless="${m.id == group.leader.id}"
                   th:action="@{/groups/{id}/members/{studentId}/remove(id=${group.id},studentId=${m.id})}" method="post">
-              <button type="submit" class="btn btn-danger">Remove from group</button>
+              <button type="submit" class="btn btn-quiet-danger">Remove from group</button>
             </form>
           </td>
         </tr>

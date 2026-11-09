@@ -2,12 +2,11 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head('My join requests')}"></head>
 <body>
-<header th:replace="~{fragments/nav :: nav('groups')}"></header>
+<header th:replace="~{fragments/nav :: nav('group-requests')}"></header>
 <div th:replace="~{fragments/toast :: toast}"></div>
 
 <main>
   <h1>My join requests</h1>
-  <a class="btn btn-primary" th:href="@{/groups}">Browse groups</a>
   <div class="card">
     <table class="table" th:unless="${#lists.isEmpty(requests)}">
       <thead><tr><th>Group</th><th>Course</th><th>Status</th></tr></thead>
@@ -20,7 +19,7 @@
       </tbody>
     </table>
     <th:block th:if="${#lists.isEmpty(requests)}">
-      <div th:replace="~{fragments/empty-state :: empty-state('You have not requested to join any groups yet. Browse groups to get started.')}"></div>
+      <div th:replace="~{fragments/empty-state :: empty-state-action('You have not asked to join any groups yet.', 'Browse groups', @{/groups})}"></div>
     </th:block>
   </div>
 </main>

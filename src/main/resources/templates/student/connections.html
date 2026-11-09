@@ -26,14 +26,14 @@
           <td th:text="${#temporals.format(row.since, 'd MMM yyyy')}">8 Nov 2026</td>
           <td>
             <form th:action="@{/connections/{id}/end(id=${row.connectionId})}" method="post">
-              <button type="submit" class="btn btn-danger">End connection</button>
+              <button type="submit" class="btn btn-quiet-danger">End connection</button>
             </form>
           </td>
         </tr>
       </tbody>
     </table>
     <th:block th:if="${#lists.isEmpty(connections)}">
-      <div th:replace="~{fragments/empty-state :: empty-state('No buddies yet. Accept a buddy request or send one from Find buddies.')}"></div>
+      <div th:replace="~{fragments/empty-state :: empty-state-action('No buddies yet. Accept a buddy request, or send one to someone who matches you.', 'Find buddies', @{/buddies})}"></div>
     </th:block>
   </div>
 </main>
