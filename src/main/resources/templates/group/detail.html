@@ -92,6 +92,27 @@
     </div>
   </section>
 
+  <section th:if="${discordStatus != 'HIDDEN'}" class="card" aria-labelledby="chat-heading">
+    <h2 id="chat-heading">Group chat</h2>
+    <th:block th:if="${discordStatus == 'NO_CHANNEL'}">
+      <th:block th:if="${leader}">
+        <p class="text-secondary">This group has no Discord channel yet. Set one up and members who connect Discord can chat there.</p>
+        <form th:action="@{/groups/{id}/discord/setup(id=${group.id})}" method="post">
+          <button type="submit" class="btn btn-primary">Set up Discord channel</button>
+        </form>
+      </th:block>
+      <p th:unless="${leader}" class="text-secondary">The leader hasn't set up a Discord channel for this group yet.</p>
+    </th:block>
+    <th:block th:if="${discordStatus == 'NOT_CONNECTED'}">
+      <p class="text-secondary">This group chats on Discord in a private channel only members can see. Connect your Discord account once to join it.</p>
+      <a class="btn btn-primary" th:href="@{/groups/{id}/discord/connect(id=${group.id})}">Connect Discord to join the group chat</a>
+    </th:block>
+    <th:block th:if="${discordStatus == 'READY'}">
+      <p class="text-secondary">Your Discord account is connected. The group's private channel is in the Study Buddy server.</p>
+      <a class="btn btn-primary" th:href="${discordChatUrl}" target="_blank" rel="noopener noreferrer">Open group chat on Discord</a>
+    </th:block>
+  </section>
+
   <section class="card" aria-labelledby="members-heading">
     <div class="group-heading">
       <h2 id="members-heading">Members</h2>

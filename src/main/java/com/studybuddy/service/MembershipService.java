@@ -20,6 +20,7 @@ import com.studybuddy.repository.StudyGroupRepository;
 /**
  * Business rules for who is in a group: answering join requests and removing members.
  * Every failure throws a BusinessRuleException (or a subclass) with a user-readable message.
+ * After a member joins or is removed it tells every GroupEventListener.
  */
 @Service
 public class MembershipService {
@@ -28,13 +29,16 @@ public class MembershipService {
     private final JoinRequestRepository requestRepository;
     private final StudentRepository studentRepository;
     private final StudyGroupService groupService;
+    private final List<GroupEventListener> listeners;
 
-    /** Creates the service with the repositories and services it uses (constructor injection). */
+    /** Creates the service with the repositories, services and group listeners it uses (constructor injection). */
     public MembershipService(StudyGroupRepository groupRepository,
                              JoinRequestRepository requestRepository,
                              StudentRepository studentRepository,
-                             StudyGroupService groupService) {
+                             StudyGroupService groupService,
+                             List<GroupEventListener> listeners) {
         this.groupRepository = groupRepository;
+        this.listeners = new ArrayList<>(listeners);
         this.requestRepository = requestRepository;
         this.studentRepository = studentRepository;
         this.groupService = groupService;
@@ -72,6 +76,9 @@ public class MembershipService {
         addMember(group, request.getStudent());
         request.accept();
         requestRepository.save(request);
+        for (GroupEventListener listener : listeners) {
+            listener.onMemberJoined(group, request.getStudent());
+        }
         return request.getStudent();
     }
 
@@ -93,6 +100,9 @@ public class MembershipService {
         }
         group.removeMember(student);
         groupRepository.save(group);
+        for (GroupEventListener listener : listeners) {
+            listener.onMemberLeft(group, student);
+        }
         return student;
     }
 

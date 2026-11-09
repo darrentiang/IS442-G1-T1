@@ -104,3 +104,14 @@ These came out of the R1 refactor. Follow them so the code keeps one way of doin
 - **Access checks:** `AuthInterceptor` handles sign-in, suspended accounts and the admin area, so controllers do not repeat those checks. A student-only page starts with `Student student = CurrentUser.studentOrNull(session, userService);` and, when it is null, an error toast with that page's message and a redirect.
 - **Seed data:** one `Seeder` class per CSV file, built with only the repositories it needs. It reads rows through `CsvFile`, whose parsers name the file and line in every error.
 - **Strategies:** a `MatchingStrategy` describes itself (`getLabel()`, `getDescription()`); the admin config page lists whatever strategies the engine has.
+
+## Discord group chat
+
+Each study group can have a private Discord channel in one shared server. Only members who connected their Discord account get the group's role, so they see only their groups' channels.
+
+- **Settings:** `DISCORD_*` values in a git-ignored `.env` file (or environment variables); see `.env.example`. Never commit them. If any is missing, the feature turns itself off and group pages hide the chat section.
+- **Where the code is:** `DiscordGateway` (interface) and `HttpDiscordGateway` make the web calls; `DiscordService` holds the rules; `DiscordController` serves `/groups/{id}/discord/setup`, `/groups/{id}/discord/connect` and `/discord/callback`. Links live in their own model classes (`DiscordChannel`, `DiscordAccount`, `DiscordLoginAttempt`) with in-memory repositories; `StudyGroup` and `Student` know nothing about Discord.
+- **Group events:** `StudyGroupService` and `MembershipService` tell every `GroupEventListener` when a group is created or closed and when a member joins or leaves. `DiscordService` is one listener. To react to group changes in a new feature, implement `GroupEventListener` instead of adding calls to the group services. A listener must never throw.
+- **Failures never block a group action:** Discord errors are logged; the group change still happens, and the leader can press "Set up Discord channel" later. Actions the user asked for directly (set up, connect) turn a Discord failure into a `BusinessRuleException` toast.
+- **Login state** is kept in `DiscordLoginAttemptRepository`, not the session, so `CurrentUser` stays the only code that touches the session.
+- **Seed data:** groups start without channels. The leader of the showcase group presses "Set up Discord channel".
