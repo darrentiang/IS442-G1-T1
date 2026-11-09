@@ -6,12 +6,6 @@
 <div th:replace="~{fragments/toast :: toast}"></div>
 
 <main>
-  <div class="group-actions">
-    <a class="btn btn-secondary" th:href="@{/groups}">Browse groups</a>
-    <a class="btn btn-secondary" th:if="${student != null}" th:href="@{/groups/mine}">My groups</a>
-    <a class="btn btn-secondary" th:if="${student != null}" th:href="@{/groups/requests}">My requests</a>
-  </div>
-
   <header class="card group-header">
     <div class="group-heading">
       <h1 th:text="${group.name}">Study group</h1>

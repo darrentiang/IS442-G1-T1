@@ -6,15 +6,13 @@
 -->
 <head th:replace="~{fragments/head :: head('My groups')}"></head>
 <body>
-<header th:replace="~{fragments/nav :: nav('groups')}"></header>
+<header th:replace="~{fragments/nav :: nav('my-groups')}"></header>
 <div th:replace="~{fragments/toast :: toast}"></div>
 
 <main>
   <h1>My groups</h1>
   <div class="group-actions">
     <a th:href="@{/groups/new}" class="btn btn-primary">Create a group</a>
-    <a th:href="@{/groups}" class="btn btn-secondary">Browse groups</a>
-    <a th:href="@{/groups/requests}" class="btn btn-secondary">My requests</a>
   </div>
 
   <section aria-labelledby="leading-heading">

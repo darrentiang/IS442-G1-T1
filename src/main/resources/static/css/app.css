@@ -160,36 +160,47 @@ textarea:focus {
 
 
 /* --------------------------------------------------------------------------
-   3. Top bar (fragment: nav) — white, hairline bottom border, app name left,
-      grey links, current page in accent.
+   3. Top bar (fragment: nav) — white, hairline bottom border. Row one: app name,
+      area links (current area in accent), the signed-in user. Row two (students):
+      tabs for the pages inside the current area. Counts are small neutral pills.
    -------------------------------------------------------------------------- */
 .topbar {
     background: var(--color-surface);
     border-bottom: 1px solid var(--color-border);
 }
 
-.topbar nav {
+.topbar-main,
+.subnav-tabs {
     display: flex;
     align-items: center;
-    gap: 24px;
     max-width: 1100px;
-    height: 56px;
     margin: 0 auto;
     padding: 0 24px;
 }
 
+.topbar-main {
+    gap: 32px;
+    height: 56px;
+}
+
 .topbar-brand {
     font-weight: 600;
+    white-space: nowrap;
 }
 
 .topbar-links {
     display: flex;
-    gap: 20px;
+    gap: 24px;
 }
 
 .topbar-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     color: var(--color-text-secondary);
-    font-size: 14px;
+    font-size: 15px;
+    font-weight: 500;
+    white-space: nowrap;
 }
 
 .topbar-links a:hover,
@@ -201,10 +212,11 @@ textarea:focus {
 .topbar-user {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     margin-left: auto;
     color: var(--color-text-secondary);
     font-size: 14px;
+    white-space: nowrap;
 }
 
 .topbar-user-name {
@@ -213,13 +225,88 @@ textarea:focus {
 }
 
 .topbar-user form {
-    margin-left: 10px;
+    margin-left: 8px;
 }
 
 /* A smaller button so it fits the 56px bar. */
 .topbar-user .btn {
     padding: 4px 12px;
     font-size: 13px;
+}
+
+/* Row two: the area's pages as tabs; the current one is underlined in the accent. */
+.subnav {
+    border-top: 1px solid var(--color-divider);
+}
+
+.subnav-tabs {
+    gap: 28px;
+    height: 44px;
+}
+
+.subnav-tabs a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 100%;
+    border-bottom: 2px solid transparent;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.subnav-tabs a:hover {
+    color: var(--color-text);
+}
+
+.subnav-tabs a.active {
+    border-bottom-color: var(--color-accent);
+    color: var(--color-text);
+    font-weight: 500;
+}
+
+/* How many items wait in that area, e.g. buddy requests. */
+.nav-count {
+    min-width: 18px;
+    padding: 1px 6px;
+    border-radius: var(--radius-pill);
+    background: var(--color-accent);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 16px;
+    text-align: center;
+}
+
+/* Phone: the user slot moves under the links; links and tabs scroll sideways instead of wrapping. */
+@media (max-width: 720px) {
+    .topbar-main {
+        flex-wrap: wrap;
+        gap: 4px 20px;
+        height: auto;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    .topbar-links,
+    .subnav-tabs {
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .topbar-links {
+        order: 3;
+        width: 100%;
+        padding-top: 6px;
+    }
+
+    .topbar-user {
+        font-size: 13px;
+    }
+
+    .topbar-user-role {
+        display: none;
+    }
 }
 
 
