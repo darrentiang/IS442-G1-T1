@@ -68,6 +68,38 @@
     </form>
   </div>
 
+  <section class="card advisor" th:if="${advice != null and advice.needsHelp}" aria-labelledby="advisor-heading">
+    <h2 id="advisor-heading"><svg th:replace="~{fragments/icon :: icon('lightbulb')}"></svg>BOSS Advisor</h2>
+    <p class="text-secondary"
+       th:text="|You have ${advice.goodMatches} good ${advice.goodMatches == 1 ? 'match' : 'matches'} (${advisorGoodPercent}% or more) for ${advice.courseCode}.${advice.nobodyFits ? '' : ' One change could unlock more:'}|">You have 1 good match (60% or more) for STAT101. One change could unlock more:</p>
+
+    <ul class="list-rows" th:unless="${advice.nobodyFits}">
+      <li th:each="s, row : ${advice.suggestions}">
+        <div>
+          <p class="advisor-change" th:text="${s.change.describe()}">Change study mode from In person to In person or online</p>
+          <p class="advisor-gain"
+             th:text="|+${s.gained} good ${s.gained == 1 ? 'match' : 'matches'} · best fit ${#numbers.formatDecimal(s.bestBefore * 100, 1, 0)}% → ${#numbers.formatDecimal(s.bestAfter * 100, 1, 0)}%|">+3 good matches · best fit 52% → 74%</p>
+          <p class="text-secondary" th:text="${s.reason + '.'}">3 people almost matched you but were held back by study mode.</p>
+          <p class="hint" th:if="${s.change.tradeOff != null}" th:text="${s.change.tradeOff}">You may be matched with people who prefer to study online.</p>
+        </div>
+        <form th:action="@{/buddies/boss-advisor/apply}" method="post">
+          <input type="hidden" name="key" th:value="${s.change.key}">
+          <button type="submit" class="btn" th:classappend="${row.first} ? 'btn-primary' : 'btn-secondary'">Apply</button>
+        </form>
+      </li>
+    </ul>
+
+    <th:block th:if="${advice.nobodyFits}">
+      <p th:switch="${advice.othersInCourse}">No single change gets you more good matches.
+        <span th:case="0" th:text="|No other student needs ${advice.courseCode} this term, so a study group might help.|">No other student needs STAT101 this term.</span>
+        <span th:case="1" th:text="|Only 1 other student needs ${advice.courseCode} this term, so a study group might help.|">Only 1 other student needs STAT101 this term.</span>
+        <span th:case="*" th:text="|Only ${advice.othersInCourse} other students need ${advice.courseCode} this term, so a study group might help.|">Only 2 other students need STAT101 this term.</span>
+      </p>
+      <a class="btn btn-secondary" th:href="@{/groups(courseCode=${advice.courseCode})}"
+         th:text="|See ${advice.courseCode} study groups|">See STAT101 study groups</a>
+    </th:block>
+  </section>
+
   <div class="results-summary">
     <span th:text="|${#lists.size(results)} ${#lists.size(results) == 1 ? 'match' : 'matches'} above ${minimumPercent}%|">10 matches above 20%</span>
     <span th:text="|Ranked by: ${strategyLabel}|">Ranked by: Balanced</span>

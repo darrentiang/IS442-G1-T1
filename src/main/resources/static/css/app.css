@@ -1811,3 +1811,201 @@ h2 > .icon {
         flex-basis: 100%;
     }
 }
+
+/* --------------------------------------------------------------------------
+   BOSS Advisor (student/find-buddies.html): a card above the results with the
+   exact change to make, its gain, why, what it costs, and Apply.
+   -------------------------------------------------------------------------- */
+.advisor {
+    border-left: 3px solid var(--color-accent);
+}
+
+.advisor h2 .icon {
+    color: var(--color-accent);
+}
+
+.advisor .list-rows li {
+    align-items: flex-start;
+}
+
+.advisor .list-rows p {
+    margin: 0;
+}
+
+.advisor-change {
+    font-weight: 600;
+}
+
+.advisor-gain {
+    margin-top: 4px;
+    color: var(--color-success);
+    font-weight: 500;
+}
+
+.advisor .list-rows .text-secondary,
+.advisor .list-rows .hint {
+    margin-top: 4px;
+    font-size: 14px;
+}
+
+/* --------------------------------------------------------------------------
+   Matching configuration (admin/config.html): three tabs, Quality, Spread and
+   Reach. Each tab is a label for a hidden radio button, so only the checked
+   tab's panel shows; no JavaScript, and unsaved values survive switching tabs.
+   -------------------------------------------------------------------------- */
+
+/* The radios drive the tabs but stay out of sight (still reachable by keyboard). */
+.config-tab-radio {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.config-tab-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    padding: 4px;
+    border-radius: var(--radius-card);
+    background: var(--color-surface-muted);
+}
+
+.config-tab {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 12px 16px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-control);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: background-color 150ms, color 150ms;
+}
+
+.config-tab:hover {
+    color: var(--color-text);
+}
+
+.config-tab-name {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.config-tab-solve {
+    font-size: 13px;
+}
+
+/* The chosen tab: a white raised card, the mechanism in the accent. */
+#tab-quality:checked ~ .config-tab-list label[for="tab-quality"],
+#tab-spread:checked ~ .config-tab-list label[for="tab-spread"],
+#tab-reach:checked ~ .config-tab-list label[for="tab-reach"] {
+    background: var(--color-surface);
+    border-color: var(--color-border);
+    color: var(--color-text);
+    box-shadow: var(--shadow-sm);
+}
+
+#tab-quality:checked ~ .config-tab-list label[for="tab-quality"] .config-tab-solve,
+#tab-spread:checked ~ .config-tab-list label[for="tab-spread"] .config-tab-solve,
+#tab-reach:checked ~ .config-tab-list label[for="tab-reach"] .config-tab-solve {
+    color: var(--color-accent);
+}
+
+/* Keyboard focus on a radio shows on its tab. */
+#tab-quality:focus-visible ~ .config-tab-list label[for="tab-quality"],
+#tab-spread:focus-visible ~ .config-tab-list label[for="tab-spread"],
+#tab-reach:focus-visible ~ .config-tab-list label[for="tab-reach"] {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+}
+
+/* Only the chosen tab's panel shows. Hidden fields still submit with their form. */
+.config-panel {
+    display: none;
+    margin-top: 16px;
+}
+
+#tab-quality:checked ~ form .config-panel-quality,
+#tab-spread:checked ~ form .config-panel-spread,
+#tab-reach:checked ~ form .config-panel-reach {
+    display: block;
+}
+
+/* The panel opens with what this goal means and how it is solved. */
+.config-intro {
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--color-divider);
+}
+
+.config-intro h2 {
+    margin: 0 0 6px;
+    font-size: 19px;
+}
+
+.config-intro p {
+    margin: 0;
+    max-width: 70ch;
+}
+
+.config-intro strong {
+    color: var(--color-text);
+}
+
+.config-panel h3 {
+    margin: 24px 0 8px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+/* Two fields side by side. */
+.config-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 24px;
+}
+
+/* The congestion formula, set as a quiet line of maths. */
+.config-formula {
+    display: inline-block;
+    margin: 0 0 8px;
+    padding: 6px 12px;
+    border-radius: var(--radius-control);
+    background: var(--color-surface-muted);
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Save row at the foot of each panel. */
+.config-save {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--color-divider);
+}
+
+.config-save p {
+    margin: 0;
+    font-size: 14px;
+}
+
+@media (max-width: 700px) {
+    .config-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .config-tab {
+        padding: 10px;
+    }
+
+    .config-tab-solve {
+        display: none;
+    }
+
+    .config-save {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
