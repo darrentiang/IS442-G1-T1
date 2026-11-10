@@ -16,6 +16,7 @@ import com.studybuddy.model.Role;
 import com.studybuddy.model.User;
 import com.studybuddy.service.AccountCleanupService;
 import com.studybuddy.service.AdminService;
+import com.studybuddy.service.BossAdvisorService;
 import com.studybuddy.service.MatchingConfigForm;
 import com.studybuddy.service.MatchingConfigService;
 import com.studybuddy.service.UsageService;
@@ -32,16 +33,19 @@ public class AdminController {
     private final MatchingConfigService matchingConfigService;
     private final UsageService usageService;
     private final AccountCleanupService cleanupService;
+    private final BossAdvisorService advisorService;
 
     /** Creates the controller with the services it delegates to (constructor injection). */
     public AdminController(UserService userService, AdminService adminService,
             MatchingConfigService matchingConfigService, UsageService usageService,
-            AccountCleanupService cleanupService) {
+            AccountCleanupService cleanupService,
+            BossAdvisorService advisorService) {
         this.userService = userService;
         this.adminService = adminService;
         this.matchingConfigService = matchingConfigService;
         this.usageService = usageService;
         this.cleanupService = cleanupService;
+        this.advisorService = advisorService;
     }
 
     /** Sends /admin to the account list, the admin area's landing page. */
@@ -181,6 +185,24 @@ public class AdminController {
         return "redirect:/admin/config";
     }
 
+    /** Saves the BOSS Advisor settings; re-shows the page with field errors, or returns to it with a toast. */
+    @PostMapping("/admin/config/advisor")
+    public String saveAdvisorSettings(@RequestParam(required = false) String goodMatchPercent,
+            @RequestParam(required = false) String enoughGoodMatches,
+            Model model, RedirectAttributes redirectAttributes) {
+        Map<String, String> fieldErrors = advisorService.validateSettings(goodMatchPercent, enoughGoodMatches);
+        if (!fieldErrors.isEmpty()) {
+            model.addAttribute("fieldErrors", fieldErrors);
+            fillConfigModel(model, matchingConfigService.toForm(matchingConfigService.getConfig()));
+            model.addAttribute("goodMatchPercent", goodMatchPercent);
+            model.addAttribute("enoughGoodMatches", enoughGoodMatches);
+            return "admin/config";
+        }
+        advisorService.updateSettings(goodMatchPercent, enoughGoodMatches);
+        Toasts.success(redirectAttributes, "BOSS Advisor settings saved");
+        return "redirect:/admin/config";
+    }
+
     /** Reads the config page's fields into a form; weights arrive as weight_criterionName. */
     private MatchingConfigForm readConfigForm(Map<String, String> params, List<String> enabledCriteria) {
         MatchingConfigForm form = new MatchingConfigForm();
@@ -197,11 +219,13 @@ public class AdminController {
         return form;
     }
 
-    /** Puts the form values, the engine's strategies (name to label and to description) and criteria (name to label) into the model for the config page. */
+    /** Puts the form values, the engine's strategies (name to label and to description), criteria (name to label) and the BOSS Advisor settings into the model for the config page. */
     private void fillConfigModel(Model model, MatchingConfigForm form) {
         model.addAttribute("form", form);
         model.addAttribute("strategies", matchingConfigService.getStrategyLabels());
         model.addAttribute("strategyDescriptions", matchingConfigService.getStrategyDescriptions());
         model.addAttribute("criteria", matchingConfigService.getCriterionLabels());
+        model.addAttribute("goodMatchPercent", String.valueOf(advisorService.getGoodMatchPercent()));
+        model.addAttribute("enoughGoodMatches", String.valueOf(advisorService.getEnoughGoodMatches()));
     }
 }

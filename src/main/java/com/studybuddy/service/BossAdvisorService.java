@@ -2,6 +2,7 @@ package com.studybuddy.service;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import com.studybuddy.engine.CriterionScore;
 import com.studybuddy.engine.MatchResult;
 import com.studybuddy.engine.MatchingConfig;
 import com.studybuddy.engine.advisor.Advice;
+import com.studybuddy.engine.advisor.AdvisorSettings;
 import com.studybuddy.engine.advisor.Blocker;
 import com.studybuddy.engine.advisor.NearMiss;
 import com.studybuddy.engine.advisor.NearMissDiagnosis;
@@ -24,6 +26,7 @@ import com.studybuddy.model.AccountStatus;
 import com.studybuddy.model.BusinessRuleException;
 import com.studybuddy.model.Course;
 import com.studybuddy.model.Student;
+import com.studybuddy.repository.AdvisorSettingsRepository;
 import com.studybuddy.repository.StudentRepository;
 
 /**
@@ -31,28 +34,47 @@ import com.studybuddy.repository.StudentRepository;
  * matched them, works out which preference held most of them back (from both sides of each pair),
  * tries the matching change on a copy of the student, and keeps it only if the real Find buddies
  * search confirms it adds good matches. The real profile changes only when the student applies one.
+ * The admin can change when a match counts as good and how many a student needs (AdvisorSettings).
  */
 @Service
 public class BossAdvisorService {
 
+    private static final double PERCENT = 100.0;
+
     private final MatchingService matchingService;
     private final StudentRepository studentRepository;
+    private final AdvisorSettingsRepository settingsRepository;
     private final WhatIfCopier copier = new WhatIfCopier();
     private final NearMissDiagnosis diagnosis = new NearMissDiagnosis();
-    private final double goodScore;
     private final double nearMissScore;
-    private final int enoughGoodMatches;
     private final int maxSuggestions;
+    private final int minGoodPercent;
+    private final int maxGoodPercent;
+    private final int minEnoughGoodMatches;
+    private final int maxEnoughGoodMatches;
 
-    /** Creates the service with what it uses and its thresholds from application.properties (constructor injection). */
+    /**
+     * Creates the service with what it uses and its limits from application.properties (constructor
+     * injection). The admin's settings start from the defaults there, unless already saved.
+     */
     public BossAdvisorService(MatchingService matchingService, StudentRepository studentRepository,
-            Environment environment) {
+            AdvisorSettingsRepository settingsRepository, Environment environment) {
         this.matchingService = matchingService;
         this.studentRepository = studentRepository;
-        this.goodScore = environment.getRequiredProperty("studybuddy.advisor.good-match-score", Double.class);
+        this.settingsRepository = settingsRepository;
         this.nearMissScore = environment.getRequiredProperty("studybuddy.advisor.near-miss-score", Double.class);
-        this.enoughGoodMatches = environment.getRequiredProperty("studybuddy.advisor.enough-good-matches", Integer.class);
         this.maxSuggestions = environment.getRequiredProperty("studybuddy.advisor.max-suggestions", Integer.class);
+        this.minGoodPercent = environment.getRequiredProperty("studybuddy.advisor.min-good-percent", Integer.class);
+        this.maxGoodPercent = environment.getRequiredProperty("studybuddy.advisor.max-good-percent", Integer.class);
+        this.minEnoughGoodMatches = environment.getRequiredProperty("studybuddy.advisor.min-enough-good-matches",
+                Integer.class);
+        this.maxEnoughGoodMatches = environment.getRequiredProperty("studybuddy.advisor.max-enough-good-matches",
+                Integer.class);
+        if (settingsRepository.get() == null) {
+            settingsRepository.save(new AdvisorSettings(
+                    environment.getRequiredProperty("studybuddy.advisor.good-match-score", Double.class),
+                    environment.getRequiredProperty("studybuddy.advisor.enough-good-matches", Integer.class)));
+        }
     }
 
     /**
@@ -69,7 +91,7 @@ public class BossAdvisorService {
         BuddySearch search = targetSearch(target);
         List<MatchResult> results = matchingService.findBuddies(student, search);
         int goodBefore = countGood(results);
-        if (goodBefore >= enoughGoodMatches) {
+        if (goodBefore >= enoughGoodMatches()) {
             return Advice.notNeeded(goodBefore);
         }
         double bestBefore = bestScore(results);
@@ -101,7 +123,47 @@ public class BossAdvisorService {
 
     /** Returns the good-match score as a whole percentage (e.g. 60), for the page to show. */
     public long getGoodMatchPercent() {
-        return Math.round(goodScore * 100);
+        return Math.round(goodScore() * PERCENT);
+    }
+
+    /** Returns how many good matches a student needs before BOSS Advisor stops suggesting changes. */
+    public int getEnoughGoodMatches() {
+        return enoughGoodMatches();
+    }
+
+    /**
+     * Checks the admin's BOSS Advisor settings form.
+     *
+     * @param goodMatchPercent the good-match score as a whole percentage, e.g. "60"
+     * @param enoughGoodMatches how many good matches a student needs, e.g. "3"
+     * @return field name to message for every invalid field; empty when valid
+     */
+    public Map<String, String> validateSettings(String goodMatchPercent, String enoughGoodMatches) {
+        Map<String, String> fieldErrors = new HashMap<>();
+        Integer percent = parseWholeNumber(goodMatchPercent);
+        if (percent == null) {
+            fieldErrors.put("goodMatchPercent", "Good match score must be a whole number");
+        } else if (percent < minGoodPercent || percent > maxGoodPercent) {
+            fieldErrors.put("goodMatchPercent",
+                    "Good match score must be between " + minGoodPercent + "% and " + maxGoodPercent + "%");
+        } else if (percent / PERCENT <= nearMissScore) {
+            fieldErrors.put("goodMatchPercent", "Good match score must be above the near-miss score of "
+                    + Math.round(nearMissScore * PERCENT) + "%");
+        }
+        Integer enough = parseWholeNumber(enoughGoodMatches);
+        if (enough == null) {
+            fieldErrors.put("enoughGoodMatches", "Good matches needed must be a whole number");
+        } else if (enough < minEnoughGoodMatches || enough > maxEnoughGoodMatches) {
+            fieldErrors.put("enoughGoodMatches", "Good matches needed must be between " + minEnoughGoodMatches
+                    + " and " + maxEnoughGoodMatches);
+        }
+        return fieldErrors;
+    }
+
+    /** Saves the admin's BOSS Advisor settings; assumes they already passed validateSettings. */
+    public void updateSettings(String goodMatchPercent, String enoughGoodMatches) {
+        settingsRepository.save(new AdvisorSettings(parseWholeNumber(goodMatchPercent) / PERCENT,
+                parseWholeNumber(enoughGoodMatches)));
     }
 
     /**
@@ -138,7 +200,7 @@ public class BossAdvisorService {
         List<NearMiss> nearMisses = new ArrayList<>();
         for (MatchResult result : results) {
             double score = result.getMutualScore();
-            if (score < nearMissScore || score >= goodScore) {
+            if (score < nearMissScore || score >= goodScore()) {
                 continue;
             }
             // Their side: how well the advised student suits the candidate.
@@ -154,7 +216,7 @@ public class BossAdvisorService {
     private int countGood(List<MatchResult> results) {
         int good = 0;
         for (MatchResult result : results) {
-            if (result.getMutualScore() >= goodScore) {
+            if (result.getMutualScore() >= goodScore()) {
                 good++;
             }
         }
@@ -183,6 +245,28 @@ public class BossAdvisorService {
             }
         }
         return count;
+    }
+
+    /** Returns the stored good-match score, 0 to 1. */
+    private double goodScore() {
+        return settingsRepository.get().getGoodMatchScore();
+    }
+
+    /** Returns the stored number of good matches a student needs. */
+    private int enoughGoodMatches() {
+        return settingsRepository.get().getEnoughGoodMatches();
+    }
+
+    /** Returns the text as a whole number, or null if it is not one. */
+    private Integer parseWholeNumber(String text) {
+        if (text == null) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(text.trim());
+        } catch (NumberFormatException exception) {
+            return null;
+        }
     }
 
     /** Returns the student's target course, or null if they have none. */
