@@ -1,95 +1,203 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+<!--
+  Matching configuration as three tabs, one per goal: Quality (harmonic mean), Spread (congestion
+  penalty) and Reach (BOSS Advisor). The tabs are hidden radio buttons with labels, so they work
+  without JavaScript and keep unsaved values when switching. Quality and Spread are one form
+  (POST /admin/config); Reach is its own form (POST /admin/config/advisor).
+  Expects: form, strategies, strategyDescriptions, criteria, goodMatchPercent, enoughGoodMatches,
+  activeTab (quality, spread or reach).
+-->
 <head th:replace="~{fragments/head :: head('Matching configuration')}"></head>
 <body>
 <header th:replace="~{fragments/nav :: nav('config')}"></header>
 <div th:replace="~{fragments/toast :: toast}"></div>
 
 <main>
-  <div>
-    <h1>Matching configuration</h1>
-    <p class="text-secondary">Choose the strategy, which criteria count, and how much each one matters.</p>
+  <div class="page-header">
+    <div>
+      <h1>Matching configuration</h1>
+      <p class="text-secondary">Matching works when it gets three things right. Each tab controls one of them.</p>
+    </div>
   </div>
 
-  <form th:action="@{/admin/config}" method="post" novalidate>
-    <div class="card">
-      <h2>Strategy</h2>
-      <label for="activeStrategyName">Matching strategy</label>
-      <select id="activeStrategyName" name="activeStrategyName">
-        <option th:each="s : ${strategies}" th:value="${s.key}" th:text="${s.value}"
-                th:selected="${s.key == form.activeStrategyName}">Balanced</option>
-      </select>
-      <p th:replace="~{fragments/field-error :: field-error('activeStrategyName')}"></p>
+  <div class="config-tabs">
+    <input class="config-tab-radio" type="radio" name="config-tab" id="tab-quality"
+           th:checked="${activeTab == null or activeTab == 'quality'}">
+    <input class="config-tab-radio" type="radio" name="config-tab" id="tab-spread"
+           th:checked="${activeTab == 'spread'}">
+    <input class="config-tab-radio" type="radio" name="config-tab" id="tab-reach"
+           th:checked="${activeTab == 'reach'}">
 
-      <ul class="legend">
-        <li th:each="s : ${strategies}"><span class="legend-name" th:text="${s.value}">Balanced</span> [[${strategyDescriptions.get(s.key)}]]</li>
-      </ul>
-
-      <h2>Criteria</h2>
-      <div class="table-wrap">
-      <table class="table">
-        <thead>
-          <tr><th>On</th><th>Criterion</th><th>Weight (0 to 1)</th><th>Share of total</th></tr>
-        </thead>
-        <tbody>
-          <tr th:each="c : ${criteria}" data-criterion-row>
-            <td>
-              <input type="checkbox" name="enabledCriteria" th:value="${c.key}"
-                     th:checked="${form.enabledCriteria.contains(c.key)}"
-                     th:attr="aria-label=${'Use ' + c.value}" data-enabled>
-            </td>
-            <td th:text="${c.value}">Course</td>
-            <td>
-              <input type="number" min="0" max="1" step="0.01" th:name="${'weight_' + c.key}"
-                     th:value="${form.weights.get(c.key)}"
-                     th:attr="aria-label=${c.value + ' weight'}" data-weight>
-              <p th:replace="~{fragments/field-error :: field-error(${'weight_' + c.key})}"></p>
-            </td>
-            <td>
-              <span class="share-label" data-share>0%</span>
-              <div class="score-bar"><div class="score-fill" data-fill></div></div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      </div>
-      <p th:replace="~{fragments/field-error :: field-error('criteria')}"></p>
-
-      <h2>Results</h2>
-      <label for="maxResults">Max results shown</label>
-      <input id="maxResults" name="maxResults" type="number" th:value="${form.maxResults}"
-             th:min="${@environment.getProperty('studybuddy.matching.min-results')}"
-             th:max="${@environment.getProperty('studybuddy.matching.max-results')}">
-      <p th:replace="~{fragments/field-error :: field-error('maxResults')}"></p>
-
-      <label for="minimumScore">Minimum score (0 to 1)</label>
-      <input id="minimumScore" name="minimumScore" type="number" min="0" max="1" step="0.05" th:value="${form.minimumScore}">
-      <p th:replace="~{fragments/field-error :: field-error('minimumScore')}"></p>
-
-      <h2>Availability and congestion</h2>
-      <label for="targetUsableHours">Target usable hours (1 to 15)</label>
-      <input id="targetUsableHours" name="targetUsableHours" type="number" min="1" max="15" step="1"
-             aria-describedby="target-hours-hint" th:value="${form.targetUsableHours}">
-      <p class="hint" id="target-hours-hint">Hours together per week that count as a perfect availability score</p>
-      <p th:replace="~{fragments/field-error :: field-error('targetUsableHours')}"></p>
-
-      <label for="minSessionHours" th:text="|Minimum session hours (${@environment.getProperty('studybuddy.matching.min-session-hours')} to ${@environment.getProperty('studybuddy.matching.max-session-hours')})|">Minimum session hours (1 to 4)</label>
-      <input id="minSessionHours" name="minSessionHours" type="number" step="1"
-             th:min="${@environment.getProperty('studybuddy.matching.min-session-hours')}"
-             th:max="${@environment.getProperty('studybuddy.matching.max-session-hours')}"
-             aria-describedby="session-hours-hint" th:value="${form.minSessionHours}">
-      <p class="hint" id="session-hours-hint">Shortest block that counts as a study session</p>
-      <p th:replace="~{fragments/field-error :: field-error('minSessionHours')}"></p>
-
-      <label for="congestionStrength">Congestion strength (0 to 1)</label>
-      <input id="congestionStrength" name="congestionStrength" type="number" min="0" max="1" step="0.01"
-             aria-describedby="congestion-hint" th:value="${form.congestionStrength}">
-      <p class="hint" id="congestion-hint">How strongly students with many pending requests are moved down; 0 turns it off</p>
-      <p th:replace="~{fragments/field-error :: field-error('congestionStrength')}"></p>
-
-      <button type="submit" class="btn btn-primary">Save configuration</button>
+    <div class="config-tab-list" role="presentation">
+      <label class="config-tab" for="tab-quality">
+        <span class="config-tab-name">Quality</span>
+        <span class="config-tab-solve">Harmonic mean</span>
+      </label>
+      <label class="config-tab" for="tab-spread">
+        <span class="config-tab-name">Spread</span>
+        <span class="config-tab-solve">Congestion penalty</span>
+      </label>
+      <label class="config-tab" for="tab-reach">
+        <span class="config-tab-name">Reach</span>
+        <span class="config-tab-solve">BOSS Advisor</span>
+      </label>
     </div>
-  </form>
+
+    <form th:action="@{/admin/config}" method="post" novalidate>
+
+      <section class="card config-panel config-panel-quality" aria-labelledby="quality-heading">
+        <div class="config-intro">
+          <h2 id="quality-heading">Quality: matches are good for both people</h2>
+          <p class="text-secondary">Each student's fit is scored from their own preferences, using the criteria and weights below. The two fits are combined with the <strong>harmonic mean</strong>, so a match that suits one person but not the other scores low.</p>
+        </div>
+
+        <h3>Ranking strategy</h3>
+        <label for="activeStrategyName">Matching strategy</label>
+        <select id="activeStrategyName" name="activeStrategyName">
+          <option th:each="s : ${strategies}" th:value="${s.key}" th:text="${s.value}"
+                  th:selected="${s.key == form.activeStrategyName}">Balanced</option>
+        </select>
+        <p th:replace="~{fragments/field-error :: field-error('activeStrategyName')}"></p>
+        <ul class="legend">
+          <li th:each="s : ${strategies}"><span class="legend-name" th:text="${s.value}">Balanced</span> [[${strategyDescriptions.get(s.key)}]]</li>
+        </ul>
+
+        <h3>Criteria and weights</h3>
+        <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr><th>On</th><th>Criterion</th><th>Weight (0 to 1)</th><th>Share of total</th></tr>
+          </thead>
+          <tbody>
+            <tr th:each="c : ${criteria}" data-criterion-row>
+              <td>
+                <input type="checkbox" name="enabledCriteria" th:value="${c.key}"
+                       th:checked="${form.enabledCriteria.contains(c.key)}"
+                       th:attr="aria-label=${'Use ' + c.value}" data-enabled>
+              </td>
+              <td th:text="${c.value}">Course</td>
+              <td>
+                <input type="number" min="0" max="1" step="0.01" th:name="${'weight_' + c.key}"
+                       th:value="${form.weights.get(c.key)}"
+                       th:attr="aria-label=${c.value + ' weight'}" data-weight>
+                <p th:replace="~{fragments/field-error :: field-error(${'weight_' + c.key})}"></p>
+              </td>
+              <td>
+                <span class="share-label" data-share>0%</span>
+                <div class="score-bar"><div class="score-fill" data-fill></div></div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+        <p th:replace="~{fragments/field-error :: field-error('criteria')}"></p>
+
+        <h3>Results</h3>
+        <div class="config-fields">
+          <div>
+            <label for="minimumScore">Minimum score (0 to 1)</label>
+            <input id="minimumScore" name="minimumScore" type="number" min="0" max="1" step="0.05"
+                   aria-describedby="minimum-score-hint" th:value="${form.minimumScore}">
+            <p class="hint" id="minimum-score-hint">Matches below this are not shown at all</p>
+            <p th:replace="~{fragments/field-error :: field-error('minimumScore')}"></p>
+          </div>
+          <div>
+            <label for="maxResults">Max results shown</label>
+            <input id="maxResults" name="maxResults" type="number" th:value="${form.maxResults}"
+                   th:min="${@environment.getProperty('studybuddy.matching.min-results')}"
+                   th:max="${@environment.getProperty('studybuddy.matching.max-results')}">
+            <p th:replace="~{fragments/field-error :: field-error('maxResults')}"></p>
+          </div>
+        </div>
+
+        <h3>Availability</h3>
+        <div class="config-fields">
+          <div>
+            <label for="targetUsableHours">Target usable hours (1 to 15)</label>
+            <input id="targetUsableHours" name="targetUsableHours" type="number" min="1" max="15" step="1"
+                   aria-describedby="target-hours-hint" th:value="${form.targetUsableHours}">
+            <p class="hint" id="target-hours-hint">Hours together per week that count as a perfect availability score</p>
+            <p th:replace="~{fragments/field-error :: field-error('targetUsableHours')}"></p>
+          </div>
+          <div>
+            <label for="minSessionHours" th:text="|Minimum session hours (${@environment.getProperty('studybuddy.matching.min-session-hours')} to ${@environment.getProperty('studybuddy.matching.max-session-hours')})|">Minimum session hours (1 to 4)</label>
+            <input id="minSessionHours" name="minSessionHours" type="number" step="1"
+                   th:min="${@environment.getProperty('studybuddy.matching.min-session-hours')}"
+                   th:max="${@environment.getProperty('studybuddy.matching.max-session-hours')}"
+                   aria-describedby="session-hours-hint" th:value="${form.minSessionHours}">
+            <p class="hint" id="session-hours-hint">Shortest block that counts as a study session</p>
+            <p th:replace="~{fragments/field-error :: field-error('minSessionHours')}"></p>
+          </div>
+        </div>
+
+        <div class="config-save">
+          <p class="text-secondary">Saves Quality and Spread together. Every Find buddies list uses them straight away.</p>
+          <button type="submit" class="btn btn-primary" name="tab" value="quality">Save matching settings</button>
+        </div>
+      </section>
+
+      <section class="card config-panel config-panel-spread" aria-labelledby="spread-heading">
+        <div class="config-intro">
+          <h2 id="spread-heading">Spread: requests don't pile onto a few students</h2>
+          <p class="text-secondary">Without this, a few popular students get every request while others get none. The <strong>congestion penalty</strong> moves students who already have requests waiting down other people's lists, so new requests spread out.</p>
+        </div>
+
+        <h3>Congestion penalty</h3>
+        <p class="config-formula">score ÷ (1 + strength × requests waiting)</p>
+        <div class="config-fields">
+          <div>
+            <label for="congestionStrength">Congestion strength (0 to 1)</label>
+            <input id="congestionStrength" name="congestionStrength" type="number" min="0" max="1" step="0.01"
+                   aria-describedby="congestion-hint" th:value="${form.congestionStrength}">
+            <p class="hint" id="congestion-hint">How strongly students with many pending requests are moved down; 0 turns it off</p>
+            <p th:replace="~{fragments/field-error :: field-error('congestionStrength')}"></p>
+          </div>
+        </div>
+
+        <div class="config-save">
+          <p class="text-secondary">Saves Quality and Spread together. Every Find buddies list uses them straight away.</p>
+          <button type="submit" class="btn btn-primary" name="tab" value="spread">Save matching settings</button>
+        </div>
+      </section>
+    </form>
+
+    <form th:action="@{/admin/config/advisor}" method="post" novalidate>
+      <section class="card config-panel config-panel-reach" aria-labelledby="reach-heading">
+        <div class="config-intro">
+          <h2 id="reach-heading">Reach: as many students as possible get a real match</h2>
+          <p class="text-secondary">A student with too few good matches sees <strong>BOSS Advisor</strong> on Find buddies: the one preference change that would win back the people who almost matched them, checked with the real engine first.</p>
+        </div>
+
+        <h3>Who needs help</h3>
+        <div class="config-fields">
+          <div>
+            <label for="goodMatchPercent" th:text="|Good match score (${@environment.getProperty('studybuddy.advisor.min-good-percent')} to ${@environment.getProperty('studybuddy.advisor.max-good-percent')}%)|">Good match score (45 to 90%)</label>
+            <input id="goodMatchPercent" name="goodMatchPercent" type="number" step="1"
+                   th:min="${@environment.getProperty('studybuddy.advisor.min-good-percent')}"
+                   th:max="${@environment.getProperty('studybuddy.advisor.max-good-percent')}"
+                   aria-describedby="good-match-hint" th:value="${goodMatchPercent}">
+            <p class="hint" id="good-match-hint">A match at or above this counts as good</p>
+            <p th:replace="~{fragments/field-error :: field-error('goodMatchPercent')}"></p>
+          </div>
+          <div>
+            <label for="enoughGoodMatches" th:text="|Good matches needed (${@environment.getProperty('studybuddy.advisor.min-enough-good-matches')} to ${@environment.getProperty('studybuddy.advisor.max-enough-good-matches')})|">Good matches needed (1 to 10)</label>
+            <input id="enoughGoodMatches" name="enoughGoodMatches" type="number" step="1"
+                   th:min="${@environment.getProperty('studybuddy.advisor.min-enough-good-matches')}"
+                   th:max="${@environment.getProperty('studybuddy.advisor.max-enough-good-matches')}"
+                   aria-describedby="enough-hint" th:value="${enoughGoodMatches}">
+            <p class="hint" id="enough-hint">Fewer than this, and the student sees BOSS Advisor</p>
+            <p th:replace="~{fragments/field-error :: field-error('enoughGoodMatches')}"></p>
+          </div>
+        </div>
+
+        <div class="config-save">
+          <p class="text-secondary">Raising either value means more students see BOSS Advisor.</p>
+          <button type="submit" class="btn btn-primary">Save BOSS Advisor settings</button>
+        </div>
+      </section>
+    </form>
+  </div>
 </main>
 <script th:src="@{/js/admin-config.js}"></script>
 </body>

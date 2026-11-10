@@ -28,6 +28,10 @@ import jakarta.servlet.http.HttpSession;
 @Controller
 public class AdminController {
 
+    private static final String TAB_QUALITY = "quality";
+    private static final String TAB_SPREAD = "spread";
+    private static final String TAB_REACH = "reach";
+
     private final UserService userService;
     private final AdminService adminService;
     private final MatchingConfigService matchingConfigService;
@@ -162,9 +166,10 @@ public class AdminController {
 
     /** Shows the matching configuration form with the current values. */
     @GetMapping("/admin/config")
-    public String showConfig(Model model) {
+    public String showConfig(@RequestParam(required = false) String tab, Model model) {
         MatchingConfigForm form = matchingConfigService.toForm(matchingConfigService.getConfig());
         fillConfigModel(model, form);
+        model.addAttribute("activeTab", knownTab(tab));
         return "admin/config";
     }
 
@@ -172,17 +177,21 @@ public class AdminController {
     @PostMapping("/admin/config")
     public String saveConfig(@RequestParam Map<String, String> params,
             @RequestParam(required = false) List<String> enabledCriteria,
+            @RequestParam(required = false) String tab,
             Model model, RedirectAttributes redirectAttributes) {
         MatchingConfigForm form = readConfigForm(params, enabledCriteria);
         Map<String, String> fieldErrors = matchingConfigService.validate(form);
         if (!fieldErrors.isEmpty()) {
             model.addAttribute("fieldErrors", fieldErrors);
             fillConfigModel(model, form);
+            // Open the tab that holds the problem: Spread only when congestion is the only error.
+            boolean onlyCongestion = fieldErrors.size() == 1 && fieldErrors.containsKey("congestionStrength");
+            model.addAttribute("activeTab", onlyCongestion ? TAB_SPREAD : TAB_QUALITY);
             return "admin/config";
         }
         matchingConfigService.update(form);
         Toasts.success(redirectAttributes, "Matching configuration saved");
-        return "redirect:/admin/config";
+        return "redirect:/admin/config?tab=" + knownTab(tab);
     }
 
     /** Saves the BOSS Advisor settings; re-shows the page with field errors, or returns to it with a toast. */
@@ -196,11 +205,20 @@ public class AdminController {
             fillConfigModel(model, matchingConfigService.toForm(matchingConfigService.getConfig()));
             model.addAttribute("goodMatchPercent", goodMatchPercent);
             model.addAttribute("enoughGoodMatches", enoughGoodMatches);
+            model.addAttribute("activeTab", TAB_REACH);
             return "admin/config";
         }
         advisorService.updateSettings(goodMatchPercent, enoughGoodMatches);
         Toasts.success(redirectAttributes, "BOSS Advisor settings saved");
-        return "redirect:/admin/config";
+        return "redirect:/admin/config?tab=" + TAB_REACH;
+    }
+
+    /** Returns the config page tab to open: quality, spread or reach; quality for anything else. */
+    private String knownTab(String tab) {
+        if (TAB_SPREAD.equals(tab) || TAB_REACH.equals(tab)) {
+            return tab;
+        }
+        return TAB_QUALITY;
     }
 
     /** Reads the config page's fields into a form; weights arrive as weight_criterionName. */
