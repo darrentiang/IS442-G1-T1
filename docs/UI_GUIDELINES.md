@@ -8,6 +8,7 @@ How the app looks and how it gives feedback. Every value here is a CSS variable 
 | 1.1 | 04-11-2026 | Find Buddies: chips, match card, reason tags, "Why this match" details, week grid |
 | 1.2 | 04-11-2026 | My profile: checkbox availability grid with disabled "class" cells, hint text, page actions |
 | 1.3 | 09-11-2026 | UX clean-up: grouped nav with tabs and counts, home pages, page pattern, quiet buttons, Danger zone, icons, filter bar |
+| 1.4 | 10-11-2026 | User picker: search users by name, ID, or course |
 
 ## Principles
 
@@ -70,6 +71,7 @@ Class names are what pages use. Never restyle these in a page.
 | Quiet destructive button | `.btn .btn-quiet-danger` | No fill, danger text; hover a light danger tint. A refusal or removal in a row (Decline, Reject, Remove from group, End connection), so the accepting action next to it reads as the main one |
 | Danger zone | `.card .danger-zone` > `.danger-row` (`.danger-title` + `.text-secondary`, then a `.btn-danger`) | Last card on the page, danger-tinted border and heading. One row per action that ends something (leave or close a group, suspend or delete an account), each with a sentence on what happens |
 | Input / select / textarea | (styled by element) | White, hairline border, 8px radius; focus: accent border plus a soft accent ring |
+| User picker search | Labelled search input above the user select | Shows matching administrators and students as clickable results; supports a one-character typo in name searches and explains when there are no matches |
 | Field error | `.field-error` (fragment `field-error`) | 13px danger text directly under the field |
 | Card | `.card` | White, hairline border, 12px radius, `--shadow-sm`, 24px padding |
 | Table | `.table` inside a `.card` | Muted header row in the table-header style; hairline row dividers; row hover fill |
