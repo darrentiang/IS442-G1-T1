@@ -18,7 +18,6 @@ import com.studybuddy.service.AccountCleanupService;
 import com.studybuddy.service.AdminService;
 import com.studybuddy.service.MatchingConfigForm;
 import com.studybuddy.service.MatchingConfigService;
-import com.studybuddy.service.SimulationService;
 import com.studybuddy.service.UsageService;
 import com.studybuddy.service.UserService;
 
@@ -33,18 +32,16 @@ public class AdminController {
     private final MatchingConfigService matchingConfigService;
     private final UsageService usageService;
     private final AccountCleanupService cleanupService;
-    private final SimulationService simulationService;
 
     /** Creates the controller with the services it delegates to (constructor injection). */
     public AdminController(UserService userService, AdminService adminService,
             MatchingConfigService matchingConfigService, UsageService usageService,
-            AccountCleanupService cleanupService, SimulationService simulationService) {
+            AccountCleanupService cleanupService) {
         this.userService = userService;
         this.adminService = adminService;
         this.matchingConfigService = matchingConfigService;
         this.usageService = usageService;
         this.cleanupService = cleanupService;
-        this.simulationService = simulationService;
     }
 
     /** Sends /admin to the account list, the admin area's landing page. */
@@ -182,21 +179,6 @@ public class AdminController {
         matchingConfigService.update(form);
         Toasts.success(redirectAttributes, "Matching configuration saved");
         return "redirect:/admin/config";
-    }
-
-    /** Projects the settings in the form against the saved ones, without saving; re-shows the form with field errors if invalid. */
-    @PostMapping("/admin/config/simulate")
-    public String simulateConfig(@RequestParam Map<String, String> params,
-            @RequestParam(required = false) List<String> enabledCriteria, Model model) {
-        MatchingConfigForm form = readConfigForm(params, enabledCriteria);
-        Map<String, String> fieldErrors = matchingConfigService.validate(form);
-        if (!fieldErrors.isEmpty()) {
-            model.addAttribute("fieldErrors", fieldErrors);
-        } else {
-            model.addAttribute("report", simulationService.simulate(form));
-        }
-        fillConfigModel(model, form);
-        return "admin/config";
     }
 
     /** Reads the config page's fields into a form; weights arrive as weight_criterionName. */
