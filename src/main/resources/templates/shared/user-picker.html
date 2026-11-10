@@ -11,16 +11,25 @@
     <p class="text-secondary">Choose who you are for this session</p>
 
     <form th:action="@{/sign-in}" method="post">
+      <label for="userSearch">Search users</label>
+      <input id="userSearch" type="search" placeholder="Name, ID, or course" autocomplete="off"
+             aria-controls="userSearchResults">
+      <ul id="userSearchResults" class="user-search-results" aria-live="polite" hidden></ul>
+      <p id="userSearchStatus" class="text-secondary" role="status" aria-live="polite" hidden>
+        No users found. Try a name, ID, or course.
+      </p>
       <label for="userId">User</label>
       <select id="userId" name="userId">
         <option value="">Choose a user…</option>
-        <optgroup label="Administrator">
+        <optgroup label="Administrator" data-user-group>
           <option th:each="a : ${admins}"
+                  data-user-option
                   th:value="${a.id}"
                   th:text="${a.id + ' · ' + a.name}">A001 · Study Buddy Admin</option>
         </optgroup>
-        <optgroup label="Students">
+        <optgroup label="Students" data-user-group>
           <option th:each="s : ${students}"
+                  data-user-option
                   th:value="${s.id}"
                   th:text="${s.id + ' · ' + s.name
                             + (s.profile.preferences.targetCourse == null ? '' : ' · ' + s.profile.preferences.targetCourse.code
@@ -32,5 +41,6 @@
     </form>
   </div>
 </main>
+<script th:src="@{/js/user-picker.js}"></script>
 </body>
 </html>
