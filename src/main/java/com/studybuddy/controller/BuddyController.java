@@ -14,6 +14,7 @@ import com.studybuddy.model.BusinessRuleException;
 import com.studybuddy.model.RequestNotAllowedException;
 import com.studybuddy.model.Student;
 import com.studybuddy.model.StudyGoal;
+import com.studybuddy.service.BossAdvisorService;
 import com.studybuddy.service.BuddySearch;
 import com.studybuddy.service.CourseService;
 import com.studybuddy.service.MatchRequestService;
@@ -23,7 +24,7 @@ import com.studybuddy.service.UserService;
 
 import jakarta.servlet.http.HttpSession;
 
-/** Find Buddies: ranked matches, pass and undo, sending requests, and a candidate's profile. */
+/** Find Buddies: ranked matches, BOSS Advisor, pass and undo, sending requests, and a candidate's profile. */
 @Controller
 public class BuddyController {
 
@@ -35,10 +36,13 @@ public class BuddyController {
     private final ProfileService profileService;
     private final UserService userService;
     private final CourseService courseService;
+    private final BossAdvisorService advisorService;
 
     /** Creates the controller with the services it delegates to (constructor injection). */
     public BuddyController(MatchingService matchingService, MatchRequestService requestService,
-            ProfileService profileService, UserService userService, CourseService courseService) {
+            ProfileService profileService, UserService userService, CourseService courseService,
+            BossAdvisorService advisorService) {
+        this.advisorService = advisorService;
         this.matchingService = matchingService;
         this.requestService = requestService;
         this.profileService = profileService;
@@ -66,7 +70,28 @@ public class BuddyController {
         model.addAttribute("strategyLabel", matchingService.getStrategyLabel());
         model.addAttribute("criterionLabels", matchingService.getCriterionLabels());
         model.addAttribute("minimumPercent", Math.round(matchingService.getConfig().getMinimumScore() * PERCENT));
+        if (isTargetSearch(student, search)) {
+            model.addAttribute("advice", advisorService.adviceFor(student));
+            model.addAttribute("advisorGoodPercent", advisorService.getGoodMatchPercent());
+        }
         return "student/find-buddies";
+    }
+
+    /** Applies one BOSS Advisor suggestion to the student's profile, then shows the refreshed list. */
+    @PostMapping("/buddies/boss-advisor/apply")
+    public String applyAdvice(@RequestParam(required = false) String key, HttpSession session,
+            RedirectAttributes redirectAttributes) {
+        Student student = CurrentUser.studentOrNull(session, userService);
+        if (student == null) {
+            Toasts.error(redirectAttributes, NOT_A_STUDENT);
+            return "redirect:/home";
+        }
+        try {
+            Toasts.success(redirectAttributes, advisorService.apply(student, key));
+        } catch (BusinessRuleException exception) {
+            Toasts.error(redirectAttributes, exception.getMessage());
+        }
+        return "redirect:/buddies";
     }
 
     /** Sends a buddy request with an optional message, then returns to the same search. */
@@ -153,6 +178,22 @@ public class BuddyController {
         model.addAttribute("grid", new OverlapGridView(ownGrid, candidate.getProfile().getAvailability()));
         model.addAttribute("criterionLabels", matchingService.getCriterionLabels());
         return "student/candidate";
+    }
+
+    /** Returns true for the plain search on the student's own target course, with no other filters. */
+    private boolean isTargetSearch(Student student, BuddySearch search) {
+        if (student.getProfile() == null || student.getProfile().getPreferences() == null
+                || student.getProfile().getPreferences().getTargetCourse() == null) {
+            return false;
+        }
+        String target = student.getProfile().getPreferences().getTargetCourse().getCode();
+        return target.equals(search.getCourseCode()) && isBlank(search.getGoal()) && isBlank(search.getMode())
+                && search.getMinHours() == 0;
+    }
+
+    /** Returns true for null or blank text. */
+    private boolean isBlank(String text) {
+        return text == null || text.isBlank();
     }
 
     /** Collects the search bar values into one form object. */

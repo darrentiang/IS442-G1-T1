@@ -1811,3 +1811,39 @@ h2 > .icon {
         flex-basis: 100%;
     }
 }
+
+/* --------------------------------------------------------------------------
+   BOSS Advisor (student/find-buddies.html): a card above the results with the
+   exact change to make, its gain, why, what it costs, and Apply.
+   -------------------------------------------------------------------------- */
+.advisor {
+    border-left: 3px solid var(--color-accent);
+}
+
+.advisor h2 .icon {
+    color: var(--color-accent);
+}
+
+.advisor .list-rows li {
+    align-items: flex-start;
+}
+
+.advisor .list-rows p {
+    margin: 0;
+}
+
+.advisor-change {
+    font-weight: 600;
+}
+
+.advisor-gain {
+    margin-top: 4px;
+    color: var(--color-success);
+    font-weight: 500;
+}
+
+.advisor .list-rows .text-secondary,
+.advisor .list-rows .hint {
+    margin-top: 4px;
+    font-size: 14px;
+}
