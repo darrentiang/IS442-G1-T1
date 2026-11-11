@@ -115,3 +115,12 @@ Each study group can have a private Discord channel in one shared server. Only m
 - **Failures never block a group action:** Discord errors are logged; the group change still happens, and the leader can press "Set up Discord channel" later. Actions the user asked for directly (set up, connect) turn a Discord failure into a `BusinessRuleException` toast.
 - **Login state** is kept in `DiscordLoginAttemptRepository`, not the session, so `CurrentUser` stays the only code that touches the session.
 - **Seed data:** groups start without channels. The leader of the showcase group presses "Set up Discord channel".
+
+## Private group invite links
+
+A private group is joined only through its secret invite link, `/groups/invite/{token}`. Browsing never lists private groups, and `POST /groups/{id}/join` refuses them.
+
+- **Where the code is:** the token lives in its own model class `GroupInvite` (group id + token) with `GroupInviteRepository`, so `StudyGroup` stays frozen. `GroupInviteService` creates the token the first time the leader opens the group page, resets it, and sends join requests through `JoinRequestService.requestToJoinInvited`, which uses the same rules as public groups. The leader still approves each request on Manage members.
+- **Pages:** the leader sees the link, a Copy button (`static/js/group-invite.js`) and Reset in the Group management card. `GroupController` serves `/groups/{id}/invite/reset`; `GroupBrowseController` serves the invite page and its join action.
+- **Signed-out visitors:** `AuthInterceptor` sends them to `/?next=/groups/invite/{token}`, and `UserPickerController` returns them there after sign-in. It only ever follows `next` for an invite link path, and nothing goes in the session.
+- **Seed data:** no tokens are seeded; each private group gets one when its leader first opens it.

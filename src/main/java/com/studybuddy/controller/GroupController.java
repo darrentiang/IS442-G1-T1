@@ -22,6 +22,7 @@ import com.studybuddy.model.Visibility;
 import com.studybuddy.service.AvailabilityFormatter;
 import com.studybuddy.service.CourseService;
 import com.studybuddy.service.GroupForm;
+import com.studybuddy.service.GroupInviteService;
 import com.studybuddy.service.StudyGroupService;
 import com.studybuddy.service.UserService;
 
@@ -34,12 +35,15 @@ public class GroupController {
     private final StudyGroupService groupService;
     private final CourseService courseService;
     private final UserService userService;
+    private final GroupInviteService inviteService;
 
     /** Creates the controller with the services it delegates to (constructor injection). */
-    public GroupController(StudyGroupService groupService, CourseService courseService, UserService userService) {
+    public GroupController(StudyGroupService groupService, CourseService courseService, UserService userService,
+            GroupInviteService inviteService) {
         this.groupService = groupService;
         this.courseService = courseService;
         this.userService = userService;
+        this.inviteService = inviteService;
     }
 
     /** Shows the empty create-group form. */
@@ -175,6 +179,24 @@ public class GroupController {
             return errorRedirect(redirectAttributes, exception.getMessage(), "/groups/" + id);
         }
         return successRedirect(redirectAttributes, "Group reopened", "/groups/" + id);
+    }
+
+    /** Replaces a private group's invite link with a new one so the old link stops working; leader only. */
+    @PostMapping("/groups/{id}/invite/reset")
+    public String resetInvite(@PathVariable String id, HttpSession session, RedirectAttributes redirectAttributes) {
+        Student student = CurrentUser.studentOrNull(session, userService);
+        if (student == null) {
+            return errorRedirect(redirectAttributes, "Only students can manage groups", "/home");
+        }
+        if (groupService.findById(id) == null) {
+            return errorRedirect(redirectAttributes, "This group could not be found", "/groups");
+        }
+        try {
+            inviteService.resetInvite(id, student.getId());
+        } catch (BusinessRuleException exception) {
+            return errorRedirect(redirectAttributes, exception.getMessage(), "/groups/" + id);
+        }
+        return successRedirect(redirectAttributes, "Invite link reset. The old link no longer works.", "/groups/" + id);
     }
 
     /** Shows the groups the signed-in student leads and the groups they are a member of. */

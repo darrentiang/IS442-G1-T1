@@ -11,14 +11,17 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.studybuddy.model.BusinessRuleException;
 import com.studybuddy.model.RequestStatus;
 import com.studybuddy.model.Student;
 import com.studybuddy.model.StudyGoal;
 import com.studybuddy.model.StudyGroup;
+import com.studybuddy.model.Visibility;
 import com.studybuddy.service.CourseService;
 import com.studybuddy.service.DiscordService;
+import com.studybuddy.service.GroupInviteService;
 import com.studybuddy.service.JoinRequestService;
 import com.studybuddy.service.StudyGroupService;
 import com.studybuddy.service.UserService;
@@ -34,15 +37,18 @@ public class GroupBrowseController {
     private final UserService userService;
     private final CourseService courseService;
     private final DiscordService discordService;
+    private final GroupInviteService inviteService;
 
     /** Creates the controller with the services to which it delegates. */
     public GroupBrowseController(JoinRequestService requestService, StudyGroupService groupService,
-            UserService userService, CourseService courseService, DiscordService discordService) {
+            UserService userService, CourseService courseService, DiscordService discordService,
+            GroupInviteService inviteService) {
         this.requestService = requestService;
         this.groupService = groupService;
         this.userService = userService;
         this.courseService = courseService;
         this.discordService = discordService;
+        this.inviteService = inviteService;
     }
 
     /** Shows public open groups with optional course and study goal filters. */
@@ -73,7 +79,7 @@ public class GroupBrowseController {
         return "group/list";
     }
 
-    /** Shows any group by direct link, including private and closed groups. */
+    /** Shows any group by direct link, including private and closed groups; the leader of a private group also sees its invite link. */
     @GetMapping("/groups/{id}")
     public String showGroup(@PathVariable String id, HttpSession session, Model model,
             RedirectAttributes redirectAttributes) {
@@ -82,17 +88,38 @@ public class GroupBrowseController {
         if (group == null) {
             return errorRedirect(redirectAttributes, "This group could not be found", "/groups");
         }
-        model.addAttribute("group", group);
-        model.addAttribute("student", userService.findStudent(userId));
-        model.addAttribute("leader", groupService.isLeader(group, userId));
-        model.addAttribute("member", groupService.isMember(group, userId));
-        model.addAttribute("full", groupService.isFull(group));
-        model.addAttribute("pending", requestService.hasPendingRequest(userId, id));
-        model.addAttribute("pendingStatus", RequestStatus.PENDING);
-        model.addAttribute("discordStatus", discordService.statusFor(group, userId).name());
-        model.addAttribute("discordChatUrl", discordService.chatUrl(group));
-        model.addAttribute("grid", new AvailabilityGridView(group.getAvailability(), null));
+        fillGroupModel(group, userId, null, model);
         return "group/detail";
+    }
+
+    /** Shows the group a private invite link points to, with a join button that sends the request through the link. */
+    @GetMapping("/groups/invite/{token}")
+    public String showInvite(@PathVariable String token, HttpSession session, Model model,
+            RedirectAttributes redirectAttributes) {
+        StudyGroup group = inviteService.findGroupByToken(token);
+        if (group == null) {
+            return errorRedirect(redirectAttributes, "This invite link is not valid or was reset", "/groups");
+        }
+        fillGroupModel(group, CurrentUser.getId(session), token, model);
+        return "group/detail";
+    }
+
+    /** Sends a join request to the group leader through a private invite link. */
+    @PostMapping("/groups/invite/{token}/join")
+    public String requestToJoinByInvite(@PathVariable String token, HttpSession session,
+            RedirectAttributes redirectAttributes) {
+        StudyGroup group = inviteService.findGroupByToken(token);
+        if (group == null) {
+            return errorRedirect(redirectAttributes, "This invite link is not valid or was reset", "/groups");
+        }
+        Student student = userService.findStudent(CurrentUser.getId(session));
+        try {
+            inviteService.requestToJoinByInvite(student, token);
+        } catch (BusinessRuleException exception) {
+            return errorRedirect(redirectAttributes, exception.getMessage(), "/groups/invite/" + token);
+        }
+        Toasts.success(redirectAttributes, "Request sent to " + group.getName());
+        return "redirect:/groups/invite/" + token;
     }
 
     /** Submits a student's join request and redirects with success or error feedback. */
@@ -147,6 +174,30 @@ public class GroupBrowseController {
         }
         model.addAttribute("requests", requestService.findByStudent(student.getId()));
         return "group/my-requests";
+    }
+
+    /** Adds everything the group detail page shows; inviteToken is set only when the page was opened through an invite link. */
+    private void fillGroupModel(StudyGroup group, String userId, String inviteToken, Model model) {
+        boolean leader = groupService.isLeader(group, userId);
+        model.addAttribute("group", group);
+        model.addAttribute("student", userService.findStudent(userId));
+        model.addAttribute("leader", leader);
+        model.addAttribute("member", groupService.isMember(group, userId));
+        model.addAttribute("full", groupService.isFull(group));
+        model.addAttribute("pending", requestService.hasPendingRequest(userId, group.getId()));
+        model.addAttribute("pendingStatus", RequestStatus.PENDING);
+        model.addAttribute("discordStatus", discordService.statusFor(group, userId).name());
+        model.addAttribute("discordChatUrl", discordService.chatUrl(group));
+        model.addAttribute("grid", new AvailabilityGridView(group.getAvailability(), null));
+        model.addAttribute("privateGroup", group.getVisibility() == Visibility.PRIVATE);
+        model.addAttribute("inviteToken", inviteToken);
+        String inviteUrl = null;
+        if (leader && group.getVisibility() == Visibility.PRIVATE) {
+            String token = inviteService.inviteFor(group, userId).getToken();
+            inviteUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+                    .path("/groups/invite/{token}").buildAndExpand(token).toUriString();
+        }
+        model.addAttribute("inviteUrl", inviteUrl);
     }
 
     /** Adds an error toast and redirects to the given path. */

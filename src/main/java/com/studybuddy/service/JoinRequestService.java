@@ -32,8 +32,23 @@ public class JoinRequestService {
         this.groupService = groupService;
     }
 
-    /** Validates eligibility and saves a new pending request, including after a decline. */
+    /** Validates eligibility and saves a new pending request; a private group needs its invite link instead. */
     public JoinRequest requestToJoin(Student student, StudyGroup group) {
+        checkEligible(student, group);
+        if (group.getVisibility() == Visibility.PRIVATE) {
+            throw new BusinessRuleException("This group is private. Ask the leader for an invite link");
+        }
+        return saveRequest(student, group);
+    }
+
+    /** Saves a new pending request that came through a valid invite link, under the same rules as public groups. */
+    public JoinRequest requestToJoinInvited(Student student, StudyGroup group) {
+        checkEligible(student, group);
+        return saveRequest(student, group);
+    }
+
+    /** Throws unless this student may ask to join this group: open, not full, not a member, nothing pending. */
+    private void checkEligible(Student student, StudyGroup group) {
         if (student == null) {
             throw new BusinessRuleException("Only students can request to join a group");
         }
@@ -52,6 +67,10 @@ public class JoinRequestService {
         if (hasPendingRequest(student.getId(), group.getId())) {
             throw new BusinessRuleException("You already asked to join");
         }
+    }
+
+    /** Saves and returns a new pending request, including after a decline. */
+    private JoinRequest saveRequest(Student student, StudyGroup group) {
         JoinRequest request = new JoinRequest(requestRepository.nextId(), student, group);
         requestRepository.save(request);
         return request;

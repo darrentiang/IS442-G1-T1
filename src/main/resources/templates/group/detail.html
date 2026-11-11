@@ -27,9 +27,13 @@
         <button type="button" class="btn btn-secondary" disabled>Request sent</button>
         <span th:replace="~{fragments/badge :: badge(${pendingStatus})}"></span>
       </th:block>
-      <form th:unless="${pending}" th:action="@{/groups/{id}/join(id=${group.id})}" method="post">
+      <form th:if="${!pending and inviteToken != null}" th:action="@{/groups/invite/{token}/join(token=${inviteToken})}" method="post">
         <button type="submit" class="btn btn-primary">Request to join</button>
       </form>
+      <form th:if="${!pending and inviteToken == null and !privateGroup}" th:action="@{/groups/{id}/join(id=${group.id})}" method="post">
+        <button type="submit" class="btn btn-primary">Request to join</button>
+      </form>
+      <p th:if="${!pending and inviteToken == null and privateGroup}" class="text-secondary">This group is private. Ask the leader for an invite link.</p>
     </div>
   </header>
 
@@ -73,6 +77,17 @@
       <form th:unless="${group.open}" th:action="@{/groups/{id}/reopen(id=${group.id})}" method="post">
         <button type="submit" class="btn btn-secondary">Reopen group</button>
       </form>
+    </div>
+    <div th:if="${inviteUrl != null}" class="invite-link">
+      <label for="inviteUrl">Invite link</label>
+      <div class="invite-link-row">
+        <input id="inviteUrl" type="text" th:value="${inviteUrl}" readonly>
+        <button type="button" class="btn btn-secondary" id="copyInviteLink" data-copy-target="inviteUrl">Copy link</button>
+        <form th:action="@{/groups/{id}/invite/reset(id=${group.id})}" method="post">
+          <button type="submit" class="btn btn-secondary">Reset link</button>
+        </form>
+      </div>
+      <p class="hint">Anyone with this link can ask to join. You approve each request in Manage members. Reset makes a new link and the old one stops working.</p>
     </div>
   </section>
 
@@ -172,5 +187,6 @@
     </div>
   </section>
 </main>
+<script th:if="${inviteUrl != null}" th:src="@{/js/group-invite.js}"></script>
 </body>
 </html>

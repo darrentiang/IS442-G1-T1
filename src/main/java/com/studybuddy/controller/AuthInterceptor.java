@@ -1,6 +1,8 @@
 package com.studybuddy.controller;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -26,6 +28,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     private static final String ADMIN_AREA = "/admin/";
     private static final String PICKER = "/";
+    private static final String INVITE_PATH = "/groups/invite/";
     private static final String SUSPENDED_MESSAGE = "This account is suspended";
     private static final String REDIRECT = "redirect:";
     private static final String NAV_COUNTS = "navCounts";
@@ -50,7 +53,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         String userId = CurrentUser.getId(session);
         User user = (userId == null) ? null : userService.findUser(userId);
         if (user == null) {
-            return redirectToPicker(request, response);
+            return redirectToPickerThenInvite(request, response);
         }
         if (user.getStatus() != AccountStatus.ACTIVE) {
             CurrentUser.signOut(session);
@@ -82,6 +85,21 @@ public class AuthInterceptor implements HandlerInterceptor {
     private boolean isAdminArea(HttpServletRequest request) {
         String path = request.getRequestURI().substring(request.getContextPath().length());
         return path.startsWith(ADMIN_AREA);
+    }
+
+    /**
+     * Redirects a signed-out visitor to the user picker and returns false. When they opened a
+     * private group's invite link, the picker sends them back to it after they choose a user.
+     */
+    private boolean redirectToPickerThenInvite(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        String path = request.getRequestURI().substring(request.getContextPath().length());
+        if (!"GET".equals(request.getMethod()) || !path.startsWith(INVITE_PATH)) {
+            return redirectToPicker(request, response);
+        }
+        response.sendRedirect(request.getContextPath() + PICKER + "?next="
+                + URLEncoder.encode(path, StandardCharsets.UTF_8));
+        return false;
     }
 
     /** Redirects to the user picker and returns false, so the controller does not run. */

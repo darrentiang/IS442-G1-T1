@@ -2009,3 +2009,29 @@ h2 > .icon {
         align-items: flex-start;
     }
 }
+
+/* Invite link of a private group: the link box grows, its buttons sit beside it and wrap on narrow screens. */
+.invite-link {
+    margin-top: 24px;
+}
+
+.invite-link-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.invite-link-row input {
+    flex: 1 1 280px;
+    min-width: 0;
+    margin: 0;
+}
+
+.invite-link-row form {
+    margin: 0;
+}
+
+.invite-link .hint {
+    margin: 8px 0 0;
+}

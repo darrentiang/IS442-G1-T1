@@ -6,6 +6,7 @@ classDiagram
     StudyGroup "1" --> "1" AvailabilityGrid
     JoinRequest "1" --> "1" Student
     JoinRequest "1" --> "1" StudyGroup
+    GroupInvite "0..1" ..> "1" StudyGroup : groupId
     ActivityEvent "*" --> "1" StudyGroup
     StudySession "1" --> "2..*" Student : participants
     StudySession "1" --> "1" Course
