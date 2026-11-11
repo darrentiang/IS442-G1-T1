@@ -9,8 +9,10 @@
   <div class="card card-narrow">
     <h1>Study Buddy Matcher</h1>
     <p class="text-secondary">Choose who you are for this session</p>
+    <p th:if="${next != null}" class="banner banner-info" role="status">Choose a user to open the group invite link.</p>
 
     <form th:action="@{/sign-in}" method="post">
+      <input th:if="${next != null}" type="hidden" name="next" th:value="${next}">
       <label for="userSearch">Search users</label>
       <input id="userSearch" type="search" placeholder="Name, ID, or course" autocomplete="off"
              aria-controls="userSearchResults">

@@ -398,6 +398,12 @@ textarea:focus {
     padding: 0;
 }
 
+/* The heading of an edge-to-edge table card keeps the card's usual inset. */
+.card:has(> .table) > h2 {
+    margin: 0;
+    padding: 20px 24px 16px;
+}
+
 
 /* --------------------------------------------------------------------------
    7. Table (.table inside a .card) — muted header row, hairline row
@@ -2008,4 +2014,30 @@ h2 > .icon {
         flex-direction: column;
         align-items: flex-start;
     }
+}
+
+/* Invite link of a private group: the link box grows, its buttons sit beside it and wrap on narrow screens. */
+.invite-link {
+    margin-top: 24px;
+}
+
+.invite-link-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.invite-link-row input {
+    flex: 1 1 280px;
+    min-width: 0;
+    margin: 0;
+}
+
+.invite-link-row form {
+    margin: 0;
+}
+
+.invite-link .hint {
+    margin: 8px 0 0;
 }
