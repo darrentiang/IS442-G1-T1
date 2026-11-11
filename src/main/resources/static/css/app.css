@@ -398,6 +398,12 @@ textarea:focus {
     padding: 0;
 }
 
+/* The heading of an edge-to-edge table card keeps the card's usual inset. */
+.card:has(> .table) > h2 {
+    margin: 0;
+    padding: 20px 24px 16px;
+}
+
 
 /* --------------------------------------------------------------------------
    7. Table (.table inside a .card) — muted header row, hairline row
