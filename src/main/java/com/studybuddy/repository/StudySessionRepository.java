@@ -15,4 +15,13 @@ public interface StudySessionRepository {
 
     /** Returns all sessions. */
     List<StudySession> findAll();
+
+    /** Returns an unused session id such as "SS001" or "SS002". */
+    String nextId();
+
+    /** Returns every session this student is a participant of. */
+    List<StudySession> findByParticipant(String studentId);
+
+    /** Removes the session with this id, if any. */
+    void delete(String id);
 }

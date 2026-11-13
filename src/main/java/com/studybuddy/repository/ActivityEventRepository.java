@@ -15,4 +15,7 @@ public interface ActivityEventRepository {
 
     /** Returns all feed rows, oldest first. */
     List<ActivityEvent> findAll();
+
+    /** Returns this group's feed rows, oldest first. */
+    List<ActivityEvent> findByGroup(String groupId);
 }
