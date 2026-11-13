@@ -25,9 +25,12 @@
           <td th:text="${row.view.contactNumber}">91234567</td>
           <td th:text="${#temporals.format(row.since, 'd MMM yyyy')}">8 Nov 2026</td>
           <td>
-            <form th:action="@{/connections/{id}/end(id=${row.connectionId})}" method="post">
-              <button type="submit" class="btn btn-quiet-danger">End connection</button>
-            </form>
+            <div class="group-actions">
+              <a class="btn btn-secondary" th:href="@{/sessions/new(buddy=${row.connectionId})}">Plan a session</a>
+              <form th:action="@{/connections/{id}/end(id=${row.connectionId})}" method="post">
+                <button type="submit" class="btn btn-quiet-danger">End connection</button>
+              </form>
+            </div>
           </td>
         </tr>
       </tbody>

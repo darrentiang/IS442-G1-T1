@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<!--
+  The signed-in student's study sessions, with buddies and with groups.
+  Expects: upcoming and past (lists of SessionRow).
+-->
+<head th:replace="~{fragments/head :: head('My sessions')}"></head>
+<body>
+<header th:replace="~{fragments/nav :: nav('sessions')}"></header>
+<div th:replace="~{fragments/toast :: toast}"></div>
+
+<main>
+  <div class="page-header">
+    <div>
+      <h1>My sessions</h1>
+      <p class="text-secondary">Meetings you've planned with your buddies and study groups. Plan one from My buddies or a group's page.</p>
+    </div>
+    <a class="btn btn-secondary" th:href="@{/connections}">Plan with a buddy</a>
+  </div>
+
+  <section aria-labelledby="upcoming-heading">
+    <h2 id="upcoming-heading">Upcoming</h2>
+    <th:block th:each="row : ${upcoming}">
+      <article th:replace="~{fragments/session-card :: session-card(${row}, 'mine')}"></article>
+    </th:block>
+    <div class="card" th:if="${#lists.isEmpty(upcoming)}">
+      <div th:replace="~{fragments/empty-state :: empty-state-action('No upcoming sessions. Pick a buddy and plan a time you are both free.', 'My buddies', @{/connections})}"></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="past-heading" th:unless="${#lists.isEmpty(past)}">
+    <h2 id="past-heading">Done</h2>
+    <th:block th:each="row : ${past}">
+      <article th:replace="~{fragments/session-card :: session-card(${row}, 'mine')}"></article>
+    </th:block>
+  </section>
+</main>
+</body>
+</html>

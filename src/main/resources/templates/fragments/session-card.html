@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  One study session as a card: course and time, who it's with, where, who is going, and the
+  buttons the viewing student may press. Built from a SessionRow, so it holds no rules itself.
+  Usage, passing the row and where actions should return to ('group' or 'mine'):
+    <article th:replace="~{fragments/session-card :: session-card(${row}, 'mine')}"></article>
+-->
+<article th:fragment="session-card(row, back)" class="card">
+  <div class="group-heading">
+    <div>
+      <h3 th:text="${row.session.course.code + ' · ' + row.when}">IS442 · WED 19:00–21:00</h3>
+      <p class="text-secondary"
+         th:text="${'With ' + row.withLabel + ' · at ' + row.session.location + ' · proposed by ' + (row.proposer ? 'you' : row.proposerName)}">
+        With Ben Tan · at Library Room 3 · proposed by you</p>
+    </div>
+    <span th:replace="~{fragments/badge :: badge(${row.status})}"></span>
+  </div>
+
+  <p class="hint">
+    <span th:text="${'Going: ' + (#lists.isEmpty(row.going) ? 'nobody yet' : #strings.listJoin(row.going, ', '))}">Going: Aisha, Ben</span>
+    <th:block th:unless="${#lists.isEmpty(row.cant)}">
+      <span th:text="${' · Can''t: ' + #strings.listJoin(row.cant, ', ')}"> · Can't: Chloe</span>
+    </th:block>
+    <th:block th:unless="${#lists.isEmpty(row.waiting)}">
+      <span th:text="${' · No reply yet: ' + #strings.listJoin(row.waiting, ', ')}"> · No reply yet: Dev</span>
+    </th:block>
+  </p>
+
+  <div class="group-actions" th:if="${row.participant and row.upcoming}">
+    <span th:if="${row.myAnswer != null and row.myAnswer.name() == 'GOING'}" class="badge badge-going">You're going</span>
+    <span th:if="${row.myAnswer != null and row.myAnswer.name() == 'CANT'}" class="badge badge-cant">You can't make it</span>
+
+    <form th:unless="${row.myAnswer != null and row.myAnswer.name() == 'GOING'}"
+          th:action="@{/sessions/{id}/answer(id=${row.session.id})}" method="post">
+      <input type="hidden" name="answer" value="GOING">
+      <input type="hidden" name="back" th:value="${back}">
+      <button type="submit" class="btn btn-secondary">I'm going</button>
+    </form>
+    <form th:unless="${row.myAnswer != null and row.myAnswer.name() == 'CANT'}"
+          th:action="@{/sessions/{id}/answer(id=${row.session.id})}" method="post">
+      <input type="hidden" name="answer" value="CANT">
+      <input type="hidden" name="back" th:value="${back}">
+      <button type="submit" class="btn btn-quiet">Can't make it</button>
+    </form>
+
+    <form th:if="${row.confirmable}" th:action="@{/sessions/{id}/confirm(id=${row.session.id})}" method="post">
+      <input type="hidden" name="back" th:value="${back}">
+      <button type="submit" class="btn btn-secondary">Confirm session</button>
+    </form>
+    <form th:if="${row.proposer and row.status.name() == 'CONFIRMED'}"
+          th:action="@{/sessions/{id}/done(id=${row.session.id})}" method="post">
+      <input type="hidden" name="back" th:value="${back}">
+      <button type="submit" class="btn btn-secondary">Mark as done</button>
+    </form>
+    <form th:if="${row.proposer}" th:action="@{/sessions/{id}/cancel(id=${row.session.id})}" method="post">
+      <input type="hidden" name="back" th:value="${back}">
+      <button type="submit" class="btn btn-quiet-danger">Cancel session</button>
+    </form>
+  </div>
+  <p class="hint" th:if="${row.proposer and row.status.name() == 'PROPOSED' and !row.confirmable}">
+    You can confirm once at least one other person says they're going.</p>
+</article>
+</body>
+</html>

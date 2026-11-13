@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<!--
+  A study group's sessions and activity feed, for its members.
+  Expects: group, upcoming and past (lists of SessionRow), feed (list of ActivityEvent, newest first).
+-->
+<head th:replace="~{fragments/head :: head(${group.name + ' · Sessions'})}"></head>
+<body>
+<header th:replace="~{fragments/nav :: nav('groups')}"></header>
+<div th:replace="~{fragments/toast :: toast}"></div>
+
+<main>
+  <div class="page-header">
+    <div>
+      <h1 th:text="${group.name}">IS442 Exam Crew</h1>
+      <p class="text-secondary">Sessions and recent activity, for members only.
+        <a th:href="@{/groups/{id}(id=${group.id})}">Back to the group</a></p>
+    </div>
+    <a th:if="${group.open}" class="btn btn-primary" th:href="@{/sessions/new(group=${group.id})}">Plan a session</a>
+  </div>
+
+  <section aria-labelledby="upcoming-heading">
+    <h2 id="upcoming-heading">Upcoming sessions</h2>
+    <th:block th:each="row : ${upcoming}">
+      <article th:replace="~{fragments/session-card :: session-card(${row}, 'group')}"></article>
+    </th:block>
+    <div class="card" th:if="${#lists.isEmpty(upcoming)}">
+      <div th:replace="~{fragments/empty-state :: empty-state('No upcoming sessions yet. Plan one at a time the group is free.')}"></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="past-heading" th:unless="${#lists.isEmpty(past)}">
+    <h2 id="past-heading">Done</h2>
+    <th:block th:each="row : ${past}">
+      <article th:replace="~{fragments/session-card :: session-card(${row}, 'group')}"></article>
+    </th:block>
+  </section>
+
+  <section class="card" aria-labelledby="activity-heading">
+    <h2 id="activity-heading">Recent activity</h2>
+    <ul class="list-rows" th:unless="${#lists.isEmpty(feed)}">
+      <li th:each="event : ${feed}">
+        <span th:text="${event.text}">Aisha joined the group</span>
+        <span class="text-secondary" th:text="${#temporals.format(event.timestamp, 'd MMM, HH:mm')}">13 Nov, 19:05</span>
+      </li>
+    </ul>
+    <th:block th:if="${#lists.isEmpty(feed)}">
+      <div th:replace="~{fragments/empty-state :: empty-state('Nothing yet. Joins, departures and sessions will show up here.')}"></div>
+    </th:block>
+  </section>
+</main>
+</body>
+</html>
