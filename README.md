@@ -234,7 +234,7 @@ The work was split by **functional area of the brief**, with each group owning i
 
 | Group | Members | Owns |
 |---|---|---|
-| 1 | Darren, Wei Lin | Student profiles, preferences and availability (including `.ics` import); the matching engine, search, filters, ranking and public profiles |
+| 1 | Darren, Wei Lin | Student profiles, preferences and availability (including `.ics` import); the matching engine, search, filters, ranking and public profiles. Extra: study sessions and the group activity feed (Wei Lin) |
 | 2 | Rachel, Karina, Kenneth | Study groups: create, update, close; group availability and size; join requests, acceptance and member removal |
 | 3 | Hong Yi, Ela | Buddy requests and connections; administrator account management, status and usage; matching configuration |
 
