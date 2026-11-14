@@ -116,6 +116,17 @@ Each study group can have a private Discord channel in one shared server. Only m
 - **Login state** is kept in `DiscordLoginAttemptRepository`, not the session, so `CurrentUser` stays the only code that touches the session.
 - **Seed data:** groups start without channels. The leader of the showcase group presses "Set up Discord channel".
 
+## Study sessions and group activity feed
+
+Two buddies, or the members of a study group, can plan a weekly meeting. Each group also has an activity feed.
+
+- **Where the code is:** `SessionService` holds the rules (suggest times, propose, answer, confirm, mark done, cancel) and `SessionController` serves `/sessions`, `/sessions/new`, `/sessions/{id}/answer|confirm|done|cancel` and `/groups/{id}/sessions`. Pages: `group/sessions.html`, `group/session-form.html`, `group/group-sessions.html`, and the `fragments/session-card` fragment.
+- **Shared classes stay frozen:** `StudySession` holds the time, course, participants and answers. What it lacks (who proposed it, which group) lives in its own `SessionDetails` class with `SessionDetailsRepository`, the same pattern as `GroupInvite`. Sessions are weekly and store no date, so the proposer moves a confirmed session to Past with **Mark as done**.
+- **Rules:** the proposer is marked Going; anyone invited answers Going or Can't until the session is done; only the proposer confirms (once at least one other person is going), marks it done or cancels it. Suggested times are blocks when every participant is free, at least the admin's minimum session length (`AvailabilityGrid.commonBlocks`).
+- **Activity feed:** `ActivityFeedService` implements `GroupEventListener`, so joins and leaves are recorded without touching the group services; `SessionService` records proposed and confirmed group sessions. Like every listener it never throws. The feed shows on `/groups/{id}/sessions`, for members only.
+- **Deleted accounts:** session pages skip any participant whose account no longer exists, so `AccountCleanupService` does not need to know about sessions.
+- **Settings:** `studybuddy.session.*` and `studybuddy.activity.feed-size` in `application.properties`. No seed data: sessions start empty.
+
 ## Private group invite links
 
 A private group is joined only through its secret invite link, `/groups/invite/{token}`. Browsing never lists private groups, and `POST /groups/{id}/join` refuses them.

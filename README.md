@@ -44,6 +44,7 @@ The brief defines three roles. Every functional requirement is implemented.
 | **Matching** | Search by course or study goal; get a **ranked list** with a mutual fit score and the top reasons; filter by mode and hours free together; open a candidate's public profile, where the **contact number stays hidden** |
 | **Requests & connections** | Send a buddy request with an optional message; accept or decline incoming requests, after which the **contact number becomes visible** to both; view active buddies and end a connection at any time |
 | **Groups** | Browse and request to join study groups; leave a group |
+| **Study sessions** | Plan a meeting with a buddy or with a whole study group, picking from **times everyone is free**; everyone invited replies Going or Can't; the proposer confirms once someone else is going, then marks it done or cancels it. Each group also has an **activity feed** of who joined, who left, and which sessions were proposed and confirmed, visible to members only |
 
 ### Study group leaders
 

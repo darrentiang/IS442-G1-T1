@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<!--
+  Plan a study session with a buddy (form.buddy) or a group (form.group).
+  Expects: form (SessionForm), targetLabel, courseOptions, suggestions (list of TimeBlock),
+  minHours, dayNames, startHours, endHours, and fieldErrors after a failed submit.
+-->
+<head th:replace="~{fragments/head :: head('Plan a session')}"></head>
+<body>
+<header th:replace="~{fragments/nav :: nav('sessions')}"></header>
+<div th:replace="~{fragments/toast :: toast}"></div>
+
+<main>
+  <div>
+    <h1>Plan a session</h1>
+    <p class="text-secondary" th:text="${'With ' + targetLabel + '. Everyone invited can reply Going or Can''t, then you confirm.'}">
+      With Ben Tan. Everyone invited can reply Going or Can't, then you confirm.</p>
+  </div>
+
+  <section class="card card-narrow" aria-labelledby="suggest-heading">
+    <h2 id="suggest-heading">Times everyone is free</h2>
+    <th:block th:if="${#lists.isEmpty(suggestions)}">
+      <div th:replace="~{fragments/empty-state :: empty-state('No shared free time found. You can still pick a time below.')}"></div>
+    </th:block>
+    <ul class="list-rows" th:unless="${#lists.isEmpty(suggestions)}">
+      <li th:each="block : ${suggestions}"
+          th:with="end=${block.startHour + minHours > block.endHour ? block.endHour : block.startHour + minHours}">
+        <span th:text="${dayNames[block.day] + ' ' + #numbers.formatInteger(block.startHour, 2) + ':00–' + #numbers.formatInteger(block.endHour, 2) + ':00'}">SUN 13:00–17:00</span>
+        <a class="btn btn-quiet"
+           th:href="@{/sessions/new(buddy=${form.buddy}, group=${form.group}, courseCode=${form.courseCode}, day=${block.day}, startHour=${block.startHour}, endHour=${end})}">Use this time</a>
+      </li>
+    </ul>
+  </section>
+
+  <div class="card card-narrow">
+    <form th:action="@{/sessions}" method="post">
+      <input type="hidden" name="buddy" th:value="${form.buddy}">
+      <input type="hidden" name="group" th:value="${form.group}">
+
+      <label for="courseCode">Course</label>
+      <select id="courseCode" name="courseCode">
+        <option value="">Choose a course…</option>
+        <option th:each="course : ${courseOptions}" th:value="${course.code}"
+                th:selected="${course.code == form.courseCode or #lists.size(courseOptions) == 1}"
+                th:text="${course.code + ' · ' + course.title}">IS442 · Object-Oriented Programming</option>
+      </select>
+      <p th:replace="~{fragments/field-error :: field-error('courseCode')}"></p>
+
+      <label for="day">Day</label>
+      <select id="day" name="day">
+        <option value="">Choose a day…</option>
+        <option th:each="name, d : ${dayNames}" th:value="${d.index}"
+                th:selected="${form.day == '' + d.index}" th:text="${name}">MON</option>
+      </select>
+      <p th:replace="~{fragments/field-error :: field-error('day')}"></p>
+
+      <label for="startHour">Starts</label>
+      <select id="startHour" name="startHour">
+        <option value="">Choose…</option>
+        <option th:each="hour : ${startHours}" th:value="${hour}"
+                th:selected="${form.startHour == '' + hour}"
+                th:text="${#numbers.formatInteger(hour, 2) + ':00'}">19:00</option>
+      </select>
+      <p th:replace="~{fragments/field-error :: field-error('startHour')}"></p>
+
+      <label for="endHour">Ends</label>
+      <select id="endHour" name="endHour">
+        <option value="">Choose…</option>
+        <option th:each="hour : ${endHours}" th:value="${hour}"
+                th:selected="${form.endHour == '' + hour}"
+                th:text="${#numbers.formatInteger(hour, 2) + ':00'}">21:00</option>
+      </select>
+      <p th:replace="~{fragments/field-error :: field-error('endHour')}"></p>
+
+      <label for="location">Where</label>
+      <input id="location" name="location" th:value="${form.location}" placeholder="e.g. SCIS Library GSR 2-4, or a Zoom link">
+      <p th:replace="~{fragments/field-error :: field-error('location')}"></p>
+
+      <button type="submit" class="btn btn-primary btn-block">Propose session</button>
+    </form>
+  </div>
+</main>
+</body>
+</html>

@@ -91,6 +91,14 @@
     </div>
   </section>
 
+  <section th:if="${member}" class="card" aria-labelledby="sessions-heading">
+    <h2 id="sessions-heading">Sessions and activity</h2>
+    <p class="text-secondary">Plan a study session at a time the group is free, and see who joined, left or proposed a session.</p>
+    <div class="group-actions">
+      <a class="btn btn-secondary" th:href="@{/groups/{id}/sessions(id=${group.id})}">See sessions and activity</a>
+    </div>
+  </section>
+
   <section th:if="${discordStatus != 'HIDDEN'}" class="card" aria-labelledby="chat-heading">
     <h2 id="chat-heading">Group chat</h2>
     <th:block th:if="${discordStatus == 'NO_CHANNEL'}">

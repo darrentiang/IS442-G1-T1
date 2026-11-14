@@ -7,7 +7,7 @@
   Usage (first thing in <body>), passing the current page's key:
     <header th:replace="~{fragments/nav :: nav('buddies')}"></header>
   Page keys and where they sit:
-    Students  home | buddies, requests, connections | groups, my-groups, group-requests | profile, availability
+    Students  home | buddies, requests, connections | groups, my-groups, group-requests | sessions | profile, availability
     Admins    home | admin | config | groups | courses
   The picker passes 'picker', which shows only the app name. Pending counts (navCounts) are
   added for students by AuthInterceptor.
@@ -33,6 +33,8 @@
           <a th:href="@{/groups}" th:classappend="${area == 'groups'} ? 'active'"
              th:attr="aria-current=${area == 'groups'} ? 'page'">Groups<span class="nav-count" th:if="${joinCount > 0}"
              th:text="${joinCount}" th:attr="aria-label=${joinCount + ' waiting'}">1</span></a>
+          <a th:href="@{/sessions}" th:classappend="${area == 'sessions'} ? 'active'"
+             th:attr="aria-current=${area == 'sessions'} ? 'page'">Sessions</a>
           <a th:href="@{/profile}" th:classappend="${area == 'profile'} ? 'active'"
              th:attr="aria-current=${area == 'profile'} ? 'page'">Profile</a>
         </th:block>
