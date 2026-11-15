@@ -47,7 +47,7 @@ The brief defines three roles. Every functional requirement is implemented.
 | **Requests & connections** | Send a buddy request with an optional message; accept or decline incoming requests, after which the **contact number becomes visible** to both; view active buddies and end a connection at any time |
 | **Groups** | Browse public groups and request to join; join a **private group through its invite link**; see **My groups** and **My join requests**; leave a group |
 | **Group chat** | Connect a Discord account once to get into the **private Discord channel** of every group they belong to (optional, see [Quick start](#quick-start)) |
-| **Study sessions** | Plan a meeting with a buddy or with a whole study group, picking from **times everyone is free**; everyone invited replies Going or Can't; the proposer confirms once someone else is going, then marks it done or cancels it. Each group also has an **activity feed** of who joined, who left, and which sessions were proposed and confirmed, visible to members only |
+| **Study sessions** | Plan a meeting with a buddy or with a whole study group, picking from **times everyone is free**; everyone invited replies **I'm going** or **Can't make it**; the proposer confirms once someone else is going, then marks it done or cancels it. Each group also has an **activity feed** of who joined, who left, and which sessions were proposed and confirmed, visible to members only |
 
 ### Study group leaders
 
@@ -121,7 +121,7 @@ There are no passwords: the start page lists every seeded user, and you sign in 
 **A five-minute tour of the core flow:**
 1. Sign in as **S036** and open **Buddies → Find buddies**: ranked IS442 matches, each with a mutual fit score and reasons.
 2. Open a candidate: the contact number reads *"Visible after you connect"*.
-3. Go to **Requests**, accept the request from Arjun Menon, then open **My buddies**: his contact number is now shown.
+3. Go to **Buddies → Requests**, accept the request from Arjun Menon, then open **My buddies**: his contact number is now shown.
 4. Click **End connection**: he leaves the list and his number is hidden again.
 5. Sign in as **A001**, open **Matching**, switch the strategy to *Availability first*, and repeat step 1 to see the ranking change.
 
