@@ -3,7 +3,9 @@ package com.studybuddy.model;
 /** Whether a study group can be discovered by everyone or only by invitation. */
 public enum Visibility {
 
+    /** Listed when browsing groups; anyone can ask to join. */
     PUBLIC("Public: anyone can find it"),
+    /** Hidden from browsing; joined only through the invite link. */
     PRIVATE("Private: only people with the link");
 
     private final String label;

@@ -18,7 +18,7 @@ Run: `.\mvnw.cmd spring-boot:run`, then open http://localhost:8080.
 ## Hard rules
 
 1. **No database, no JPA, no Spring Data, no Lombok, no validation starter, no CSS or JS frameworks, no CDN links, no new dependencies** of any kind without team agreement.
-2. **Domain firewall:** nothing in `com.studybuddy.model`, `com.studybuddy.engine` or `com.studybuddy.importer` may import `org.springframework.*` or `jakarta.*`. Plain Java only.
+2. **Domain firewall:** nothing in `com.studybuddy.model`, `com.studybuddy.engine` (including its sub-packages `filter`, `criteria`, `strategy` and `advisor`) or `com.studybuddy.importer` may import `org.springframework.*` or `jakarta.*`. Plain Java only.
 3. **Spring annotations allowed:** `@SpringBootApplication`, `@Controller`, `@RestController`, `@GetMapping`, `@PostMapping`, `@PathVariable`, `@RequestParam`, `@Service`, `@Repository` (InMemory implementations only), `@Component` (startup tasks only, e.g. SeedDataLoader), `@Configuration` (`WebConfig` only), and implementing `HandlerInterceptor` (`AuthInterceptor` only): a check every page needs is a cross-cutting concern, so it lives in one class instead of in every controller. Constructor injection only. **Never field `@Autowired`.**
 4. **No `Optional`, no streams, no lambdas** in `model`, `engine`, `importer`, `repository` or `service` — return the object or `null`, use plain loops.
 5. **Availability is `boolean[7][15]`** — day 0 = Monday, hour index 0 = 08:00. No `java.time` in it. `LocalDate`/`LocalDateTime` only where FOUNDATION.md shows them, plus `IcsTimetableImporter` (calendar parsing).
@@ -34,7 +34,7 @@ Packages are by layer. Dependencies point down only: controller → service → 
 | Package | Put here | Naming | Rules |
 |---|---|---|---|
 | `com.studybuddy.model` | Entities and enums | `Student`, `StudyGroup`, `RequestStatus` | Plain Java. No Spring, no repositories, no HTML |
-| `com.studybuddy.engine` | Matching: criteria, strategies, config, results | `AvailabilityCriterion`, `BalancedStrategy` | Plain Java. Criteria implement `MatchCriterion`, strategies implement `MatchingStrategy` |
+| `com.studybuddy.engine` | Matching: criteria, strategies, config, results; sub-packages `filter`, `criteria`, `strategy`, `advisor` (BOSS Advisor) | `AvailabilityCriterion`, `BalancedStrategy`, `WidenModeChange` | Plain Java. Criteria implement `MatchCriterion`, strategies implement `MatchingStrategy`, advisor changes extend `PreferenceChange` |
 | `com.studybuddy.importer` | Timetable import | `TimetableImporter` (interface), `IcsTimetableImporter`, `TimetableImport`, `TimetableImportException` | Plain Java, same firewall as `engine`. One importer class per file format |
 | `com.studybuddy.repository` | Storage | `XRepository` (interface) + `InMemoryXRepository` (`@Repository`) | The ONLY place that holds data. Add finder methods your feature needs to the interface and implementation |
 | `com.studybuddy.service` | Business rules | `XService` (`@Service`) | Calls repositories and other services. Returns model objects, never HTML, never touches `Model` |
@@ -62,7 +62,7 @@ Every page includes `fragments/head`, `fragments/nav` and `fragments/toast`. Cop
 - CSS lives only in `static/css/app.css`. Pages use its classes (see UI_GUIDELINES.md). No `<style>` blocks, no `style=""` attributes.
 - JavaScript lives only in `static/js/`, one file per page that needs it (`admin-config.js`, `availability-grid.js`). No inline `<script>` code.
 
-**Docs:** `docs/FOUNDATION.md` (design), `docs/UI_GUIDELINES.md` (look and behaviour), `docs/*.mmd` (class diagrams).
+**Docs:** `docs/FOUNDATION.md` (design), `docs/UI_GUIDELINES.md` (look and behaviour), `docs/diagrams/*.puml` and `.png` (class and other diagrams).
 
 ## Current user
 

@@ -3,8 +3,11 @@ package com.studybuddy.model;
 /** How a student prefers to meet: in person, online, or no preference. */
 public enum StudyMode {
 
+    /** Meets face to face. */
     IN_PERSON("In person"),
+    /** Meets online. */
     ONLINE("Online"),
+    /** No preference between in person and online. */
     EITHER("In person or online");
 
     private final String label;

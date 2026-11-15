@@ -74,6 +74,8 @@ Create a group for a course with a name, description, study goals, mode, weekly 
 | **Browse study groups**<br>![Groups](docs/screenshots/10-groups.png) | **Group page as a member**<br>![Group member view](docs/screenshots/11-group-member-view.png) |
 | **Leader: manage members and requests**<br>![Manage group](docs/screenshots/12-group-manage.png) | **Admin: all accounts**<br>![Accounts](docs/screenshots/13-admin-accounts.png) |
 | **Admin: account status and usage**<br>![Account detail](docs/screenshots/14-admin-account-detail.png) | **Admin: matching configuration**<br>![Matching config](docs/screenshots/15-admin-matching-config.png) |
+| **BOSS Advisor: one change that unlocks more matches**<br>![BOSS Advisor](docs/screenshots/16-boss-advisor.png) | **Planning a study session at a time everyone is free**<br>![Study sessions](docs/screenshots/17-study-sessions.png) |
+| **Private group: invite link with Copy and Reset**<br>![Private invite link](docs/screenshots/18-private-invite.png) | **Admin: overview**<br>![Admin overview](docs/screenshots/19-admin-overview.png) |
 
 </details>
 
@@ -197,6 +199,8 @@ The full rationale, criteria definitions and default weights are in [docs/MATCHI
 
 Some students get too few good matches (by default, fewer than 3 matches at 60% or more). BOSS Advisor shows them, on **Find buddies**, the **one preference change that would unlock more matches**, and applies it in one click.
 
+![BOSS Advisor classes](docs/diagrams/boss-advisor.png)
+
 1. It takes the **near misses**: people who scored 40 to 59%.
 2. For each one it works out, **from both sides of the pair**, which preference cost the most points: study mode, free time, a study goal or group size.
 3. It turns the most common blockers into exact changes, such as *"If you're free Sun 14:00–16:00, add it to your free time"*.
@@ -243,8 +247,7 @@ src/main/resources/
 ├── seed/         Demo data and default matching configuration
 └── samples/      A sample .ics timetable for the import
 docs/
-├── diagrams/     PlantUML sources (.puml) and rendered images
-├── diagram-*.mmd Mermaid class diagrams by area
+├── diagrams/     PlantUML sources (.puml) and rendered diagrams (.png)
 └── screenshots/  Images used in this README
 ```
 
@@ -304,5 +307,5 @@ To keep that use responsible and the code our own:
 | [docs/TIMETABLE_IMPORT.md](docs/TIMETABLE_IMPORT.md) | How `.ics` timetables become availability |
 | [docs/UI_GUIDELINES.md](docs/UI_GUIDELINES.md) | Visual design tokens and feedback patterns |
 | [AGENTS.md](AGENTS.md) | Coding rules for contributors and AI agents |
-| `docs/diagram-*.mmd` | Mermaid class diagrams by area: users, groups, engine, config |
+| [docs/diagrams/domain-model.png](docs/diagrams/domain-model.png), [matching-engine.png](docs/diagrams/matching-engine.png), [boss-advisor.png](docs/diagrams/boss-advisor.png) | Class diagrams: the domain model (users, groups, sessions), the matching engine with its configuration, and the advisor |
 | [docs/diagrams/](docs/diagrams/) | PlantUML sources for every diagram here. Re-render with `java -jar plantuml.jar -tpng docs/diagrams/*.puml` |

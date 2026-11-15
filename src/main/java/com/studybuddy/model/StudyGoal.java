@@ -3,9 +3,13 @@ package com.studybuddy.model;
 /** What a student wants to get out of studying together. */
 public enum StudyGoal {
 
+    /** Going over concepts together. */
     CONCEPT_REVIEW("Concept review"),
+    /** Working through problems together. */
     PROBLEM_SOLVING("Problem solving"),
+    /** Preparing for an exam. */
     EXAM_PREP("Exam prep"),
+    /** Talking through a project. */
     PROJECT_DISCUSSION("Project discussion");
 
     private final String label;

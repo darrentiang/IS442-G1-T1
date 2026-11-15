@@ -1,0 +1,135 @@
+@startuml boss-advisor
+' BOSS Advisor: one abstract PreferenceChange with a subclass per kind of change
+' (polymorphism, open for extension), a two-sided near-miss diagnosis, and every
+' suggestion checked by re-running the real Find buddies search on a copy of the student.
+!theme plain
+skinparam defaultFontName "Segoe UI"
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #FAFAFA
+  BorderColor #6E6E73
+}
+skinparam package {
+  BorderColor #A1A1A6
+  FontColor #6E6E73
+}
+hide empty members
+
+package "controller" {
+  class BuddyController {
+    GET /buddies  (adds advice)
+    POST /buddies/boss-advisor/apply
+  }
+  class AdminController {
+    POST /admin/config/advisor
+  }
+}
+
+package "service" {
+  class BossAdvisorService {
+    + adviceFor(student) : Advice
+    + apply(student, key) : String
+    + validateSettings(goodMatchPercent, enoughGoodMatches) : Map
+    + updateSettings(goodMatchPercent, enoughGoodMatches)
+  }
+  class MatchingService {
+    + findBuddies(seeker, search) : List<MatchResult>
+    + evaluate(seeker, candidate) : MatchResult
+  }
+}
+
+package "repository" {
+  interface AdvisorSettingsRepository {
+    + get() : AdvisorSettings
+    + save(settings)
+  }
+  class InMemoryAdvisorSettingsRepository
+}
+
+package "engine.advisor  (plain Java)" {
+  class AdvisorSettings {
+    - goodMatchScore : double
+    - enoughGoodMatches : int
+  }
+
+  abstract class PreferenceChange {
+    + {abstract} getKey() : String
+    + {abstract} appliesTo(profile) : boolean
+    + {abstract} applyTo(profile)
+    + {abstract} describe() : String
+    + {abstract} getDoneMessage() : String
+    + {abstract} getTradeOff() : String
+    + {abstract} getBlockerLabel() : String
+  }
+  class WidenModeChange {
+    - current : StudyMode
+  }
+  class WidenFormatChange {
+    - current : GroupFormat
+  }
+  class AddGoalChange {
+    - goal : StudyGoal
+  }
+  class AddTimeSlotChange {
+    - day, startIndex, hours : int
+  }
+
+  class NearMissDiagnosis {
+    + diagnose(her, nearMisses, weights, sessionHours) : List<Blocker>
+  }
+  class NearMiss {
+    - candidate : Student
+    - herSide : Map<String, CriterionScore>
+    - theirSide : Map<String, CriterionScore>
+  }
+  class Blocker {
+    - people : int
+  }
+  class WhatIfCopier {
+    + copy(student) : Student  <<same id, no contact>>
+  }
+  class Suggestion {
+    - peopleHeldBack : int
+    - goodBefore, goodAfter : int
+    - bestBefore, bestAfter : double
+    + getGained() : int
+    + getReason() : String
+  }
+  class SuggestionComparator {
+    + compare(a, b) : int
+  }
+  class Advice {
+    - needsHelp : boolean
+    - goodMatches : int
+    - othersInCourse : int
+    + {static} notNeeded(...) : Advice
+    + {static} withSuggestions(...) : Advice
+    + {static} nobodyFits(...) : Advice
+  }
+}
+
+interface "Comparator<Suggestion>" as Comparator
+
+BuddyController --> BossAdvisorService
+AdminController --> BossAdvisorService : settings
+BossAdvisorService --> MatchingService : runs the real search
+BossAdvisorService --> AdvisorSettingsRepository
+AdvisorSettingsRepository <|.. InMemoryAdvisorSettingsRepository
+AdvisorSettingsRepository ..> AdvisorSettings
+BossAdvisorService --> NearMissDiagnosis
+BossAdvisorService --> WhatIfCopier : tries each change on a copy
+BossAdvisorService ..> SuggestionComparator : sorts
+BossAdvisorService ..> Advice : returns
+
+PreferenceChange <|-- WidenModeChange
+PreferenceChange <|-- WidenFormatChange
+PreferenceChange <|-- AddGoalChange
+PreferenceChange <|-- AddTimeSlotChange
+
+NearMissDiagnosis ..> NearMiss : reads both sides
+NearMissDiagnosis ..> Blocker : creates
+Blocker --> "1" PreferenceChange
+Suggestion --> "1" PreferenceChange
+Advice o-- "0..3" Suggestion
+Comparator <|.. SuggestionComparator
+@enduml

@@ -33,7 +33,7 @@ com.studybuddy.model         entities + enums
 com.studybuddy.repository    repository interfaces + InMemory implementations
 com.studybuddy.service       services
 com.studybuddy.controller    controllers
-com.studybuddy.engine        matching: engine, config, results (+ filter, criteria, strategy sub-packages)
+com.studybuddy.engine        matching: engine, config, results (+ filter, criteria, strategy, advisor sub-packages)
 com.studybuddy.importer      timetable import: reads a timetable file into class hours
 com.studybuddy.seed          seed data: SeedDataLoader runs one Seeder per CSV file
 src/main/resources/templates/   Thymeleaf pages (.html)
@@ -410,9 +410,26 @@ public class TimetableImportService {
 
 `ProfileService.ownView(student)` returns the student's own profile through `toConnectedView()`, so My profile can show their own contact number without a getter.
 
+### BOSS Advisor (`com.studybuddy.engine.advisor`)
+
+- Plain Java, so the domain firewall applies: no `org.springframework.*` or `jakarta.*` imports.
+- It looks at near misses for a student with too few good matches and suggests the one preference change that would unlock the most.
+- `PreferenceChange` is abstract, with one subclass per kind of change: `WidenModeChange`, `WidenFormatChange`, `AddGoalChange`, `AddTimeSlotChange`. A new kind of suggestion is one new subclass.
+- Each suggestion is checked on a copy of the student (`WhatIfCopier`) by re-running the real search, so its numbers come from the engine itself.
+- `BossAdvisorService` (in `service`) reads the thresholds, calls the advisor for Find buddies and applies a verified change.
+- The full design is in [BOSS_ADVISOR.md](BOSS_ADVISOR.md).
+
+### Discord group chat (`com.studybuddy.service`)
+
+- **Observer:** `StudyGroupService` and `MembershipService` tell every `GroupEventListener` when a group is created or closed and when a member joins or leaves. `DiscordService` and `ActivityFeedService` are the two listeners; a listener never throws.
+- **Gateway:** `DiscordGateway` is the interface the rules depend on; `HttpDiscordGateway` makes the web calls with the JDK's `HttpClient`.
+- Links live in their own model classes (`DiscordChannel`, `DiscordAccount`, `DiscordLoginAttempt`), so `StudyGroup` and `Student` know nothing about Discord.
+- Settings are the `DISCORD_*` values in the git-ignored `.env` file (see `.env.example`). If any is missing, the feature turns itself off.
+- A Discord failure is logged and never blocks a group action.
+
 ## 4. Class diagram
 
-Small diagrams instead of one tangle. A to C also live in the repo as `docs/diagram-users.mmd`, `docs/diagram-groups.mmd`, `docs/diagram-engine.mmd` (Mermaid renders on GitHub automatically); D to F cover the cross-cutting pieces.
+Small diagrams instead of one tangle. A to C show the original design; the maintained versions, which include the later features, are rendered from PlantUML in `docs/diagrams/`: [domain-model.png](diagrams/domain-model.png) (A and B) and [matching-engine.png](diagrams/matching-engine.png) (C), with [boss-advisor.png](diagrams/boss-advisor.png) for the advisor. D to F cover the cross-cutting pieces.
 
 **A — Users and matching entities:**
 

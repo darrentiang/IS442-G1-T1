@@ -1,6 +1,6 @@
 # The Matching Engine
 
-How Study Buddy Matcher turns a pool of students into a short, explained list of buddies. All of it is plain Java in `com.studybuddy.engine` (sub-packages `filter`, `criteria`, `strategy`); the class diagram is `docs/diagram-engine.mmd`.
+How Study Buddy Matcher turns a pool of students into a short, explained list of buddies. All of it is plain Java in `com.studybuddy.engine` (sub-packages `filter`, `criteria`, `strategy`, plus `advisor` for the BOSS Advisor, described in [BOSS_ADVISOR.md](BOSS_ADVISOR.md)); the class diagram is [docs/diagrams/matching-engine.png](diagrams/matching-engine.png).
 
 ## The pipeline
 

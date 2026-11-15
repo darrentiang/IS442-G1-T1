@@ -3,8 +3,11 @@ package com.studybuddy.model;
 /** The group size a student prefers: one buddy, a small group, or no preference. */
 public enum GroupFormat {
 
+    /** Prefers a single study buddy. */
     ONE_TO_ONE("One-to-one"),
+    /** Prefers studying in a small group. */
     SMALL_GROUP("Small group"),
+    /** No preference between one buddy and a small group. */
     EITHER("One-to-one or small group");
 
     private final String label;

@@ -3,7 +3,9 @@ package com.studybuddy.model;
 /** The kind of account a user has. Fixed choices: student or administrator. */
 public enum Role {
 
+    /** A student who looks for buddies and joins groups. */
     STUDENT("Student"),
+    /** A system administrator who manages accounts and matching. */
     ADMIN("Administrator");
 
     private final String label;

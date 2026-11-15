@@ -3,8 +3,11 @@ package com.studybuddy.model;
 /** How hard a student intends to study. */
 public enum Intensity {
 
+    /** A relaxed pace. */
     CASUAL("Casual"),
+    /** A regular, consistent pace. */
     STEADY("Steady"),
+    /** An intensive pace. */
     GRIND("Grind");
 
     private final String label;
