@@ -1,5 +1,6 @@
 @startuml architecture
-' Layered architecture: every dependency points down.
+' Layered architecture: every dependency points down. Discord is the one outside
+' system, reached only through the DiscordGateway interface.
 !theme plain
 skinparam defaultFontName "Segoe UI"
 skinparam componentStyle rectangle
@@ -12,30 +13,41 @@ actor "Browser" as browser
 
 rectangle "Spring Boot application" {
   rectangle "Presentation\n<size:11>controller · Thymeleaf templates · app.css</size>" as web {
-    component "AuthInterceptor\n<size:10>sign-in, suspended, admin-only</size>" as auth
-    component "10 controllers\n<size:10>Buddy, Connection, Group, Admin, ...</size>" as ctrl
+    component "AuthInterceptor\n<size:10>sign-in, suspended, admin-only,</size>\n<size:10>pending counts for the nav</size>" as auth
+    component "12 controllers\n<size:10>Buddy, Group, Session, Discord, Admin, ...</size>" as ctrl
   }
   rectangle "Business logic\n<size:11>service</size>" as svc {
-    component "Services\n<size:10>MatchRequestService, ConnectionService,</size>\n<size:10>StudyGroupService, AdminService, ...</size>" as services
+    component "Services\n<size:10>MatchingService, BossAdvisorService,</size>\n<size:10>StudyGroupService, SessionService,</size>\n<size:10>GroupInviteService, AdminService, ...</size>" as services
+    component "GroupEventListener\n<size:10>DiscordService, ActivityFeedService</size>" as listeners
+    component "DiscordGateway\n<size:10>HttpDiscordGateway</size>" as gateway
   }
   rectangle "Domain\n<size:11>plain Java, no Spring</size>" as domain {
     component "Matching engine\n<size:10>engine: criteria, filters, strategies</size>" as engine
+    component "BOSS Advisor\n<size:10>engine.advisor: preference changes,</size>\n<size:10>near-miss diagnosis</size>" as advisor
     component "Timetable importer\n<size:10>importer: .ics parsing</size>" as importer
-    component "Model\n<size:10>Student, StudyGroup, MatchRequest, ...</size>" as model
+    component "Model\n<size:10>Student, StudyGroup, StudySession, ...</size>" as model
   }
   rectangle "Data access\n<size:11>repository</size>" as repo {
     component "XRepository interfaces" as irepo
-    component "InMemoryXRepository\n<size:10>LinkedHashMap stores</size>" as memrepo
+    component "InMemoryXRepository\n<size:10>HashMap, LinkedHashMap and list stores</size>" as memrepo
   }
   component "SeedDataLoader\n<size:10>one Seeder per CSV</size>" as seed
 }
 
 file "seed/*.csv\n<size:10>10 courses, 50 students,</size>\n<size:10>12 groups, requests, config</size>" as csv
+file ".env\n<size:10>DISCORD_* settings,</size>\n<size:10>git-ignored</size>" as env
+cloud "Discord API" as discord
 
 browser --> auth : HTTP
 auth --> ctrl
 ctrl --> services
+services --> listeners : group events
+listeners --> gateway
+gateway --> discord : HTTPS
+env ..> gateway : settings
 services --> engine
+services --> advisor
+advisor --> engine
 services --> importer
 services --> irepo
 irepo <|.. memrepo : implements

@@ -1,11 +1,17 @@
 @startuml domain-model
 ' Core entities in com.studybuddy.model. Fields trimmed to the ones that shape the design.
+' The side records at the bottom point at a shared entity by id, so the shared classes
+' (FOUNDATION.md section 3) never had to change when the features after them were added.
 !theme plain
 skinparam defaultFontName "Segoe UI"
 skinparam classAttributeIconSize 0
 skinparam class {
   BackgroundColor #FAFAFA
   BorderColor #6E6E73
+}
+skinparam package {
+  BorderColor #A1A1A6
+  FontColor #6E6E73
 }
 hide empty members
 
@@ -52,6 +58,7 @@ class Connection {
 class StudyGroup {
   - maxSize : int
   - open : boolean
+  - visibility : Visibility
   + addMember(Student)
   + removeMember(Student)
   + nextLeader() : Student
@@ -68,6 +75,57 @@ enum RequestStatus {
   PENDING
   ACCEPTED
   DECLINED
+}
+
+package "Study sessions" {
+  class StudySession {
+    - day, startHour, endHour : int
+    - location : String
+    - status : SessionStatus
+    - rsvps : Map<Student, Rsvp>
+  }
+  enum SessionStatus {
+    PROPOSED
+    CONFIRMED
+    PAST
+  }
+  enum Rsvp {
+    GOING
+    CANT
+  }
+  class SessionDetails {
+    - sessionId : String
+    - proposerId : String
+    - groupId : String  <<null for buddies>>
+  }
+}
+
+package "Side records (link by id)" {
+  class GroupInvite {
+    - groupId : String
+    - token : String
+  }
+  class ActivityEvent {
+    - type : ActivityType
+    - text : String
+    - timestamp : LocalDateTime
+  }
+  class Pass {
+    - date : LocalDate
+  }
+  class DiscordChannel {
+    - groupId : String
+    - channelId, roleId : String
+  }
+  class DiscordAccount {
+    - studentId : String
+    - discordUserId : String
+  }
+  class DiscordLoginAttempt {
+    - state : String
+    - studentId : String
+    - groupId : String
+  }
 }
 
 User <|-- Student
@@ -90,4 +148,19 @@ StudyGroup --> "1" Course
 StudyGroup *-- AvailabilityGrid
 JoinRequest --> "1" Student
 JoinRequest --> "1" StudyGroup
+
+StudySession --> "1" Course
+StudySession o-- "*" Student : participants
+StudySession ..> SessionStatus
+StudySession ..> Rsvp
+SessionDetails ..> StudySession : by id
+SessionDetails ..> StudyGroup : by id
+
+GroupInvite ..> StudyGroup : by id
+ActivityEvent --> "1" StudyGroup
+Pass --> "1" Student : seeker
+Pass --> "1" Student : candidate
+DiscordChannel ..> StudyGroup : by id
+DiscordAccount ..> Student : by id
+DiscordLoginAttempt ..> Student : by id
 @enduml

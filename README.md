@@ -22,6 +22,7 @@ Built by **IS442 G1-T1** for the IS442 Object-Oriented Programming project.
 - [Architecture](#architecture)
 - [Design principles and patterns](#design-principles-and-patterns)
 - [The matching engine](#the-matching-engine)
+- [BOSS Advisor](#boss-advisor)
 - [Configuration and seed data](#configuration-and-seed-data)
 - [Project structure](#project-structure)
 - [Open-source libraries](#open-source-libraries)
@@ -174,6 +175,21 @@ Business rules are signalled with `BusinessRuleException` and its subclasses (`G
 
 The full rationale, criteria definitions and default weights are in [docs/MATCHING_ENGINE.md](docs/MATCHING_ENGINE.md).
 
+## BOSS Advisor
+
+Our extra feature. When a student has too few good matches (fewer than 3 at 60% or more, both set by the admin), Find buddies shows a **BOSS Advisor** card with the one preference change that would unlock more, what it gains, why, and what it costs. **Apply** makes the change in one click.
+
+![BOSS Advisor classes](docs/diagrams/boss-advisor.png)
+
+| Step | What happens |
+|---|---|
+| 1. Near misses | Take the people who almost matched the student (40 to 59%) |
+| 2. Diagnose | Score each pair from **both sides** and find the preference that cost the most points: study mode, free time, study goal or group size |
+| 3. Verify | Try the matching change on a copy of the student (`WhatIfCopier`) and re-run the real Find buddies search; keep it only if it adds good matches |
+| 4. Apply | The real profile changes only for a change the advisor just verified |
+
+Each kind of change is a subclass of the abstract `PreferenceChange`, so a new kind of suggestion is one new class (Open/Closed). The full write-up is in [docs/BOSS_ADVISOR.md](docs/BOSS_ADVISOR.md).
+
 ## Configuration and seed data
 
 Configuration lives outside the Java code:
@@ -262,6 +278,7 @@ To keep that use responsible and the code our own:
 |---|---|
 | [docs/FOUNDATION.md](docs/FOUNDATION.md) | Design spec: layers, shared classes, the worked Course example every feature follows |
 | [docs/MATCHING_ENGINE.md](docs/MATCHING_ENGINE.md) | Matching pipeline, criteria and default weights |
+| [docs/BOSS_ADVISOR.md](docs/BOSS_ADVISOR.md) | BOSS Advisor: the problem, how it works, its classes and settings |
 | [docs/TIMETABLE_IMPORT.md](docs/TIMETABLE_IMPORT.md) | How `.ics` timetables become availability |
 | [docs/UI_GUIDELINES.md](docs/UI_GUIDELINES.md) | Visual design tokens and feedback patterns |
 | [AGENTS.md](AGENTS.md) | Coding rules for contributors and AI agents |

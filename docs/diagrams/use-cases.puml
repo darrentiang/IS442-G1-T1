@@ -1,5 +1,6 @@
 @startuml use-cases
-' What each of the three roles in the brief can do.
+' What each of the three roles in the brief can do, plus the extras built on top
+' (BOSS Advisor, private invite links, Discord group chat, study sessions).
 !theme plain
 skinparam defaultFontName "Segoe UI"
 skinparam packageStyle rectangle
@@ -25,6 +26,7 @@ rectangle "Study Buddy Matcher" {
     usecase "Search by course or goal" as UC4
     usecase "View ranked, filtered matches" as UC5
     usecase "View public profile\n(contact hidden)" as UC6
+    usecase "Get a BOSS Advisor suggestion\nand apply it" as UC17
   }
   package "Requests & connections" {
     usecase "Send buddy request" as UC7
@@ -33,14 +35,25 @@ rectangle "Study Buddy Matcher" {
   }
   package "Study groups" {
     usecase "Browse and join groups" as UC10
+    usecase "Join a private group\nby invite link" as UC18
     usecase "Leave a group" as UC11
+    usecase "Connect Discord to join\nthe group chat" as UC19
     usecase "Create / edit / close group" as UC12
     usecase "Accept / reject join requests,\nremove members" as UC13
+    usecase "Share / reset the\nprivate invite link" as UC20
+    usecase "Set up the group's\nDiscord channel" as UC21
+  }
+  package "Study sessions" {
+    usecase "Plan a session at a time\neveryone is free" as UC22
+    usecase "Reply Going / Can't" as UC23
+    usecase "Confirm, mark done\nor cancel own session" as UC24
+    usecase "View group activity feed" as UC25
   }
   package "Administration" {
     usecase "Create / update / delete accounts" as UC14
-    usecase "View status and usage,\nsuspend / reactivate" as UC15
+    usecase "Search accounts, view status\nand usage, suspend / reactivate" as UC15
     usecase "Configure criteria,\nstrategy and weights" as UC16
+    usecase "Set BOSS Advisor thresholds" as UC26
   }
 }
 
@@ -50,15 +63,26 @@ student --> UC3
 student --> UC4
 student --> UC5
 student --> UC6
+student --> UC17
 student --> UC7
 student --> UC8
 student --> UC9
 student --> UC10
+student --> UC18
 student --> UC11
+student --> UC19
+student --> UC22
+student --> UC23
+student --> UC24
+student --> UC25
 leader --> UC12
 leader --> UC13
+leader --> UC20
+leader --> UC21
 admin --> UC14
 admin --> UC15
 admin --> UC16
+admin --> UC26
 UC3 .> UC2 : <<extend>>
+UC17 .> UC5 : <<extend>>
 @enduml
